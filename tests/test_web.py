@@ -77,6 +77,33 @@ def test_api_reports_changes_bill_and_log(client):
     assert data["activity_log"]["intact"] is True
 
 
+def test_do_all_buttons_move_only_ready_changes(client):
+    job = store.JOBS["annual-dinner"].job
+    as_role(client, "pm")
+    page = client.post("/job/annual-dinner/bulk", follow_redirects=True).data.decode()
+    assert "Checked 6 changes" in page                        # the mics have no price, so they wait
+    assert job.items[key_for("annual-dinner", "Wireless mic")].state == "detected"
+    as_role(client, "owner")
+    client.post("/job/annual-dinner/bulk")
+    as_role(client, "client")
+    client.post("/job/annual-dinner/bulk")
+    states = {i.state for i in job.items.values()}
+    assert states == {"confirmed", "detected", "record_only"}
+
+
+def test_highlighting_marks_deal_terms_but_still_escapes(client):
+    from main import marked
+    html = str(marked("<b>x</b> LED upgrade will be RM 1,100 more, ok go ahead"))
+    assert "&lt;b&gt;" in html
+    assert "<mark>RM 1,100 more</mark>" in html and "<mark>ok</mark>" in html
+
+
+def test_success_message_after_an_action(client):
+    banners = key_for("annual-dinner", "Roll-up banner")
+    page = client.post(f"/job/annual-dinner/act/{banners}", data={"action": "review"}, follow_redirects=True)
+    assert "Roll-up banner: approved, waiting for client." in page.data.decode()
+
+
 def test_chat_text_is_escaped(client):
     raw = "01/10/2026, 9:00 am - Eve: <script>alert(1)</script> add 2 more banner\n"
     client.post("/import", data={"quote": "q_dinner.json", "chat": (io.BytesIO(raw.encode()), "x.txt")},
