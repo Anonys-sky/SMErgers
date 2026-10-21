@@ -5,7 +5,7 @@
   --ok: #1d7a3e; --ok-soft: #e3f3e8; --wait: #9a6206; --wait-soft: #fbf0dc;
   --bad: #b3342f; --bad-soft: #f9e4e3; --info: #2b5c9e; --info-soft: #e5edf8;
   --hl: #fff2b8; --radius: 10px; --gap: 16px;
-  --font: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {

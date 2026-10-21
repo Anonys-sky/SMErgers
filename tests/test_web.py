@@ -41,6 +41,7 @@ def test_full_flow_through_the_pages(client):
     as_role(client, "client")
     client.post(f"/job/annual-dinner/act/{banners}", data={"action": "confirm"})
     assert store.JOBS["annual-dinner"].job.items[banners].state == "confirmed"
+    as_role(client, "finance")
     bill = client.get("/job/annual-dinner/bill").data.decode()
     assert "quote: 4" in bill
     assert "confirm" in client.get("/job/annual-dinner/log").data.decode()
@@ -52,6 +53,28 @@ def test_server_refuses_actions_the_role_may_not_take(client):
     page = client.post(f"/job/annual-dinner/act/{banners}", data={"action": "review"}, follow_redirects=True)
     assert "cannot review" in page.data.decode()
     assert store.JOBS["annual-dinner"].job.items[banners].state == "detected"
+
+
+def test_clients_only_see_their_confirmation_page(client):
+    as_role(client, "client")
+    for path in ("", "/bill", "/bill.csv", "/log"):
+        page = client.get(f"/job/annual-dinner{path}")
+        assert page.status_code == 302 and page.location.endswith("/job/annual-dinner/client"), path
+    assert b"Activity log" not in client.get("/job/annual-dinner/client").data
+
+
+def test_bill_csv_is_marked_draft_and_totals_match(client):
+    rows = client.get("/job/annual-dinner/bill.csv").data.decode().splitlines()
+    assert rows[0].startswith("DRAFT - not an invoice")
+    assert rows[-1].endswith("34530.0,")
+
+
+def test_api_reports_changes_bill_and_log(client):
+    data = client.get("/api/jobs/annual-dinner").get_json()
+    assert data["job"]["simulated"] is True
+    assert len(data["changes"]) == 10
+    assert data["bill"]["agreed_in_chat_beyond_quote"] == 3540
+    assert data["activity_log"]["intact"] is True
 
 
 def test_chat_text_is_escaped(client):

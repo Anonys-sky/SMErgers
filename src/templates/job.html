@@ -3,15 +3,13 @@
 {% block title %}{{ r.title }}{% endblock %}
 {% block content %}
 {% set tab = 'changes' %}
-{% set waiting = [] %}
-{% for key, item in items %}{% if allowed(item, role) %}{% set _ = waiting.append(key) %}{% endif %}{% endfor %}
-
 <h1>{{ r.title }}</h1>
-<p class="lede">{{ r.catalogue.quote.client }} · quote {{ r.catalogue.quote.quote_id }} · chat {{ r.chat_name }}</p>
+<p class="lede">{{ r.catalogue.quote.client }} · quote {{ r.catalogue.quote.quote_id }} · chat {{ r.chat_name }} ·
+  owner sign-off needed at {{ owner_limit | rm }} or more</p>
 <p class="headline">
   <strong class="num">{{ bill.agreed_beyond_quote | rm }}</strong> was agreed in the chat on top of the
   <span class="num">{{ bill.quote_total | rm }}</span> quote.
-  {% if waiting %}{{ waiting|length }} change{{ '' if waiting|length == 1 else 's' }} wait{{ 's' if waiting|length == 1 }} for you as {{ roles[role] }}.
+  {% if waiting %}{{ waiting }} change{{ '' if waiting == 1 else 's' }} wait{{ 's' if waiting == 1 }} for you as {{ roles[role] }}.
   {% else %}Nothing waits for you as {{ roles[role] }}.{% endif %}
 </p>
 {% include "_job_nav.html" %}
@@ -37,7 +35,7 @@
           <span class="amount num">{{ item.price | rm if item.state != 'record_only' else 'No charge' }}</span>
         </div>
         <div class="tags">{{ state_tag(item.state) }} {{ chat_tag(item) }}
-          <span class="tag t-muted">Confidence: {{ c.confidence }}</span></div>
+          {% if c.confidence != 'high' %}<span class="tag t-muted">Confidence: {{ c.confidence }}</span>{% endif %}</div>
         <p class="reason">{{ c.reason }}</p>
         {% if item.notes %}<p class="reason">{% for when, who, note in item.notes %}{{ who }}: “{{ note }}”{% if not loop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
         <button type="button" class="show-src">Show in chat ({{ c.evidence_ids|length }} message{{ '' if c.evidence_ids|length == 1 else 's' }})</button>

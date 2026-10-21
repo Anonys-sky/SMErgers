@@ -64,5 +64,8 @@
   </table>
 </div>
 {% endif %}
-<p class="no-print"><button type="button" onclick="window.print()">Print draft</button></p>
+<p class="no-print actions">
+  <button type="button" onclick="window.print()">Print draft</button>
+  <a class="btn" href="{{ url_for('bill_csv', job_id=r.id) }}">Export CSV for accounting software</a>
+</p>
 {% endblock %}
