@@ -133,7 +133,7 @@ def _quantity(thread, base_qty):
     return result
 
 
-def _price(thread, qty, catalogue):
+def _price(thread, qty):
     """(price_delta, how it was priced) or (None, reason)."""
     stated = None
     for msg in thread.messages:
@@ -249,22 +249,14 @@ def extract(messages, catalogue: Catalogue):
         if DISCOUNT.search(text):
             named = open_thread_for(f"Discount {DISCOUNT.search(text).group(1)}%", msg.sent_at)
         elif mentions:
-            for e in mentions:
-                for t in reversed(threads):
-                    if (t.entry is e or t.replaces is e or (t.entry and catalogue.extra_for(e) is t.entry)) \
-                            and msg.sent_at - t.last.sent_at <= THREAD_WINDOW:
-                        named = t
-                        break
-                if named:
-                    break
+            named = _thread_about(threads, mentions, msg.sent_at, catalogue)
         elif opened and opened[0] == "generic":
             named = open_thread_for(opened[2], msg.sent_at)
         if named:
             named.messages.append(msg)
             continue
 
-        if opened and not (opened[0] == "quantity" and _quantity(Thread("", opened[1], "", "quantity", [msg]), 0) is None
-                           and not REMOVE.search(text) and "?" not in text and not ASK.search(text)):
+        if opened:
             kind, entry, item = opened
             thread = Thread(f"t{len(threads) + 1}", entry, item, kind, [msg])
             if kind == "replacement":
@@ -275,8 +267,8 @@ def extract(messages, catalogue: Catalogue):
 
         # Replies that name nothing ("ok go ahead", "Fine", "and 1 at the lift lobby also")
         # attach to the most recently active thread, if it is still open.
-        if threads and msg.sent_at - threads[-1].last.sent_at <= THREAD_WINDOW:
-            latest = max(threads, key=lambda t: t.last.sent_at)
+        latest = max(threads, key=lambda t: t.last.sent_at, default=None)
+        if latest and msg.sent_at - latest.last.sent_at <= THREAD_WINDOW:
             is_continuation = CONTINUATION.search(_clean_for_qty(text)) and latest.messages[0].sender == msg.sender \
                 and msg.sent_at - latest.last.sent_at <= CONTINUATION_WINDOW
             if is_continuation or CONFIRM.search(text) or DEFER.search(text) or WITHDRAW.search(text) \
@@ -284,9 +276,7 @@ def extract(messages, catalogue: Catalogue):
                 latest.messages.append(msg)
 
     running_qty = {e.line_id: e.qty for e in catalogue.lines}
-    changes = []
-    for t in threads:
-        changes.append(_decide(t, catalogue, running_qty))
+    changes = [_decide(t, running_qty) for t in threads]
     for recap in recaps:
         mentioned = {e.item for e in catalogue.mentions(recap.text)}
         for c in changes:
@@ -294,6 +284,16 @@ def extract(messages, catalogue: Catalogue):
             if c.status not in ("withdrawn",) and line is not None and line.item in mentioned:
                 c.evidence_ids.append(recap.id)
     return changes
+
+
+def _thread_about(threads, mentions, at, catalogue):
+    """The open thread about any of the named items, including its extras (emcee -> emcee overtime)."""
+    for e in mentions:
+        for t in reversed(threads):
+            same = t.entry is e or t.replaces is e or (t.entry and catalogue.extra_for(e) is t.entry)
+            if same and at - t.last.sent_at <= THREAD_WINDOW:
+                return t
+    return None
 
 
 def _describe_upgrade(t):
@@ -309,7 +309,7 @@ def _describe_upgrade(t):
     return f"{quoted}, changed"
 
 
-def _decide(t, catalogue, running_qty):
+def _decide(t, running_qty):
     base_line = t.entry if (t.entry is not None and t.entry.line_id) else t.replaces
     base_qty = running_qty.get(base_line.line_id, 0) if base_line is not None else 0
     qty = _quantity(t, base_qty) if t.kind_hint in ("quantity", "extend", "generic") else 0
@@ -338,7 +338,7 @@ def _decide(t, catalogue, running_qty):
         return Change(t.key, "non_billable", t.item, line_id, 0, 0.0, "log_only", evidence, "high",
                       "Agreed with no change in price. Kept on record.")
 
-    price, how = _price(t, qty, catalogue)
+    price, how = _price(t, qty)
     if agreement != "agreed":
         return Change(t.key, kind, t.item, line_id, qty or 0, price, "unconfirmed", evidence, "medium",
                       f"{who} raised it, but nobody confirmed it in the chat. {how.capitalize()}.")

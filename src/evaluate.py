@@ -67,9 +67,13 @@ def _same_price(a, b):
 
 
 def key_files(held_out):
-    files = sorted(p.name for p in (DATA / "answer_keys").glob("*.json"))
-    keys = [f for f in files if "changes" in json.loads((DATA / "answer_keys" / f).read_text(encoding="utf-8"))]
-    return [f for f in keys if (json.loads((DATA / "answer_keys" / f).read_text(encoding="utf-8")).get("split") == "held_out") == held_out]
+    """Answer keys for client chats (the vendor key has a different shape), tuning or held-out."""
+    chosen = []
+    for path in sorted((DATA / "answer_keys").glob("*.json")):
+        key = json.loads(path.read_text(encoding="utf-8"))
+        if "changes" in key and (key.get("split") == "held_out") == held_out:
+            chosen.append(path.name)
+    return chosen
 
 
 def report(held_out=False, verbose=True):

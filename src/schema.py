@@ -13,8 +13,6 @@ STATUSES = {
     "log_only": "No cost change (kept on record)",
 }
 
-KINDS = {"quantity_change", "upgrade", "replacement", "extra", "discount", "non_billable"}
-
 
 @dataclass(frozen=True)
 class Message:
