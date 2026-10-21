@@ -1,0 +1,25 @@
+{
+  "label": "SIMULATED answer key written by the team, not model output",
+  "chat": "wedding_client.txt",
+  "quote": "q_wedding.json",
+  "split": "held_out",
+  "notes": "Traps: wine count follows from the table count; photobooth hours priced from the rate card, never stated in chat; the owner agrees a percentage discount with no base amount (needs the owner's decision); one no-cost request.",
+  "changes": [
+    {"key": "tables", "kind": "quantity_change", "line_id": "L01", "qty_delta": 2, "price_delta": 2576.0,
+     "status": "ready", "evidence": ["2 more tables", "noted, 32 tables"]},
+    {"key": "wine", "kind": "quantity_change", "line_id": "L02", "qty_delta": 2, "price_delta": 170.0,
+     "status": "ready", "evidence": ["need 32 bottles", "yes 32 bottles"]},
+    {"key": "photobooth_ot_1", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 300.0,
+     "status": "ready", "evidence": ["photobooth can extend 1 more hour", "can, +1 hour"]},
+    {"key": "strings_march_in", "kind": "non_billable", "line_id": "L05", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["play during march-in", "included, no extra"]},
+    {"key": "discount", "kind": "discount", "line_id": null, "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["5% discount", "5% off"]},
+    {"key": "cake", "kind": "replacement", "line_id": "L06", "qty_delta": 0, "price_delta": -100.0,
+     "status": "ready", "evidence": ["change to 4 tier", "4 tier is RM 100 less"]},
+    {"key": "photobooth_ot_2", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 300.0,
+     "status": "ready", "evidence": ["photobooth stay till 11", "ok, another hour"]}
+  ],
+  "expected_known_delta": 3246.0,
+  "expected_needs_price": 0
+}

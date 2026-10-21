@@ -1,0 +1,27 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-033",
+  "company": "Fiesta Demo Events Sdn Bhd",
+  "client": "Jessica Lim and Kelvin Chong (synthetic couple)",
+  "job": "Lim and Chong Wedding Dinner",
+  "event_date": "2026-09-26",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Chinese banquet table (10 pax)", "unit": "table", "qty": 30, "unit_price": 1288.0,
+     "aliases": ["table", "tables", "banquet"]},
+    {"id": "L02", "item": "Wine", "unit": "bottle", "qty": 30, "unit_price": 85.0,
+     "aliases": ["wine", "bottle", "bottles"]},
+    {"id": "L03", "item": "Photobooth (3 hrs)", "unit": "package", "qty": 1, "unit_price": 1200.0,
+     "aliases": ["photobooth", "photo booth"]},
+    {"id": "L04", "item": "Floral stage decor", "unit": "set", "qty": 1, "unit_price": 3800.0,
+     "aliases": ["floral", "flowers", "stage decor"]},
+    {"id": "L05", "item": "Live string duo", "unit": "package", "qty": 1, "unit_price": 1600.0,
+     "aliases": ["string duo", "strings", "duo"]},
+    {"id": "L06", "item": "Wedding cake (5-tier display)", "unit": "pc", "qty": 1, "unit_price": 600.0,
+     "aliases": ["cake"]}
+  ],
+  "rate_card": [
+    {"item": "Photobooth extra hour", "unit": "hour", "unit_price": 300.0,
+     "aliases": ["photobooth extra hour", "photobooth extend", "photo booth extra hour"]}
+  ]
+}
