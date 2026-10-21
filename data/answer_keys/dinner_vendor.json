@@ -1,0 +1,22 @@
+{
+  "label": "SIMULATED answer key written by the team, not model output",
+  "chat": "dinner_vendor.txt",
+  "invoice": "sw_1187.json",
+  "notes": "Vendor-side costs agreed in chat, checked against the vendor's invoice and against what the client is being billed.",
+  "agreed_costs": [
+    {"key": "led_upgrade_cost", "item": "LED wall upgrade to 4m x 2.5m", "amount": 900.0,
+     "evidence": ["Upgrade is RM 900 for us", "Ok proceed."]},
+    {"key": "crew_ot_cost", "item": "Crew overtime", "amount": 200.0,
+     "evidence": ["crew overtime RM 200", "ok agreed"]},
+    {"key": "mic_cost", "item": "Wireless microphone", "amount": 320.0,
+     "evidence": ["2 wireless mic", "RM 160 each"]}
+  ],
+  "expected_invoice_findings": [
+    {"item": "LED wall upgrade to 4m x 2.5m", "finding": "over_agreed", "invoiced": 1000.0, "agreed": 900.0, "difference": 100.0},
+    {"item": "Transport surcharge", "finding": "not_agreed", "invoiced": 150.0, "agreed": 0.0, "difference": 150.0}
+  ],
+  "expected_cost_not_billed_to_client": [
+    {"item": "Crew overtime", "cost": 200.0, "reason": "Agreed with the vendor, but no matching charge to the client"}
+  ],
+  "expected_invoice_total": 4570.0
+}

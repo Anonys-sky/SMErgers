@@ -1,0 +1,20 @@
+{
+  "label": "SIMULATED: synthetic vendor invoice",
+  "vendor": "SoundWorks Demo AV Sdn Bhd",
+  "invoice_id": "SW-1187",
+  "job": "Annual Dinner 2026",
+  "chat": "dinner_vendor.txt",
+  "currency": "RM",
+  "vendor_quote": [
+    {"id": "V01", "item": "LED wall 3m x 2m rental", "qty": 1, "unit_price": 2300.0, "client_line": "L02"},
+    {"id": "V02", "item": "Sound system (standard)", "qty": 1, "unit_price": 600.0, "client_line": "L09"}
+  ],
+  "invoice_lines": [
+    {"item": "LED wall 3m x 2m rental", "qty": 1, "unit_price": 2300.0},
+    {"item": "LED wall upgrade to 4m x 2.5m", "qty": 1, "unit_price": 1000.0},
+    {"item": "Sound system (standard)", "qty": 1, "unit_price": 600.0},
+    {"item": "Crew overtime", "qty": 1, "unit_price": 200.0},
+    {"item": "Wireless microphone", "qty": 2, "unit_price": 160.0},
+    {"item": "Transport surcharge", "qty": 1, "unit_price": 150.0}
+  ]
+}
