@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+venv/
+.venv/
+.pytest_cache/
+
+# Environment (never commit secrets)
+.env
+
+# Local database and caches
+*.db
+*.sqlite3
+
+# OS / Editor
+.DS_Store
+.vscode/
+.idea/
