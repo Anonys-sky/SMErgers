@@ -2,9 +2,11 @@
 import csv
 import io
 import os
+import re
 import secrets
 
 from flask import Flask, Response, abort, flash, jsonify, redirect, render_template, request, session, url_for
+from markupsafe import Markup, escape
 
 import store
 from bill import build_bill
@@ -43,6 +45,21 @@ def rm(value):
         return "No price yet"
     sign = "−" if value < 0 else ""
     return f"{sign}RM{abs(value):,.2f}".replace(".00", "")
+
+
+# Words in a chat message that carry the deal: money, quantities, yes and no.
+DEAL_TERMS = re.compile(
+    r"(?:[+-]\s?)?RM\s?[\d,]+(?:\.\d+)?(?:\s*(?:more|less|each|per \w+))?"
+    r"|\b\d+\s*(?:more|extra|instead of \d+)\b|\btotal \d+\b|\b\d+ total\b|加多\d+个?|tambah \d+"
+    r"|\b(?:ok|okay|go ahead|proceed|fine|noted|no need|cancel|same price|no extra|included)\b",
+    re.I,
+)
+
+
+@app.template_filter("marked")
+def marked(text):
+    """Escape the message first, then highlight the deal terms, so chat text can never inject HTML."""
+    return Markup(DEAL_TERMS.sub(lambda m: f"<mark>{m.group(0)}</mark>", str(escape(text))))
 
 
 @app.context_processor
@@ -97,10 +114,69 @@ def job_page(job_id):
     bill = build_bill(record.catalogue, record.job)
     show = request.args.get("show")
     highlighted = set(record.job.items[show].change.evidence_ids) if show in record.job.items else set()
-    waiting = sum(1 for item in record.job.items.values() if allowed_actions(item, current_role()))
-    return render_template("job.html", r=record, bill=bill, items=list(record.job.items.items()),
+    role = current_role()
+    waiting = sum(1 for item in record.job.items.values() if allowed_actions(item, role))
+    only_mine = request.args.get("view") == "mine"
+    items = [(k, i) for k, i in record.job.items.items() if not only_mine or allowed_actions(i, role)]
+    linked = {}  # message id -> change keys it is evidence for, so a message can point back to its change
+    for k, i in record.job.items.items():
+        for mid in i.change.evidence_ids:
+            linked.setdefault(mid, []).append(k)
+    return render_template("job.html", r=record, bill=bill, items=items, total_items=len(record.job.items),
                            allowed=allowed_actions, highlighted=highlighted, show=show, waiting=waiting,
-                           owner_limit=record.job.policy["owner_approval_at"])
+                           only_mine=only_mine, owner_limit=record.job.policy["owner_approval_at"], linked=linked,
+                           stages=progress(record.job), bulk=bulk_candidates(record.job, role))
+
+
+# One step of the journey per role; "do all" applies it to every change that is ready for it.
+BULK = {"pm": ("review", "Check"), "owner": ("approve", "Approve"), "client": ("confirm", "Confirm")}
+DONE = {"review": "Checked", "approve": "Approved", "confirm": "Confirmed"}
+
+
+def bulk_candidates(job, role):
+    """(action, label, keys, total RM) for the role's 'do all' button, or None."""
+    if role not in BULK:
+        return None
+    action, label = BULK[role]
+    keys = [k for k, i in job.items.items() if action in allowed_actions(i, role)
+            and not (action == "review" and i.change.status == "unconfirmed")]  # those need a note each
+    if not keys:
+        return None
+    return action, label, keys, sum(job.items[k].price or 0 for k in keys)
+
+
+def progress(job):
+    """How many changes sit at each stage of the journey, in order."""
+    counts = {}
+    for item in job.items.values():
+        counts[item.state] = counts.get(item.state, 0) + 1
+    stages = [("detected", "Found in chat"), ("reviewed", "Owner to approve"), ("approved", "Client to confirm"),
+              ("confirmed", "On the bill")]
+    out = [(state, label, counts.get(state, 0)) for state, label in stages]
+    if counts.get("disputed"):
+        out.append(("disputed", "Disputed", counts["disputed"]))
+    return out
+
+
+@app.post("/job/<job_id>/bulk")
+def bulk(job_id):
+    record = get_record(job_id)
+    role = current_role()
+    candidates = bulk_candidates(record.job, role)
+    if candidates is None:
+        flash("Nothing is ready for that.")
+        return redirect(request.form.get("next") or url_for("job_page", job_id=job_id))
+    action, label, keys, total = candidates
+    actor = record.actor(role)
+    done = 0
+    for key in keys:
+        try:
+            record.job.act(key, action, actor)
+            done += 1
+        except NotAllowed:
+            pass
+    flash(f"{DONE[action]} {done} change{'' if done == 1 else 's'} ({rm(total)}).", "ok")
+    return redirect(request.form.get("next") or url_for("job_page", job_id=job_id))
 
 
 @app.post("/job/<job_id>/act/<key>")
@@ -110,8 +186,9 @@ def act(job_id, key):
         abort(404)
     price = request.form.get("price", "").replace(",", "").replace("RM", "").strip()
     try:
-        record.job.act(key, request.form.get("action", ""), record.actor(current_role()),
-                       price=float(price) if price else None, note=request.form.get("note", "").strip())
+        item = record.job.act(key, request.form.get("action", ""), record.actor(current_role()),
+                              price=float(price) if price else None, note=request.form.get("note", "").strip())
+        flash(f"{item.change.item}: {STATE_LABELS[item.state].lower()}.", "ok")
     except NotAllowed as err:
         flash(str(err))
     except (KeyError, ValueError):
@@ -152,7 +229,8 @@ def client_page(job_id):
     record = get_record(job_id)
     shown = [(k, i) for k, i in record.job.items.items() if i.state in ("approved", "confirmed", "disputed")]
     by_id = {m.id: m for m in record.messages}
-    return render_template("client.html", r=record, items=shown, by_id=by_id, allowed=allowed_actions)
+    return render_template("client.html", r=record, items=shown, by_id=by_id, allowed=allowed_actions,
+                           bulk=bulk_candidates(record.job, current_role()) if current_role() == "client" else None)
 
 
 @app.get("/job/<job_id>/log")
