@@ -1,0 +1,22 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person. Second sector (renovation) to test reuse beyond events.",
+  "quote_id": "QR-118",
+  "company": "Demo Reno Works",
+  "client": "Priya's Cafe (synthetic)",
+  "job": "Cafe fit-out",
+  "event_date": "2026-10-30",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Wall painting", "unit": "sqft", "qty": 800, "unit_price": 2.5,
+     "aliases": ["paint", "painting", "wall"]},
+    {"id": "L02", "item": "Floor tiles 60x60", "unit": "sqft", "qty": 600, "unit_price": 12.0,
+     "aliases": ["tiles", "tile", "floor"]},
+    {"id": "L03", "item": "Power point", "unit": "unit", "qty": 6, "unit_price": 150.0,
+     "aliases": ["power point", "plug", "socket"]},
+    {"id": "L04", "item": "Pendant light install", "unit": "unit", "qty": 4, "unit_price": 120.0,
+     "aliases": ["lights", "light", "pendant"]},
+    {"id": "L05", "item": "Counter carpentry (solid surface top)", "unit": "set", "qty": 1, "unit_price": 6500.0,
+     "aliases": ["counter", "counter top", "countertop"]}
+  ],
+  "rate_card": []
+}

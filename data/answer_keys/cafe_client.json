@@ -1,0 +1,21 @@
+{
+  "label": "SIMULATED answer key written by the team, not model output",
+  "chat": "cafe_client.txt",
+  "quote": "q_cafe.json",
+  "split": "held_out",
+  "notes": "Different sector (renovation) to test reuse. Traps: a per-unit price that must be multiplied by the quoted area; a confirmation that arrives two days later.",
+  "changes": [
+    {"key": "power_points", "kind": "quantity_change", "line_id": "L03", "qty_delta": 2, "price_delta": 300.0,
+     "status": "ready", "evidence": ["add 2 more power point", "ok 2 more power point"]},
+    {"key": "tiles", "kind": "upgrade", "line_id": "L02", "qty_delta": 0, "price_delta": 1800.0,
+     "status": "ready", "evidence": ["tiles change to 80x80", "RM 3 more per sqft", "ok proceed"]},
+    {"key": "accent_wall", "kind": "non_billable", "line_id": "L01", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["feature wall with accent colour", "no extra"]},
+    {"key": "lights", "kind": "quantity_change", "line_id": "L04", "qty_delta": 2, "price_delta": 240.0,
+     "status": "ready", "evidence": ["lights maybe 6 instead of 4", "RM 120 each install", "ok go 6"]},
+    {"key": "counter_quartz", "kind": "upgrade", "line_id": "L05", "qty_delta": 0, "price_delta": 1350.0,
+     "status": "ready", "evidence": ["upgrade to quartz", "+RM 1,350", "hmm ok la"]}
+  ],
+  "expected_known_delta": 3690.0,
+  "expected_needs_price": 0
+}
