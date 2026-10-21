@@ -1,29 +1,212 @@
-# SMErgers: OnRecord (working name)
+# OnRecord (working name)
 
-SDC Hackathon 2026, Domain 2 (Orbyte Smart SME Challenge: Less Busywork, Better Business).
+> Turns changes agreed in WhatsApp into approved changes and a correct draft final bill, for small event companies and other businesses that work job by job.
 
-**Problem.** In small event companies, changes and extras are agreed in WhatsApp chats, but nobody turns them into a record. At job close the final bill is rebuilt from memory, nobody can prove what was agreed, and the owner often gives the money away to keep the client.
+---
 
-**What it does.** Imports a WhatsApp group export, extracts the changes agreed, matches them to the original quote, routes them for approval by the right role, and produces a draft final bill with a record of who agreed what and when. AI only reads the messy text. Fixed rules decide. A person approves.
+## Team Information
 
-**Status.** Work in progress. Nothing here is a finished product.
+| Field                  | Details |
+| ---------------------- | ------- |
+| **Team Name**          | SMErgers *(confirm)* |
+| **Team Domain**        | Domain 2: Orbyte Smart SME Challenge |
+| **SDG Track (1–17)**   | SDG 8 (Decent Work and Economic Growth), targets 8.2 and 8.3 |
+| **Team Leader**        | *To fill* |
+| **University**         | *To fill* |
+| **Number of Members**  | *To fill* |
 
-## Boundaries (from the Domain 2 brief)
+## Links
 
-- No real payments, no statutory filings, no legal or financial advice.
-- All data is synthetic and labelled. No real chats, customers or companies are used.
-- The output is a *draft* for the owner's accounting software and a record of what was agreed, not legal proof.
-- Login, roles, eSign and Orbyte data are simulated.
+| Resource          | Link |
+| ----------------- | ---- |
+| GitHub Repository | https://github.com/Anonys-sky/SMErgers |
+| Replit Project    | *To add after import* |
+| Live Demo         | *To add after deployment* |
+| RunPod Endpoint   | Not used (no GPU work, see below) |
+| Slide Deck        | *To add* |
+| Demo Video        | *To add* |
 
-## Run
+---
 
-```bash
-pip install -r requirements.txt
-python src/main.py
+## Overview
+
+### Problem
+
+In a small event company, the quote is signed early, then the job changes in the WhatsApp group: 15 more guests, a bigger LED wall, the emcee staying an extra hour. Nobody turns those messages into a record. At the end of the job someone rebuilds the final bill from memory and the chat scroll, extras go unbilled, and when the client says "I never agreed to that", nobody can prove it, so the owner often gives the money away.
+
+This comes from a team member's experience working in an event company, where it happened on almost every event. It is one person's account, not a survey.
+
+### Solution
+
+OnRecord reads the group chat export, finds each change that was agreed, prices it from the chat, the quote or the rate card, and sends it through the right people: the project manager checks it, the owner signs off on large or unusual items, and the client confirms it on their own page. Only confirmed changes reach the draft bill, and every line links back to the exact messages it came from.
+
+Decisions are made by fixed, explainable rules. When something is unclear, OnRecord does not guess: it marks the change "needs a price" or "needs the owner's decision" and hands it to a person.
+
+### Key Features
+
+- **Change finder:** groups messages into threads and works out what changed, by how much, at what price, and whether both sides agreed. Handles follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests and "let me ask boss first".
+- **Show in chat:** every change and bill line highlights the messages it came from, which settles disputes in seconds.
+- **Approval by the right role:** PM checks, owner signs off at RM500 or more (and on discounts, unconfirmed items and staff-entered prices), client confirms or disputes with a reason. Enforced on the server, not only hidden in the page.
+- **Draft final bill:** the quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV export for accounting software.
+- **Activity log:** who did what and when, each entry chained to the one before so later edits show.
+
+### Where AI fits
+
+The current version uses **no AI model**: rules handle the extraction and every decision, because a reason an owner can read matters more than a score. A language model may later read phrasing the rules have never seen, but only if it beats the rules on chats the rules were not written for (see [Results](#results)). No model is trained, so no GPU is needed.
+
+### Tech Stack
+
+| Layer         | Technology |
+| ------------- | ---------- |
+| Frontend      | Server-rendered HTML (Jinja templates), one CSS file, a few lines of JavaScript for highlighting |
+| Backend       | Python 3.12, Flask |
+| Database      | In-memory store for the prototype (demo data resets on restart) |
+| AI / Compute  | None in this version |
+| Hosting / Dev | Replit |
+
+---
+
+## Project Structure
+
+```
+.
+├── data/                    # Synthetic data only (see data/README.md)
+│   ├── quotes/              # Signed quote + rate card per job
+│   ├── chats/               # WhatsApp-style exports
+│   ├── answer_keys/         # Hand-written expected changes, for scoring
+│   └── vendor_invoices/     # Synthetic vendor invoice (for a later vendor check)
+├── docs/
+│   ├── results.md           # Every accuracy run, including caveats
+│   └── orbyte-integration.md
+├── src/
+│   ├── main.py              # Web app entry point (routes only)
+│   ├── chat_import.py       # WhatsApp export parser
+│   ├── catalogue.py         # Quote lines and rate card, and the words that name them
+│   ├── rules_extractor.py   # Finds the changes agreed in a chat
+│   ├── workflow.py          # Approval flow, permissions, activity log
+│   ├── bill.py              # Matches confirmed changes to the quote, builds the draft bill
+│   ├── evaluate.py          # Scores the extractor against the answer keys
+│   ├── schema.py            # Shared data shapes
+│   ├── store.py             # In-memory jobs and demo reset
+│   ├── templates/  static/
+├── submission/              # Required submission documents (see submission/README.md)
+├── tests/                   # pytest
+├── .env.example  .gitignore  .gitattributes  .replit  LICENSE  requirements.txt  README.md
 ```
 
-## Tools
+### Architecture
 
-- Replit: hosting and deployment (proof of use to be added in `submission/`).
-- GitHub: this repository, Apache 2.0.
-- RunPod: not used. No GPU workload is needed.
+```
+WhatsApp export (.txt) ──► chat_import ──► rules_extractor ──► workflow (PM ► owner ► client) ──► bill ──► CSV
+                                 ▲                ▲                    │                           │
+                       quote + rate card (catalogue)            activity log              GET /api/jobs/<id>
+```
+
+---
+
+## How to Run
+
+### Option 1: Run on Replit
+
+1. Import this repository: **Create Repl → Import from GitHub**.
+2. Optional: in **Secrets**, add `SECRET_KEY` (see `.env.example`).
+3. Click **Run**. Replit uses `.replit` to start `python src/main.py`.
+
+### Option 2: Run locally
+
+```bash
+git clone https://github.com/Anonys-sky/SMErgers.git
+cd SMErgers
+python -m venv .venv
+source .venv/bin/activate        # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+python src/main.py               # then open http://localhost:8080
+```
+
+### Run tests and accuracy scores
+
+```bash
+python -m pytest
+python src/evaluate.py
+```
+
+### Demo walkthrough (about 3 minutes)
+
+1. Open **Annual Dinner 2026**. The headline shows RM3,540 agreed in chat on top of the RM34,530 quote.
+2. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
+3. The wireless mics have no price anywhere, so they are marked **Needs a price**. Set RM320; the owner must now approve it, because staff entered the price.
+4. As **Project manager**, mark changes checked. As **Owner**, approve the ones over RM500.
+5. As **Client**, confirm the changes, and dispute the banners ("we asked for 2"). Switch back and click **Show in chat**: the client's own "2 more" and "and 1 at the lift lobby" settle it.
+6. Open **Draft bill**, then **Activity log**.
+
+---
+
+## How We Use Replit *(Required)*
+
+- **Hosting:** *to complete after deployment: Replit Deployments at the Live Demo link above.*
+- **Development:** *to complete: describe how the team used the Repl.*
+- **Secrets:** `SECRET_KEY` is kept in Replit Secrets, never in the code.
+
+Proof of use: `submission/REPLIT PROOF OF USE.pdf` *(to add)*
+
+## How We Use RunPod
+
+Not used. The handbook (section 9.4) requires RunPod for work that needs a GPU: training, fine-tuning or running a model on a GPU. OnRecord runs no model, so it needs no GPU.
+
+---
+
+## Results
+
+Scored with `python src/evaluate.py` against hand-written answer keys. Full log, with caveats: [docs/results.md](docs/results.md).
+
+| Chats | Changes | Rules: fully right | Baseline (any message with an RM amount): fully right |
+|---|---|---|---|
+| Tuning (dinner) | 10 | 10 | 3 |
+| Other three chats | 20 | 20 | 5 |
+
+**These are not accuracy figures.** The same person wrote the chats, the answer keys and the rules. An honest score needs new chats written by someone who has not seen the rules, run once.
+
+## Privacy and boundaries
+
+- **Synthetic data only.** No real chat, person, client or company is used.
+- **No payments, filings or advice.** The bill is a draft for accounting software; nothing is sent or paid. The record of what was agreed is not legal proof or legal advice.
+- **PDPA in a real deployment:** chat exports contain personal data of clients and vendors, so the company would tell them chats are used to record agreed changes, keep only the messages linked to changes and delete the rest after import, limit access by role, set a retention period, and let people ask for their data. A real pilot needs a legal review first.
+
+## Known limits
+
+- Rules only understand phrasing they were written for; unseen slang, typos and voice notes will be missed.
+- Dates are read day-first, as WhatsApp exports them in Malaysia.
+- Data is held in memory; a restart resets the demo.
+- Sign-in and roles are simulated.
+
+## Future Improvements
+
+- [ ] Score on chats written by someone who has not seen the rules, then decide whether a language model is worth adding.
+- [ ] Vendor check: the vendor's invoice against what was agreed with them (synthetic data is in `data/vendor_invoices/`).
+- [ ] Connect to Orbyte projects, approvals, eSign and audit trail ([docs/orbyte-integration.md](docs/orbyte-integration.md)).
+
+## Team
+
+| Name | Role | GitHub |
+| ---- | ---- | ------ |
+| *To fill* | | [@Anonys-sky](https://github.com/Anonys-sky) |
+
+---
+
+## Submission Checklist
+
+- [x] Domain and SDG track filled in
+- [ ] Team name, leader, university and members filled in
+- [ ] Slide deck link added
+- [ ] Demo video link added
+- [ ] Replit used, with proof of use in `submission/`
+- [x] RunPod: not used (no GPU work), stated above
+- [ ] Submission template completed in `submission/`
+- [ ] Technical Tools Declaration lists every tool, including AI coding assistants
+- [ ] "How to Run" steps verified on Replit
+- [x] No API keys or secrets committed
+- [ ] Repository public, committee accounts added as collaborators
+
+## License
+
+This project is licensed under the [Apache License 2.0](LICENSE).
