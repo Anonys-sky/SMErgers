@@ -82,6 +82,7 @@ def test_do_all_buttons_move_only_ready_changes(client):
     as_role(client, "pm")
     page = client.post("/job/annual-dinner/bulk", follow_redirects=True).data.decode()
     assert "Checked 6 changes" in page                        # the mics have no price, so they wait
+    assert "1 change waits for you as Project manager" in page
     assert job.items[key_for("annual-dinner", "Wireless mic")].state == "detected"
     as_role(client, "owner")
     client.post("/job/annual-dinner/bulk")

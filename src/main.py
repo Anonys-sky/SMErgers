@@ -115,9 +115,9 @@ def job_page(job_id):
     show = request.args.get("show")
     highlighted = set(record.job.items[show].change.evidence_ids) if show in record.job.items else set()
     role = current_role()
-    waiting = sum(1 for item in record.job.items.values() if allowed_actions(item, role))
+    waiting = sum(1 for item in record.job.items.values() if needs(item, role))
     only_mine = request.args.get("view") == "mine"
-    items = [(k, i) for k, i in record.job.items.items() if not only_mine or allowed_actions(i, role)]
+    items = [(k, i) for k, i in record.job.items.items() if not only_mine or needs(i, role)]
     linked = {}  # message id -> change keys it is evidence for, so a message can point back to its change
     for k, i in record.job.items.items():
         for mid in i.change.evidence_ids:
@@ -260,6 +260,12 @@ def job_api(job_id):
                  "agreed_in_chat_beyond_quote": bill.agreed_beyond_quote},
         "activity_log": {"intact": record.job.log.intact(), "entries": [vars(e) for e in record.job.log.entries]},
     })
+
+
+def needs(item, role):
+    """True if this change waits for this role's next step. Reject and dispute are always
+    possible, so they do not count as work waiting."""
+    return bool(set(allowed_actions(item, role)) - {"reject", "dispute"})
 
 
 def allowed_actions(item, role):
