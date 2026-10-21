@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}OnRecord{% endblock %} · OnRecord</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<header class="top">
+  <div>
+    <a class="brand" href="{{ url_for('home') }}">OnRecord</a>
+    <span class="badge" title="Every chat, quote and company here is invented">Simulated data</span>
+  </div>
+  <form class="role-form" method="post" action="{{ url_for('set_role') }}">
+    <label for="role">Viewing as</label>
+    <select id="role" name="role" onchange="this.form.submit()">
+      {% for key, label in roles.items() %}<option value="{{ key }}" {% if key == role %}selected{% endif %}>{{ label }}</option>{% endfor %}
+    </select>
+    <input type="hidden" name="next" value="{{ request.full_path }}">
+    <noscript><button>Switch</button></noscript>
+  </form>
+</header>
+<main>
+  {% for message in get_flashed_messages() %}<div class="flash" role="alert">{{ message }}</div>{% endfor %}
+  {% block content %}{% endblock %}
+</main>
+<footer>
+  Prototype for the SDC Hackathon 2026, Domain 2. Roles and sign-in are simulated. The bill is a draft for your accounting
+  software: no payment is made and no invoice is sent from this tool, and the record of what was agreed is not legal advice.
+</footer>
+</body>
+</html>

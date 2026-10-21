@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Jobs{% endblock %}
+{% block content %}
+<h1>Jobs</h1>
+<p class="lede">Changes agreed in WhatsApp, turned into approved changes and a correct draft final bill.</p>
+
+<div class="panel">
+  <table>
+    <thead><tr><th>Job</th><th>Client</th><th class="r">Quote</th><th class="r">Agreed in chat on top</th><th>Still open</th></tr></thead>
+    <tbody>
+    {% for r, bill in rows %}
+      <tr>
+        <td><a href="{{ url_for('job_page', job_id=r.id) }}">{{ r.title }}</a><br><small class="t-muted">{{ r.chat_name }}</small></td>
+        <td>{{ r.catalogue.quote.client }}</td>
+        <td class="r num">RM{{ "{:,.0f}".format(bill.quote_total) }}</td>
+        <td class="r num">RM{{ "{:,.0f}".format(bill.agreed_beyond_quote) }}</td>
+        <td>{{ bill.outstanding|length }} change{{ '' if bill.outstanding|length == 1 else 's' }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<h2 class="section-title">Import a chat</h2>
+<form class="panel actions" method="post" action="{{ url_for('import_chat') }}" enctype="multipart/form-data">
+  <label>WhatsApp export (.txt) <input type="file" name="chat" accept=".txt" required></label>
+  <label>Quote
+    <select name="quote">{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
+  </label>
+  <button class="primary">Find changes</button>
+</form>
+<p class="lede">In WhatsApp: open the group, More, Export chat, Without media. Use synthetic chats only in this prototype.</p>
+
+<form method="post" action="{{ url_for('reset') }}" class="no-print"><button>Reset demo data</button></form>
+{% endblock %}

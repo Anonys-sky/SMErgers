@@ -1,0 +1,34 @@
+{% macro state_tag(state) -%}
+{%- set cls = {'confirmed': 't-ok', 'reviewed': 't-wait', 'disputed': 't-bad', 'rejected': 't-muted',
+               'record_only': 't-muted'}.get(state, 't-info') -%}
+<span class="tag {{ cls }}">{{ state_labels[state] }}</span>
+{%- endmacro %}
+
+{% macro chat_tag(item) -%}
+{%- set s = item.change.status -%}
+{%- if item.price is none and s != 'withdrawn' -%}<span class="tag t-wait">{{ status_labels['needs_decision'] if s == 'needs_decision' else status_labels['needs_price'] }}</span>
+{%- elif s == 'unconfirmed' -%}<span class="tag t-wait">{{ status_labels[s] }}</span>
+{%- elif s in ('withdrawn', 'log_only') -%}<span class="tag t-muted">{{ status_labels[s] }}</span>
+{%- endif -%}
+{%- endmacro %}
+
+{% macro action_forms(r, key, item, actions, next_url) -%}
+{%- set labels = {'set_price': 'Set price', 'review': 'Mark checked', 'approve': 'Approve', 'decide': 'Decide amount',
+                  'reject': 'Reject', 'confirm': 'Confirm', 'dispute': 'Dispute'} -%}
+<div class="actions">
+{% for a in actions %}
+  <form method="post" action="{{ url_for('act', job_id=r.id, key=key) }}">
+    <input type="hidden" name="action" value="{{ a }}">
+    <input type="hidden" name="next" value="{{ next_url }}">
+    {% if a in ('set_price', 'decide') %}
+      <input class="price" name="price" inputmode="decimal" placeholder="RM" aria-label="Amount in RM" required>
+    {% endif %}
+    {% if a == 'dispute' or (a == 'review' and item.change.status == 'unconfirmed') or a == 'set_price' %}
+      <input class="note" name="note" placeholder="{{ 'What is wrong?' if a == 'dispute' else ('How was it agreed?' if a == 'review' else 'Where the price came from') }}"
+             aria-label="Note" {{ 'required' if a != 'set_price' }}>
+    {% endif %}
+    <button class="{{ 'primary' if a in ('review', 'approve', 'confirm', 'decide') else ('danger' if a in ('reject', 'dispute') else '') }}">{{ labels[a] }}</button>
+  </form>
+{% endfor %}
+</div>
+{%- endmacro %}

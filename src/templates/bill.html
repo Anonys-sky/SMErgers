@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block title %}Draft bill · {{ r.title }}{% endblock %}
+{% block content %}
+{% set tab = 'bill' %}
+<h1>Draft final bill</h1>
+<p class="lede">{{ r.title }} · {{ r.catalogue.quote.client }} · based on quote {{ bill.quote_id }}.
+  A draft for your accounting software, not an invoice.</p>
+<p class="headline">Draft total <strong class="num">{{ bill.draft_total | rm }}</strong>:
+  the quote plus <span class="num">{{ bill.changes_total | rm }}</span> in changes the client has confirmed.
+  {% if bill.outstanding %}{{ bill.outstanding|length }} more change{{ '' if bill.outstanding|length == 1 else 's' }}
+  ({{ bill.outstanding_priced_total | rm }}{% if bill.outstanding_unpriced %} plus {{ bill.outstanding_unpriced }} without a price{% endif %}) {{ 'is' if bill.outstanding|length == 1 else 'are' }} not on the bill yet.{% endif %}
+</p>
+{% include "_job_nav.html" %}
+
+<div class="panel">
+  <h2 class="section-title" style="margin-top:0">Quoted items</h2>
+  <table>
+    <thead><tr><th>Item</th><th class="r">Qty</th><th>Unit</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead>
+    <tbody>
+    {% for l in bill.quote_lines %}
+      <tr>
+        <td>{{ l.label }}
+          {% if l.note %}<br><small class="t-wait">{{ l.note }}, changed in chat:
+            {% for k in l.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">see source</a>{% if not loop.last %}, {% endif %}{% endfor %}</small>{% endif %}</td>
+        <td class="r num">{{ '%g' % l.qty }}</td><td>{{ l.unit }}</td>
+        <td class="r num">{{ l.unit_price | rm }}</td><td class="r num">{{ l.amount | rm }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <h2 class="section-title">Agreed changes</h2>
+  {% if bill.change_lines %}
+  <table>
+    <thead><tr><th>Change</th><th>Source</th><th class="r">Amount</th></tr></thead>
+    <tbody>
+    {% for l in bill.change_lines %}
+      <tr><td>{{ l.label }}</td>
+        <td>{% for k in l.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">see source</a>{% endfor %}</td>
+        <td class="r num">{{ l.amount | rm }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}<p class="reason">No extra or replacement changes confirmed yet.</p>{% endif %}
+
+  <table style="margin-top:12px">
+    <tr><td>Original quote</td><td class="r num">{{ bill.quote_total | rm }}</td></tr>
+    <tr><td>Confirmed changes</td><td class="r num">{{ bill.changes_total | rm }}</td></tr>
+    <tr class="total"><td>Draft total</td><td class="r num">{{ bill.draft_total | rm }}</td></tr>
+  </table>
+</div>
+
+{% if bill.outstanding %}
+<h2 class="section-title">Not on the bill yet</h2>
+<div class="panel">
+  <table>
+    <thead><tr><th>Change</th><th>Waiting for</th><th class="r">Amount</th></tr></thead>
+    <tbody>
+    {% for item, why in bill.outstanding %}
+      <tr><td><a href="{{ url_for('job_page', job_id=r.id, show=item.change.key) }}">{{ item.change.item }}</a></td>
+        <td>{{ why }}</td><td class="r num">{{ item.price | rm }}</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+<p class="no-print"><button type="button" onclick="window.print()">Print draft</button></p>
+{% endblock %}

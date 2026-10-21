@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% from "_tags.html" import state_tag, chat_tag, action_forms with context %}
+{% block title %}{{ r.title }}{% endblock %}
+{% block content %}
+{% set tab = 'changes' %}
+{% set waiting = [] %}
+{% for key, item in items %}{% if allowed(item, role) %}{% set _ = waiting.append(key) %}{% endif %}{% endfor %}
+
+<h1>{{ r.title }}</h1>
+<p class="lede">{{ r.catalogue.quote.client }} · quote {{ r.catalogue.quote.quote_id }} · chat {{ r.chat_name }}</p>
+<p class="headline">
+  <strong class="num">{{ bill.agreed_beyond_quote | rm }}</strong> was agreed in the chat on top of the
+  <span class="num">{{ bill.quote_total | rm }}</span> quote.
+  {% if waiting %}{{ waiting|length }} change{{ '' if waiting|length == 1 else 's' }} wait{{ 's' if waiting|length == 1 }} for you as {{ roles[role] }}.
+  {% else %}Nothing waits for you as {{ roles[role] }}.{% endif %}
+</p>
+{% include "_job_nav.html" %}
+
+<div class="grid">
+  <section class="panel chat" aria-label="Chat">
+    <h2 class="section-title" style="margin-top:0">Chat ({{ r.messages|length }} messages)</h2>
+    {% for m in r.messages %}
+      <div class="msg {{ 'system' if m.sender is none }} {{ 'media' if m.is_media }} {{ 'hl' if m.id in highlighted }}" id="m-{{ m.id }}">
+        {% if m.sender %}<span class="who">{{ m.sender }}</span>{% endif %}<span class="when">{{ m.sent_at.strftime('%d %b, %H:%M') }}</span>
+        <div class="text">{{ m.text }}</div>
+      </div>
+    {% endfor %}
+  </section>
+
+  <section aria-label="Changes found">
+    <h2 class="section-title" style="margin-top:0">Changes found ({{ items|length }})</h2>
+    {% for key, item in items %}
+      {% set c = item.change %}
+      <article class="change {{ 'active' if key == show }}" id="c-{{ key }}" data-evidence="{{ c.evidence_ids|join(' ') }}">
+        <div class="change-head">
+          <h3>{{ c.item }}{% if c.qty_delta and c.kind != 'non_billable' %} <span class="num">({{ '%+g' % c.qty_delta }})</span>{% endif %}</h3>
+          <span class="amount num">{{ item.price | rm if item.state != 'record_only' else 'No charge' }}</span>
+        </div>
+        <div class="tags">{{ state_tag(item.state) }} {{ chat_tag(item) }}
+          <span class="tag t-muted">Confidence: {{ c.confidence }}</span></div>
+        <p class="reason">{{ c.reason }}</p>
+        {% if item.notes %}<p class="reason">{% for when, who, note in item.notes %}{{ who }}: “{{ note }}”{% if not loop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
+        <button type="button" class="show-src">Show in chat ({{ c.evidence_ids|length }} message{{ '' if c.evidence_ids|length == 1 else 's' }})</button>
+        {{ action_forms(r, key, item, allowed(item, role), url_for('job_page', job_id=r.id, show=key)) }}
+      </article>
+    {% endfor %}
+  </section>
+</div>
+
+<script>
+// Display only: highlight the chat messages a change came from. All decisions happen on the server.
+function showSource(card) {
+  document.querySelectorAll('.msg.hl').forEach(m => m.classList.remove('hl'));
+  document.querySelectorAll('.change.active').forEach(c => c.classList.remove('active'));
+  card.classList.add('active');
+  const ids = card.dataset.evidence.split(' ').filter(Boolean);
+  ids.forEach(id => document.getElementById('m-' + id)?.classList.add('hl'));
+  document.getElementById('m-' + ids[0])?.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+document.querySelectorAll('.show-src').forEach(b => b.addEventListener('click', () => showSource(b.closest('.change'))));
+const active = document.querySelector('.change.active');
+if (active) { showSource(active); active.scrollIntoView({block: 'center'}); }
+</script>
+{% endblock %}

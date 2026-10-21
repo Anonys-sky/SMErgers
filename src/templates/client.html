@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% from "_tags.html" import state_tag, action_forms with context %}
+{% block title %}Client link · {{ r.title }}{% endblock %}
+{% block content %}
+{% set tab = 'client' %}
+<h1>Changes to confirm</h1>
+<p class="lede">{{ r.catalogue.quote.company }} recorded these changes to {{ r.title }} from your WhatsApp group.
+  Please confirm each one, or tell us what is wrong.</p>
+{% if role != 'client' %}
+  <p class="headline">This is the page the client's link opens. Switch “Viewing as” to Client to confirm or dispute.</p>
+{% endif %}
+{% include "_job_nav.html" %}
+
+{% for key, item in items %}
+  {% set c = item.change %}
+  <article class="change">
+    <div class="change-head"><h3>{{ c.item }}{% if c.qty_delta %} ({{ '%+g' % c.qty_delta }}){% endif %}</h3>
+      <span class="amount num">{{ item.price | rm }}</span></div>
+    <div class="tags">{{ state_tag(item.state) }}</div>
+    <p class="reason">What was said in the chat:</p>
+    {% for mid in c.evidence_ids %}{% set m = by_id[mid] %}
+      <div class="quote"><strong>{{ m.sender }}</strong>, {{ m.sent_at.strftime('%d %b, %H:%M') }}<br><span class="text">{{ m.text }}</span></div>
+    {% endfor %}
+    {{ action_forms(r, key, item, allowed(item, role), url_for('client_page', job_id=r.id)) }}
+  </article>
+{% else %}
+  <p class="panel">No changes are waiting for confirmation yet. They appear here after the event company approves them.</p>
+{% endfor %}
+{% endblock %}
