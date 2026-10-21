@@ -11,6 +11,14 @@
 {% endif %}
 {% include "_job_nav.html" %}
 
+{% if bulk %}{% set action, label, keys, total = bulk %}
+  <form class="bulk" method="post" action="{{ url_for('bulk', job_id=r.id) }}">
+    <input type="hidden" name="next" value="{{ url_for('client_page', job_id=r.id) }}">
+    <button class="primary">Confirm all {{ keys|length }} change{{ '' if keys|length == 1 else 's' }} ({{ total | rm }})</button>
+    <span class="hint">Or confirm or dispute each one below.</span>
+  </form>
+{% endif %}
+
 {% for key, item in items %}
   {% set c = item.change %}
   <article class="change">
@@ -19,7 +27,7 @@
     <div class="tags">{{ state_tag(item.state) }}</div>
     <p class="reason">What was said in the chat:</p>
     {% for mid in c.evidence_ids %}{% set m = by_id[mid] %}
-      <div class="quote"><strong>{{ m.sender }}</strong>, {{ m.sent_at.strftime('%d %b, %H:%M') }}<br><span class="text">{{ m.text }}</span></div>
+      <div class="quote"><strong>{{ m.sender }}</strong>, {{ m.sent_at.strftime('%d %b, %H:%M') }}<br><span class="text">{{ m.text | marked }}</span></div>
     {% endfor %}
     {{ action_forms(r, key, item, allowed(item, role), url_for('client_page', job_id=r.id)) }}
   </article>

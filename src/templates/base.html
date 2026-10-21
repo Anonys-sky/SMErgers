@@ -13,7 +13,7 @@
     <span class="badge" title="Every chat, quote and company here is invented">Simulated data</span>
   </div>
   <form class="role-form" method="post" action="{{ url_for('set_role') }}">
-    <label for="role">Viewing as</label>
+    <label for="role">Viewing as <small class="t-muted">(simulated sign-in)</small></label>
     <select id="role" name="role" onchange="this.form.submit()">
       {% for key, label in roles.items() %}<option value="{{ key }}" {% if key == role %}selected{% endif %}>{{ label }}</option>{% endfor %}
     </select>
@@ -22,7 +22,9 @@
   </form>
 </header>
 <main>
-  {% for message in get_flashed_messages() %}<div class="flash" role="alert">{{ message }}</div>{% endfor %}
+  {% for category, message in get_flashed_messages(with_categories=true) %}
+    <div class="flash {{ 'flash-ok' if category == 'ok' }}" role="{{ 'status' if category == 'ok' else 'alert' }}">{{ message }}</div>
+  {% endfor %}
   {% block content %}{% endblock %}
 </main>
 <footer>

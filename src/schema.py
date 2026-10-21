@@ -10,7 +10,7 @@ STATUSES = {
     "needs_decision": "Needs the owner's decision",
     "unconfirmed": "Discussed, not confirmed",
     "withdrawn": "Withdrawn",
-    "log_only": "No cost change (kept on record)",
+    "log_only": "No cost change",
 }
 
 
