@@ -1,0 +1,31 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-052",
+  "company": "Fiesta Demo Events Sdn Bhd",
+  "client": "Nova Demo Tech Sdn Bhd",
+  "job": "Nova X Product Launch",
+  "event_date": "2026-10-17",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Venue hall setup (Hall A)", "unit": "set", "qty": 1, "unit_price": 5000.0,
+     "aliases": ["hall", "venue", "hall a"]},
+    {"id": "L02", "item": "Backdrop 6m x 3m printed", "unit": "pc", "qty": 1, "unit_price": 1800.0,
+     "aliases": ["backdrop"]},
+    {"id": "L03", "item": "Hostess", "unit": "person", "qty": 2, "unit_price": 180.0,
+     "aliases": ["hostess", "hostesses", "usher", "ushers"]},
+    {"id": "L04", "item": "Live band (3-piece)", "unit": "package", "qty": 1, "unit_price": 2400.0,
+     "aliases": ["band", "live band"]},
+    {"id": "L05", "item": "Swag bag", "unit": "pc", "qty": 100, "unit_price": 12.0,
+     "aliases": ["swag bag", "swag bags", "goodie bag", "door gift"]},
+    {"id": "L06", "item": "Sound and lighting package", "unit": "set", "qty": 1, "unit_price": 3500.0,
+     "aliases": ["sound", "lighting", "lights"]},
+    {"id": "L07", "item": "Rehearsal (half day)", "unit": "session", "qty": 1, "unit_price": 800.0,
+     "aliases": ["rehearsal"]}
+  ],
+  "rate_card": [
+    {"item": "Solo singer package", "unit": "package", "unit_price": 1200.0,
+     "aliases": ["solo singer", "singer"]},
+    {"item": "Extra rehearsal session", "unit": "session", "unit_price": 600.0,
+     "aliases": ["extra rehearsal", "one more rehearsal"]}
+  ]
+}

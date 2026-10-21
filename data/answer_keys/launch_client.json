@@ -1,0 +1,27 @@
+{
+  "label": "SIMULATED answer key written by the team, not model output",
+  "chat": "launch_client.txt",
+  "quote": "q_launch.json",
+  "split": "held_out",
+  "notes": "Traps: Malay and Chinese phrasing; hostess count changes twice (2 to 4 to 6); a replacement that lowers the price; a photo booth priced but never confirmed.",
+  "changes": [
+    {"key": "hostess_1", "kind": "quantity_change", "line_id": "L03", "qty_delta": 2, "price_delta": 360.0,
+     "status": "ready", "evidence": ["tambah 2 orang hostess", "2 more hostesses, total 4"]},
+    {"key": "backdrop", "kind": "upgrade", "line_id": "L02", "qty_delta": 0, "price_delta": 650.0,
+     "status": "ready", "evidence": ["backdrop make bigger, 8m x 3m", "+RM 650", "好, go"]},
+    {"key": "swag", "kind": "quantity_change", "line_id": "L05", "qty_delta": 50, "price_delta": 600.0,
+     "status": "ready", "evidence": ["swag bag 加多50个", "150 swag bags total"]},
+    {"key": "band_to_singer", "kind": "replacement", "line_id": "L04", "qty_delta": 0, "price_delta": -1200.0,
+     "status": "ready", "evidence": ["change to solo singer", "RM 1,200 less than the band"]},
+    {"key": "hall_b", "kind": "non_billable", "line_id": "L01", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["move to Hall B", "Hall B same rate, no extra"]},
+    {"key": "rehearsal", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 600.0,
+     "status": "ready", "evidence": ["one more rehearsal", "extra rehearsal session is RM 600", "go ahead"]},
+    {"key": "photo_booth", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 1500.0,
+     "status": "unconfirmed", "evidence": ["can add photo booth", "Photo booth around RM 1,500", "let me ask boss first"]},
+    {"key": "hostess_2", "kind": "quantity_change", "line_id": "L03", "qty_delta": 2, "price_delta": 360.0,
+     "status": "ready", "evidence": ["2 extra hostess for VIP area", "6 hostesses total"]}
+  ],
+  "expected_known_delta": 1370.0,
+  "expected_needs_price": 0
+}
