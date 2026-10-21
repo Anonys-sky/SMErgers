@@ -51,8 +51,6 @@ def build_bill(catalogue, job):
             keys_by_line[line.line_id].append(key)
             continue
         label = c.item if c.kind != "replacement" or not line else f"{line.item} replaced by {c.item}"
-        if c.kind == "upgrade" and line:
-            label = f"{line.item}: upgrade"
         change_lines.append(BillLine(label, c.qty_delta or 1, "", None, item.price, [key], c.reason))
 
     quote_lines = []

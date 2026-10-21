@@ -63,6 +63,8 @@ CONTINUATION = re.compile(r"^(?:and|also)\s+(\d+)\b", re.I)
 GENERIC_ITEM = re.compile(r"(\d+)\s+(?:extra|more)\s+([a-z][a-z ]{2,30}?)(?=\s+for\b|[,.!?]|$)", re.I)
 GENERIC_ADD = re.compile(r"\badd\s+([a-z][a-z ]{2,30}?)(?=\?|[,.!]|$)", re.I)
 SWAP = re.compile(r"change\s+(\w+)\s+from\s+(\w+)\s+to\s+(\w+)", re.I)
+TARGET_SIZE = re.compile(r"\b(\d+(?:\.\d+)?\s*m?\s*x\s*\d+(?:\.\d+)?\s*m?)\b", re.I)
+TARGET_WORD = re.compile(r"\b(?:upgrade|change)\s+to\s+(\d+\s+tier|[a-z][\w-]*)", re.I)
 SCHEDULE = re.compile(r"\b(?:start|end|move)\b.*\b\d{1,2}(?::\d{2})?\s?(?:am|pm)\b", re.I)
 
 
@@ -294,6 +296,19 @@ def extract(messages, catalogue: Catalogue):
     return changes
 
 
+def _describe_upgrade(t):
+    """'LED wall 3m x 2m, changed to 4m x 2.5m' instead of just the quoted item."""
+    quoted = t.entry.item
+    for msg in t.messages:
+        for m in TARGET_SIZE.finditer(msg.text):
+            size = m.group(1).strip()
+            if size.replace(" ", "").lower() not in quoted.replace(" ", "").lower():
+                return f"{quoted}, changed to {size}"
+        if m := TARGET_WORD.search(msg.text):
+            return f"{quoted}, changed to {m.group(1)}"
+    return f"{quoted}, changed"
+
+
 def _decide(t, catalogue, running_qty):
     base_line = t.entry if (t.entry is not None and t.entry.line_id) else t.replaces
     base_qty = running_qty.get(base_line.line_id, 0) if base_line is not None else 0
@@ -310,6 +325,8 @@ def _decide(t, catalogue, running_qty):
             "change": "upgrade", "discount": "discount", "swap": "non_billable", "schedule": "non_billable"}[t.kind_hint]
     if t.kind_hint == "extend" and t.entry is not None and t.entry.line_id is None:
         line_id = None
+    if t.kind_hint == "change":
+        t.item = _describe_upgrade(t)
 
     if t.kind_hint == "discount":
         return Change(t.key, kind, t.item, None, 0, None, "needs_decision", evidence, "high",
