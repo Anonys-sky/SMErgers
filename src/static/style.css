@@ -45,7 +45,7 @@ nav.tabs a.on { color: var(--text); border-color: var(--accent); font-weight: 70
 .msg { padding: 8px 10px; border-radius: 8px; margin-bottom: 6px; border: 1px solid transparent; scroll-margin: 60px; }
 .msg .who { font-size: 13px; font-weight: 700; }
 .msg .when { font-size: 12px; color: var(--muted); margin-left: 6px; }
-.msg .text { white-space: pre-wrap; overflow-wrap: anywhere; }
+.text { white-space: pre-wrap; overflow-wrap: anywhere; }
 .msg.system, .msg.media { color: var(--muted); font-size: 13px; }
 .msg.hl { background: var(--hl); border-color: var(--wait); border-left-width: 4px; }
 
