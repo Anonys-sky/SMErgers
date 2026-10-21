@@ -1,0 +1,37 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-041",
+  "company": "Fiesta Demo Events Sdn Bhd",
+  "client": "Sinar Demo Trading Sdn Bhd",
+  "job": "Annual Dinner 2026",
+  "event_date": "2026-10-10",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Dinner package", "unit": "pax", "qty": 180, "unit_price": 128.0,
+     "aliases": ["pax", "people", "guests", "attendees", "attending", "orang", "dinner"]},
+    {"id": "L02", "item": "LED wall 3m x 2m", "unit": "set", "qty": 1, "unit_price": 3200.0,
+     "aliases": ["led wall", "led", "screen", "led screen"]},
+    {"id": "L03", "item": "Roll-up banner", "unit": "pc", "qty": 4, "unit_price": 90.0,
+     "aliases": ["roll-up banner", "rollup banner", "roll up banner", "banner", "banners", "standee"]},
+    {"id": "L04", "item": "Stage 6m x 3m", "unit": "set", "qty": 1, "unit_price": 2400.0,
+     "aliases": ["stage"]},
+    {"id": "L05", "item": "Emcee (bilingual, 4 hrs)", "unit": "package", "qty": 1, "unit_price": 1000.0,
+     "aliases": ["emcee", "mc"]},
+    {"id": "L06", "item": "Balloon arch", "unit": "pc", "qty": 1, "unit_price": 450.0,
+     "aliases": ["balloon arch", "arch", "balloon"]},
+    {"id": "L07", "item": "Photographer (6 hrs)", "unit": "package", "qty": 1, "unit_price": 1800.0,
+     "aliases": ["photographer", "photo", "photography"]},
+    {"id": "L08", "item": "Table centrepiece", "unit": "pc", "qty": 18, "unit_price": 60.0,
+     "aliases": ["centrepiece", "centerpiece", "table decor"]},
+    {"id": "L09", "item": "Sound system (standard)", "unit": "set", "qty": 1, "unit_price": 900.0,
+     "aliases": ["sound system", "sound", "speakers"]},
+    {"id": "L10", "item": "Registration desk staff", "unit": "person", "qty": 2, "unit_price": 150.0,
+     "aliases": ["registration desk", "registration staff", "reg desk", "registration"]}
+  ],
+  "rate_card": [
+    {"item": "Emcee overtime", "unit": "hour", "unit_price": 300.0,
+     "aliases": ["emcee overtime", "emcee ot", "mc overtime"]},
+    {"item": "Photographer extra hour", "unit": "hour", "unit_price": 250.0,
+     "aliases": ["photographer extra hour", "photographer overtime", "photographer ot"]}
+  ]
+}

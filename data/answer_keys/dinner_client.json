@@ -1,0 +1,30 @@
+{
+  "label": "SIMULATED answer key written by the team, not model output",
+  "chat": "dinner_client.txt",
+  "quote": "q_dinner.json",
+  "notes": "Traps: a recap message repeats earlier changes (must not double count); a tentative balloon arch is withdrawn; two changes are agreed with no price change; one change has no price anywhere (needs a human).",
+  "changes": [
+    {"key": "pax", "kind": "quantity_change", "line_id": "L01", "qty_delta": 15, "price_delta": 1920.0,
+     "status": "ready", "evidence": ["195 people attending", "I update to 195 pax"]},
+    {"key": "banners", "kind": "quantity_change", "line_id": "L03", "qty_delta": 3, "price_delta": 270.0,
+     "status": "ready", "evidence": ["2 more roll-up banner", "1 at the lift lobby", "3 more banners noted"]},
+    {"key": "led", "kind": "upgrade", "line_id": "L02", "qty_delta": 0, "price_delta": 1100.0,
+     "status": "ready", "evidence": ["upgrade to 4m x 2.5m", "RM 1,100 more", "ok go ahead"]},
+    {"key": "dessert", "kind": "non_billable", "line_id": null, "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["change dessert from pudding to cendol", "Yes same price"]},
+    {"key": "start_time", "kind": "non_billable", "line_id": null, "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["start dinner at 7:30pm"]},
+    {"key": "balloon_arch_extra", "kind": "quantity_change", "line_id": "L06", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["one more balloon arch at the stage", "no need la balloon arch"]},
+    {"key": "emcee_ot", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 300.0,
+     "status": "ready", "evidence": ["emcee stay until 11pm", "overtime is RM 300"]},
+    {"key": "photographer_ot", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 250.0,
+     "status": "ready", "evidence": ["photographer also stay until 11", "extra 1 hour is RM 250"]},
+    {"key": "registration_staff", "kind": "quantity_change", "line_id": "L10", "qty_delta": -2, "price_delta": -300.0,
+     "status": "ready", "evidence": ["cancel the 2 registration desk staff", "removed both"]},
+    {"key": "wireless_mic", "kind": "extra", "line_id": null, "qty_delta": 2, "price_delta": null,
+     "status": "needs_price", "evidence": ["2 extra wireless mic", "vendor bringing 2 now"]}
+  ],
+  "expected_known_delta": 3540.0,
+  "expected_needs_price": 1
+}
