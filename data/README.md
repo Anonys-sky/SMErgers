@@ -7,4 +7,4 @@ Everything in this folder is invented by the team. No real chat, person, client 
 - `answer_keys/`: the changes a careful person would find in each chat. Used to measure the extractor. Written by hand before the extractor was run on that chat.
 - `vendor_invoices/`: synthetic vendor invoices and the vendor's original quote, for the vendor check.
 
-Split for honest testing: `dinner_client` and `dinner_vendor` are used to build the rules. The other chats are held out and only used to measure.
+Split: `dinner_client` was used to build the rules. The launch, wedding and renovation chats were meant to be held out, but the rule writer knew their phrasing, so they no longer count as an independent test (see `docs/results.md`). Truly unseen chats are still needed.
