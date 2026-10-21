@@ -8,12 +8,12 @@
 
 | Field                  | Details |
 | ---------------------- | ------- |
-| **Team Name**          | SMErgers *(confirm)* |
+| **Team Name**          | VBall |
 | **Team Domain**        | Domain 2: Orbyte Smart SME Challenge |
 | **SDG Track (1–17)**   | SDG 8 (Decent Work and Economic Growth), targets 8.2 and 8.3 |
-| **Team Leader**        | *To fill* |
+| **Team Leader**        | Vincent Chew Wen Jie |
 | **University**         | *To fill* |
-| **Number of Members**  | *To fill* |
+| **Number of Members**  | 3 |
 
 ## Links
 
@@ -189,14 +189,17 @@ Scored with `python src/evaluate.py` against hand-written answer keys. Full log,
 
 | Name | Role | GitHub |
 | ---- | ---- | ------ |
-| *To fill* | | [@Anonys-sky](https://github.com/Anonys-sky) |
+| Vincent Chew Wen Jie | Team leader | [@Anonys-sky](https://github.com/Anonys-sky) |
+| Looi Wan Wei | *To fill* | *To fill* |
+| Steven Elnathan Meliala | *To fill* | *To fill* |
 
 ---
 
 ## Submission Checklist
 
 - [x] Domain and SDG track filled in
-- [ ] Team name, leader, university and members filled in
+- [x] Team name, leader and members filled in
+- [ ] University, member roles and GitHub handles filled in
 - [ ] Slide deck link added
 - [ ] Demo video link added
 - [ ] Replit used, with proof of use in `submission/`
