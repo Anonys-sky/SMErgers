@@ -43,8 +43,12 @@ JOBS: dict[str, JobRecord] = {}
 
 
 def build(job_id, chat_text, chat_name, quote_file):
+    return build_from_messages(job_id, parse_chat(chat_text), chat_name, quote_file)
+
+
+def build_from_messages(job_id, messages, chat_name, quote_file):
+    """Same as build(), for messages already read, e.g. live from a WhatsApp group."""
     catalogue = Catalogue.load(quote_file)
-    messages = parse_chat(chat_text)
     now = datetime.now()
     record = JobRecord(job_id, chat_name, messages, catalogue, Job(extract(messages, catalogue), now=now), now)
     JOBS[job_id] = record

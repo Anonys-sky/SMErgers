@@ -8,6 +8,15 @@ venv/
 # Environment (never commit secrets)
 .env
 
+# WhatsApp login session: anyone holding these files can read the linked WhatsApp number
+.wwebjs_auth/
+.wwebjs_cache/
+whatsapp/.wwebjs_auth/
+whatsapp/.wwebjs_cache/
+
+# Node
+node_modules/
+
 # Local database and caches
 *.db
 *.sqlite3

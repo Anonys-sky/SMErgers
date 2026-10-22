@@ -9,6 +9,7 @@ from flask import Flask, Response, abort, flash, jsonify, redirect, render_templ
 from markupsafe import Markup, escape
 
 import store
+import whatsapp_bridge
 from bill import build_bill
 from schema import STATUSES
 from workflow import ACTIONS, STATE_LABELS, NotAllowed
@@ -104,6 +105,67 @@ def reset():
     store.reset_demo()
     flash("Demo data reset.")
     return redirect(url_for("home"))
+
+
+@app.get("/whatsapp")
+def whatsapp_page():
+    """Connect the WhatsApp Business number and pick a group to read directly, instead of exporting it."""
+    if current_role() == "client":
+        abort(403)  # the group list belongs to the business, not to one client
+    status = whatsapp_bridge.status()
+    qr = status.get("qr") if str(status.get("qr") or "").startswith("data:image/png;base64,") else None
+    groups, error = [], None
+    if status.get("status") == "ready":
+        try:
+            groups = whatsapp_bridge.list_groups()
+        except whatsapp_bridge.BridgeError as err:
+            error = str(err)
+    return render_template("whatsapp.html", status=status, qr=qr, groups=groups, error=error,
+                           quotes=[(q, store.quote_title(q)) for q in store.quote_files()],
+                           default_limit=whatsapp_bridge.DEFAULT_LIMIT, max_limit=whatsapp_bridge.MAX_LIMIT)
+
+
+@app.post("/whatsapp/pair")
+def whatsapp_pair():
+    if current_role() == "client":
+        abort(403)
+    phone = request.form.get("phone", "").strip()
+    try:
+        code = whatsapp_bridge.request_pairing_code(phone)
+        flash(f"Pairing code: {code} — Enter this on your phone under 'Link with phone number instead'.", "ok")
+    except whatsapp_bridge.BridgeError as err:
+        flash(str(err))
+    return redirect(url_for("whatsapp_page"))
+
+
+@app.post("/whatsapp/import")
+def whatsapp_import():
+    if current_role() == "client":
+        abort(403)
+    group_id = request.form.get("group", "")
+    quote = request.form.get("quote", "")
+    if not group_id or quote not in store.quote_files():
+        flash("Choose a WhatsApp group and the quote it belongs to.")
+        return redirect(url_for("whatsapp_page"))
+    try:
+        limit = int(request.form.get("limit") or whatsapp_bridge.DEFAULT_LIMIT)
+        if not 1 <= limit <= whatsapp_bridge.MAX_LIMIT:
+            raise ValueError
+    except ValueError:
+        flash(f"Messages to read must be a whole number from 1 to {whatsapp_bridge.MAX_LIMIT:,}.")
+        return redirect(url_for("whatsapp_page"))
+    try:
+        name, messages = whatsapp_bridge.fetch_group(group_id, limit)
+    except whatsapp_bridge.BridgeError as err:
+        flash(str(err))
+        return redirect(url_for("whatsapp_page"))
+    if not messages:
+        flash("No messages could be read from that group yet. Open it once on your phone, then try again.")
+        return redirect(url_for("whatsapp_page"))
+    record = store.build_from_messages(store.new_job_id(store.quote_title(quote)), messages,
+                                       f"WhatsApp group: {name}", quote)
+    flash(f"Read {len(messages):,} messages from {name}.", "ok")
+    return redirect(url_for("job_page", job_id=record.id))
 
 
 @app.get("/job/<job_id>")

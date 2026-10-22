@@ -1,0 +1,19 @@
+{
+  "name": "smergers-whatsapp-bridge",
+  "private": true,
+  "description": "Reads WhatsApp group messages for SMErgers through whatsapp-web.js (see whatsapp/bridge.js)",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "whatsapp": "node whatsapp/bridge.js",
+    "test": "node --test whatsapp/convert.test.js"
+  },
+  "dependencies": {
+    "qrcode": "^1.5.4",
+    "whatsapp-web.js": "^1.34.7"
+  },
+  "allowScripts": {
+    "whatsapp-web.js@1.34.7": true
+  }
+}

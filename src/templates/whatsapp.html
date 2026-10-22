@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+{% block title %}Read from WhatsApp{% endblock %}
+{% block head %}{% if status.status != 'ready' %}<noscript><meta http-equiv="refresh" content="5"></noscript>{% endif %}{% endblock %}
+{% block content %}
+{% set labels = {
+  'offline': ('Bridge not running', 't-bad'),
+  'starting': ('Starting WhatsApp Web…', 't-wait'),
+  'qr': ('Ready for pairing', 't-wait'),
+  'authenticated': ('Logged in, loading chats…', 't-wait'),
+  'logged_out': ('Unlinked from phone, preparing new link…', 't-wait'),
+  'disconnected': ('Disconnected, reconnecting…', 't-wait'),
+  'error': ('Problem', 't-bad'),
+  'ready': ('Connected', 't-ok'),
+} %}
+{% set label, tone = labels.get(status.status, (status.status, 't-info')) %}
+<h1>Read a group from WhatsApp</h1>
+<p class="lede">Connect directly to your WhatsApp to analyze group chats without exporting a .txt file.</p>
+
+<div class="panel" id="wa-status" style="margin-bottom: 20px;">
+  <p><span class="tag {{ tone }}" id="status-badge">{{ label }}</span>
+    {% if status.me %}<strong>{{ status.me.name or 'Your number' }}</strong>{% if status.me.number %} <span class="t-muted num">+{{ status.me.number }}</span>{% endif %}{% endif %}
+    {% if status.loading %}<span class="t-muted"> {{ status.loading.percent }}%</span>{% endif %}
+  </p>
+  {% if status.error %}<p class="hint" style="color: var(--bad);">{{ status.error }}</p>{% endif %}
+
+  {% if status.status == 'offline' %}
+    <p>In your terminal, start the bridge:</p>
+    <pre><code>npm run whatsapp</code></pre>
+  {% elif status.status != 'ready' %}
+    {% if status.pairing_code %}
+      <div style="background: var(--ok-soft); border: 2px solid var(--ok); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
+        <h2 style="margin: 0 0 8px; font-size: 18px; color: var(--ok);">Your 8-Character Pairing Code</h2>
+        <div style="font-size: 36px; font-weight: 800; letter-spacing: 4px; font-family: monospace; color: var(--text);">
+          {{ status.pairing_code }}
+        </div>
+        <p style="margin: 12px 0 0; font-size: 14px;">On your phone: <strong>WhatsApp ➔ Linked Devices ➔ Link a device ➔ "Link with phone number instead"</strong>, then enter this code.</p>
+      </div>
+    {% endif %}
+
+    <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px;">
+      <div style="flex: 1 1 280px;">
+        <h3 style="margin-top: 0;">Option 1: Scan QR Code</h3>
+        <p style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">Open WhatsApp on phone ➔ <strong>Settings</strong> (or ⋮) ➔ <strong>Linked devices</strong> ➔ <strong>Link a device</strong>.</p>
+        <div style="background: #fff; display: inline-block; padding: 8px; border-radius: 8px; border: 1px solid var(--line);">
+          <img id="wa-qr" src="{{ qr or '' }}" width="260" height="260" alt="WhatsApp login QR code" style="display: block; {% if not qr %}visibility: hidden;{% endif %}">
+        </div>
+        <p class="hint" style="margin-top: 8px;">QR code is kept live and refreshed automatically.</p>
+      </div>
+
+      <div style="flex: 1 1 280px; border-left: 1px solid var(--line); padding-left: 20px;">
+        <h3 style="margin-top: 0;">Option 2: Link with Phone Number</h3>
+        <p style="font-size: 14px; color: var(--muted);">If QR scanning doesn't work, get an 8-character code sent to your phone instead:</p>
+        <form method="post" action="{{ url_for('whatsapp_pair') }}" style="margin-top: 12px;">
+          <label style="display: block; font-size: 14px; margin-bottom: 6px;">
+            Phone Number with Country Code (e.g. 60123456789):
+            <input type="text" name="phone" placeholder="e.g. 60123456789" required style="width: 100%; box-sizing: border-box; margin-top: 4px; padding: 8px;">
+          </label>
+          <button type="submit" class="primary" style="margin-top: 8px;">Get 8-Character Pairing Code</button>
+        </form>
+        <ol style="font-size: 13px; color: var(--muted); padding-left: 18px; margin-top: 14px; line-height: 1.6;">
+          <li>In WhatsApp: <strong>Linked Devices</strong> ➔ <strong>Link a device</strong></li>
+          <li>Tap <strong>"Link with phone number instead"</strong> at the bottom</li>
+          <li>Type the 8-character code generated here</li>
+        </ol>
+      </div>
+    </div>
+  {% endif %}
+</div>
+
+{% if status.status == 'ready' %}
+  {% if error %}<div class="flash" role="alert">{{ error }}</div>{% endif %}
+  <h2 class="section-title">Choose the group</h2>
+  {% if groups %}
+  <form class="panel actions" method="post" action="{{ url_for('whatsapp_import') }}" id="wa-import"
+        onsubmit="var b=document.getElementById('wa-submit'); b.disabled=true; b.textContent='Reading the group…';">
+    <label>Group
+      <select name="group" id="wa-group" required>
+        {% for g in groups %}<option value="{{ g.id }}">{{ g.name }}{% if g.participants %} ({{ g.participants }} people){% endif %}{% if g.archived %} · archived{% endif %}</option>{% endfor %}
+      </select>
+    </label>
+    <label>Quote
+      <select name="quote" id="wa-quote">{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
+    </label>
+    <label>Latest messages to read
+      <input type="number" name="limit" id="wa-limit" value="{{ default_limit }}" min="1" max="{{ max_limit }}" step="1" class="price">
+    </label>
+    <button class="primary" id="wa-submit">Read group and find changes</button>
+  </form>
+  <p class="hint">Only messages synced on WhatsApp can be read. A long history can take a few moments.</p>
+  {% elif not error %}
+  <p class="panel">This number is not in any group yet.</p>
+  {% endif %}
+{% endif %}
+
+<p><a href="{{ url_for('home') }}">Back to jobs</a></p>
+
+{% if status.status != 'ready' %}
+<script>
+// Live polling without page reload, so form inputs aren't wiped while typing
+(function() {
+  var pollInterval = setInterval(function() {
+    fetch('/whatsapp')
+      .then(function(r) { return r.text(); })
+      .then(function(html) {
+        var parser = new DOMParser();
+        var doc = parser.parseFromString(html, 'text/html');
+        var newBadge = doc.getElementById('status-badge');
+        if (newBadge && newBadge.textContent.indexOf('Connected') !== -1) {
+          // Connected! Reload to show the groups
+          clearInterval(pollInterval);
+          window.location.reload();
+          return;
+        }
+        var newQr = doc.getElementById('wa-qr');
+        var curQr = document.getElementById('wa-qr');
+        if (newQr && curQr && newQr.getAttribute('src')) {
+          curQr.setAttribute('src', newQr.getAttribute('src'));
+          curQr.style.visibility = 'visible';
+        }
+      })
+      .catch(function() {});
+  }, 4000);
+})();
+</script>
+{% endif %}
+{% endblock %}

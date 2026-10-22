@@ -31,6 +31,8 @@
 </div>
 
 <h2 class="section-title">Import a chat</h2>
+<p><a class="btn btn-primary" id="read-from-whatsapp" href="{{ url_for('whatsapp_page') }}">Read a group directly from WhatsApp</a></p>
+<p class="lede">Or upload an exported chat:</p>
 <form class="panel actions" method="post" action="{{ url_for('import_chat') }}" enctype="multipart/form-data">
   <label>WhatsApp export (.txt) <input type="file" name="chat" accept=".txt" required></label>
   <label>Quote
