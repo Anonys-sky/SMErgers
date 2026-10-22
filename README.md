@@ -38,7 +38,9 @@ This comes from a team member's experience working in an event company, where it
 
 ### Solution
 
-SMErgers reads the group chat export, finds each change that was agreed, prices it from the chat, the quote or the rate card, and sends it through the right people: the project manager checks it, the owner signs off on large or unusual items, and the client confirms it on their own page. Only confirmed changes reach the draft bill, and every line links back to the exact messages it came from.
+SMErgers reads the job's WhatsApp group as messages arrive (no export needed), finds each change that was agreed, prices it from the chat, the quote or the rate card, and sends it through the right people: the project manager checks it, the owner signs off on large or unusual items, and the client confirms it on their own page. Each confirmation makes a new version of the quote and posts a summary back to the group, so everyone works from the same numbers. Only confirmed changes reach the draft bill, and every line links back to the exact messages it came from.
+
+**How WhatsApp is read.** The design uses Meta's official WhatsApp Business (Cloud) API: the business number creates one group per job and receives its messages by webhook. The prototype implements that webhook (`POST /webhooks/whatsapp`, Meta's payload format, signature check, verification handshake) and feeds it a synthetic chat one message at a time ("Next message" on the live demo job). Known limits of the official Groups API: up to 8 participants per group and an Official Business Account is required. An optional local connector built on whatsapp-web.js (`whatsapp/bridge.js`) can read an existing group for team testing only: it is an unofficial client, against WhatsApp's terms for production use, so it is not part of the product. Chat exports (.txt) still work as a fallback.
 
 Decisions are made by fixed, explainable rules. When something is unclear, SMErgers does not guess: it marks the change "needs a price" or "needs the owner's decision" and hands it to a person.
 
@@ -47,6 +49,9 @@ Decisions are made by fixed, explainable rules. When something is unclear, SMErg
 - **Change finder:** groups messages into threads and works out what changed, by how much, at what price, and whether both sides agreed. Handles follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests and "let me ask boss first".
 - **Show in chat:** every change and bill line highlights the messages it came from, which settles disputes in seconds.
 - **Approval by the right role:** PM checks, owner signs off at RM500 or more (and on discounts, unconfirmed items and staff-entered prices), client confirms or disputes with a reason. Enforced on the server, not only hidden in the page.
+- **Live from WhatsApp:** messages arrive through the webhook; new changes appear as people talk, and the PM is told straight away.
+- **Everyone in sync:** the next person is messaged when a change needs them (owner approval, client confirmation); each client confirmation makes quote version 2, 3… and posts a summary back to the group.
+- **Named approvers:** people come from a company directory (Orbyte's Directory, simulated in `data/team.json`).
 - **Draft final bill:** the quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV export for accounting software.
 - **Activity log:** who did what and when, each entry chained to the one before so later edits show.
 
@@ -87,7 +92,10 @@ The current version uses **no AI model**: rules handle the extraction and every 
 │   ├── bill.py              # Matches confirmed changes to the quote, builds the draft bill
 │   ├── evaluate.py          # Scores the extractor against the answer keys
 │   ├── schema.py            # Shared data shapes
-│   ├── store.py             # In-memory jobs and demo reset
+│   ├── store.py             # In-memory jobs, demo reset, live demo feed
+│   ├── webhook.py           # WhatsApp Cloud API webhook format, signature check, live ingestion
+│   ├── sync.py              # Quote versions and messages back to the group or the next approver
+│   ├── whatsapp_bridge.py   # Optional local connector to whatsapp/bridge.js (team testing only)
 │   ├── templates/  static/
 ├── submission/              # Required submission documents (see submission/README.md)
 ├── tests/                   # pytest
@@ -97,9 +105,12 @@ The current version uses **no AI model**: rules handle the extraction and every 
 ### Architecture
 
 ```
-WhatsApp export (.txt) ──► chat_import ──► rules_extractor ──► workflow (PM ► owner ► client) ──► bill ──► CSV
-                                 ▲                ▲                    │                           │
-                       quote + rate card (catalogue)            activity log              GET /api/jobs/<id>
+WhatsApp group ──webhook──► webhook.py ──► rules_extractor ──► workflow (PM ► owner ► client) ──► bill ──► CSV
+(or .txt export ──► chat_import)              ▲                       │                              │
+                                quote + rate card (catalogue)   sync.py: quote v2, v3…        GET /api/jobs/<id>
+                                                                messages back to the group
+                                                                and the next approver
+                                                                activity log
 ```
 
 ---
@@ -132,12 +143,12 @@ python src/evaluate.py
 
 ### Demo walkthrough (about 3 minutes)
 
-1. Open **Annual Dinner 2026**. The headline shows RM3,540 agreed in chat on top of the RM34,530 quote.
+1. Open the live job (**Start with the demo** on the home page). Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then **Play the rest**.
 2. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
 3. The wireless mics have no price anywhere, so they are marked **Needs a price**. Set RM320; the owner must now approve it, because staff entered the price.
-4. As **Project manager**, mark changes checked. As **Owner**, approve the ones over RM500.
+4. As **Project manager**, check the changes. As **Owner**, approve the ones over RM500.
 5. As **Client**, confirm the changes, and dispute the banners ("we asked for 2"). Switch back and click **Show in chat**: the client's own "2 more" and "and 1 at the lift lobby" settle it.
-6. Open **Draft bill**, then **Activity log**.
+6. Back in the chat, SMErgers has posted "quote version 2" to the group. Open **Quote versions and messages**, **Draft bill** and **Activity log**.
 
 ---
 

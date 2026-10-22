@@ -23,10 +23,23 @@ Orbyte already provides people, roles, approvals, eSign and an audit trail. SMEr
 
 In a real deployment this would sit behind Orbyte's platform authentication. It is open in the prototype so the demo can show it.
 
-## Events we assume Orbyte would send (not built)
+## Events we assume Orbyte would send (partly built)
 
 | Event | What SMErgers does |
 |---|---|
 | A chat export is attached to a project | Runs the extractor and lists the changes for the PM |
 | A change is approved or confirmed in Orbyte Approvals or eSign | Moves the change to the next state and logs it |
 | The project is closed | Produces the draft final bill for the accounting partner |
+
+## WhatsApp (built as a simulated webhook)
+
+The product reads each job's WhatsApp group through Meta's official WhatsApp Business (Cloud) API:
+the business number creates one group per job, the client and vendors join by invite link, and
+messages arrive by webhook. `POST /webhooks/whatsapp` accepts Meta's payload format, checks the
+`X-Hub-Signature-256` signature when `WHATSAPP_APP_SECRET` is set, and `GET` answers Meta's
+verification handshake with `WHATSAPP_VERIFY_TOKEN`.
+
+Assumption to verify: we read the group from a `group_id` field on each message.
+Known limits of the official Groups API: at most 8 participants per group; an Official Business
+Account is required. Messages SMErgers sends (approval requests, confirmation requests, quote
+version updates) are queued in an outbox; the API would deliver them.
