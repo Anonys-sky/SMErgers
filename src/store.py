@@ -70,8 +70,44 @@ def build_from_messages(job_id, messages, chat_name, quote_file):
     return record
 
 
+GROUPS: dict[str, str] = {}  # WhatsApp group id -> job id
+
+
+def build_live(job_id, chat_file, quote_file, seed=3):
+    """A job fed message by message through the webhook, as the official API would. The demo
+    script is a synthetic chat: the first `seed` messages have arrived, the rest wait in order."""
+    import webhook
+
+    script = [m for m in parse_chat((DATA / "chats" / chat_file).read_text(encoding="utf-8")) if m.sender]
+    record = build_from_messages(job_id, [], "WhatsApp group, live (simulated)", quote_file)
+    group_id = f"demo-{job_id}@g.us"
+    record.live = webhook.LiveFeed(group_id, script=[webhook.payload_for(group_id, m, i) for i, m in enumerate(script)])
+    GROUPS[group_id] = job_id
+    for _ in range(seed):
+        play_next(record)
+    return record
+
+
+def play_next(record):
+    """Demo: deliver the next scripted message through the same path as a real webhook."""
+    if record.live and record.live.script:
+        receive(record.live.script.pop(0))
+
+
+def receive(payload):
+    """Route an incoming webhook payload to the job its WhatsApp group belongs to."""
+    import webhook
+
+    for rec in webhook.records_from_payload(payload):
+        record = JOBS.get(GROUPS.get(rec["group_id"], ""))
+        if record is not None and record.live is not None:
+            webhook.ingest(record, [rec])
+
+
 def reset_demo():
     JOBS.clear()
+    GROUPS.clear()
+    build_live("annual-dinner-live", "dinner_client.txt", "q_dinner.json")
     for job_id, chat, quote in DEMO_JOBS:
         build(job_id, (DATA / "chats" / chat).read_text(encoding="utf-8"), chat, quote)
 

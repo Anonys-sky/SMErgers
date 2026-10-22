@@ -10,6 +10,7 @@ from markupsafe import Markup, escape
 
 import store
 import sync
+import webhook
 import whatsapp_bridge
 from bill import build_bill
 from schema import STATUSES
@@ -167,6 +168,49 @@ def whatsapp_import():
                                        f"WhatsApp group: {name}", quote)
     flash(f"Read {len(messages):,} messages from {name}.", "ok")
     return redirect(url_for("job_page", job_id=record.id))
+
+
+@app.get("/webhooks/whatsapp")
+def webhook_verify():
+    """Meta's one-time check when the webhook is registered: echo the challenge if the token matches."""
+    token = os.environ.get("WHATSAPP_VERIFY_TOKEN")
+    if token and request.args.get("hub.mode") == "subscribe" and request.args.get("hub.verify_token") == token:
+        return request.args.get("hub.challenge", "")
+    abort(403)
+
+
+@app.post("/webhooks/whatsapp")
+def webhook_receive():
+    """Incoming WhatsApp messages from the official Cloud API. Meta expects a fast 200."""
+    if not webhook.signature_ok(request.get_data(), request.headers.get("X-Hub-Signature-256")):
+        abort(403)
+    store.receive(request.get_json(silent=True) or {})
+    return "ok"
+
+
+@app.post("/job/<job_id>/live/next")
+def live_next(job_id):
+    """Demo only: deliver the next synthetic message of the live chat through the webhook path."""
+    record = get_record(job_id)
+    if redirect_client := staff_only(job_id):
+        return redirect_client
+    count = 1 if request.form.get("all") != "1" else len(record.live.script if record.live else [])
+    before = set(record.job.items)
+    for _ in range(count):
+        store.play_next(record)
+    new = [k for k in record.job.items if k not in before]
+    if new:
+        flash(f"New in the chat: {', '.join(record.job.items[k].change.item for k in new)}.", "ok")
+    return redirect(url_for("job_page", job_id=job_id) + "#chat-end")
+
+
+@app.get("/job/<job_id>/updates")
+def updates_page(job_id):
+    """Quote versions and every message SMErgers sent back to the group or to a person."""
+    record = get_record(job_id)
+    if redirect_client := staff_only(job_id):
+        return redirect_client
+    return render_template("updates.html", r=record, versions=record.versions, outbox=list(reversed(record.outbox)))
 
 
 @app.get("/job/<job_id>")
