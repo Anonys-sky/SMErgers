@@ -1,39 +1,37 @@
 {% extends "base.html" %}
 {% from "_tags.html" import state_tag, action_forms with context %}
-{% block title %}Client link · {{ r.title }}{% endblock %}
+{% block title %}Confirm changes · {{ r.title }}{% endblock %}
+{% block body_class %}client-view{% endblock %}
 {% block content %}
-{% set tab = 'client' %}
-<h1>Changes to confirm</h1>
-<p class="lede">{{ r.catalogue.quote.company }} recorded these changes to {{ r.title }} from your WhatsApp group.
-  Compare each item with the message evidence, then confirm it or explain what is wrong.</p>
-{% if role != 'client' %}
-  <p class="headline">This is the page a client would use. In this demo, switch the role selector to Client to try the available confirm or dispute actions. Role switching is simulated, not authentication.</p>
-{% else %}
-  <p class="hint role-guidance"><strong>Your next step:</strong> review the source messages under each change. Choose Confirm if the description and amount match what you agreed. Choose Dispute and explain the issue if they do not.</p>
-{% endif %}
-{% include "_job_nav.html" %}
+<p class="demo-note">Demo: this is the page the client sees after tapping the link SMErgers sent in WhatsApp.
+  {% if role != 'client' %}Switch to “Client (WhatsApp link)” at the top to confirm or dispute.{% endif %}</p>
+{% include "_guide.html" %}
 
-{% if bulk %}{% set action, label, keys, total = bulk %}
-  <form class="bulk" method="post" action="{{ url_for('bulk', job_id=r.id) }}">
-    <input type="hidden" name="next" value="{{ url_for('client_page', job_id=r.id) }}">
-    <button class="primary">Confirm all {{ keys|length }} change{{ '' if keys|length == 1 else 's' }} ({{ total | rm }})</button>
-    <span class="hint">Or confirm or dispute each one below.</span>
-  </form>
-{% endif %}
+<div class="phone">
+  <p class="phone-from">{{ r.catalogue.quote.company }}</p>
+  <h1>Please confirm the changes to {{ r.title }}</h1>
+  <p class="lede">Each one below was agreed in your WhatsApp group. Check the messages, then confirm, or tell us what is wrong.</p>
 
-{% for key, item in items %}
-  {% set c = item.change %}
-  <article class="change">
-    <div class="change-head"><h3>{{ c.item }}{% if c.qty_delta %} ({{ '%+g' % c.qty_delta }}){% endif %}</h3>
-      <span class="amount num">{{ item.price | rm }}</span></div>
-    <div class="tags">{{ state_tag(item.state) }}</div>
-    <p class="reason">What was said in the chat:</p>
-    {% for mid in c.evidence_ids %}{% set m = by_id[mid] %}
-      <div class="quote"><strong>{{ m.sender }}</strong>, {{ m.sent_at.strftime('%d %b, %H:%M') }}<br><span class="text">{{ m.text | marked }}</span></div>
-    {% endfor %}
-    {{ action_forms(r, key, item, allowed(item, role), url_for('client_page', job_id=r.id)) }}
-  </article>
-{% else %}
-  <p class="panel">No changes are waiting for confirmation yet. They appear here after the event company approves them.</p>
-{% endfor %}
+  {% if bulk %}{% set action, label, keys, total = bulk %}
+    <form class="bulk" method="post" action="{{ url_for('bulk', job_id=r.id) }}">
+      <input type="hidden" name="next" value="{{ url_for('client_page', job_id=r.id) }}">
+      <button class="primary">Confirm all {{ keys|length }} ({{ total | rm }})</button>
+    </form>
+  {% endif %}
+
+  {% for key, item in items %}
+    {% set c = item.change %}
+    <article class="change">
+      <div class="change-head"><h3>{{ c.item }}{% if c.qty_delta %} ({{ '%+g' % c.qty_delta }}){% endif %}</h3>
+        <span class="amount num">{{ item.price | rm }}</span></div>
+      <div class="tags">{{ state_tag(item.state) }}</div>
+      {% for mid in c.evidence_ids %}{% set m = by_id[mid] %}
+        <div class="quote"><strong>{{ m.sender }}</strong>, {{ m.sent_at.strftime('%d %b, %H:%M') }}<br><span class="text">{{ m.text | marked }}</span></div>
+      {% endfor %}
+      {{ action_forms(r, key, item, allowed(item, role), url_for('client_page', job_id=r.id)) }}
+    </article>
+  {% else %}
+    <p class="reason">Nothing to confirm yet. Changes appear here after the event company approves them.</p>
+  {% endfor %}
+</div>
 {% endblock %}

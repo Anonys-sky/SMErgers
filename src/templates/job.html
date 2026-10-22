@@ -6,33 +6,17 @@
 <h1>{{ r.title }}</h1>
 <p class="lede">{{ r.catalogue.quote.client }} · quote {{ r.catalogue.quote.quote_id }} · chat {{ r.chat_name }} ·
   owner sign-off needed at {{ owner_limit | rm }} or more</p>
-{% set guidance = {'pm': 'Check each change against its messages; add a price where asked.',
-                    'owner': 'Approve the changes the PM sent you.',
-                    'finance': 'View only. The draft bill and CSV are under Draft bill.'} %}
-<p class="hint role-guidance"><strong>{{ r.team[role] }} ({{ roles[role] }}):</strong> {{ guidance[role] }}</p>
+{% include "_guide.html" %}
+{% if bill.agreed_beyond_quote or waiting %}
 <p class="headline">
   <strong class="num">{{ bill.agreed_beyond_quote | rm }}</strong> was agreed in the chat on top of the
   <span class="num">{{ bill.quote_total | rm }}</span> quote.
   {% if waiting %}{{ waiting }} change{{ '' if waiting == 1 else 's' }} wait{{ 's' if waiting == 1 }} for you as {{ roles[role] }}.
   {% else %}Nothing waits for you as {{ roles[role] }}.{% endif %}
 </p>
-
-{% if r.live %}
-<form class="live-bar" method="post" action="{{ url_for('live_next', job_id=r.id) }}">
-  <span class="live-dot" aria-hidden="true"></span>
-  <span><strong>Live from the WhatsApp group.</strong> Messages arrive through the official API’s webhook format (simulated: {{ r.live.script|length }} synthetic message{{ '' if r.live.script|length == 1 else 's' }} left).</span>
-  {% if r.live.script %}
-    <button class="primary" name="all" value="0">Next message</button>
-    <button name="all" value="1">Play the rest</button>
-  {% endif %}
-</form>
 {% endif %}
 
-<ol class="stages" aria-label="Where the changes are">
-  {% for state, label, count in stages %}
-    <li class="stage s-{{ state }} {{ 'empty' if not count }}"><span class="stage-count num">{{ count }}</span> {{ label }}</li>
-  {% endfor %}
-</ol>
+
 {% include "_job_nav.html" %}
 
 {% if suggestions %}
@@ -52,7 +36,7 @@
 <div class="grid">
   <section class="panel chat" aria-label="Chat">
     <h2 class="section-title" style="margin-top:0">Chat ({{ r.messages|length }} messages)</h2>
-    <p class="hint">Highlighted words carry the deal. Select a linked message or use “Show in chat” on a change to compare its evidence.</p>
+    <p class="hint">Highlighted words carry the deal. Click a message to see its change.</p>
     {% for m in r.messages %}
       <div class="msg {{ 'system' if m.sender is none }} {{ 'media' if m.is_media }} {{ 'hl' if m.id in highlighted }} {{ 'linked' if m.id in linked }}"
            id="m-{{ m.id }}" {% if m.id in linked %}data-changes="{{ linked[m.id]|join(' ') }}" tabindex="0" role="button"{% endif %}>
@@ -71,7 +55,7 @@
 
   <section aria-label="Changes found">
     <div class="list-head">
-      <div><h2 class="section-title" style="margin:0">Changes found ({{ total_items }})</h2><p class="hint">Read the reason and source before taking an action. Actions available here depend on your demo role.</p></div>
+      <h2 class="section-title" style="margin:0">Changes found ({{ total_items }})</h2>
       {% if waiting %}
         <a class="btn" href="{{ url_for('job_page', job_id=r.id) if only_mine else url_for('job_page', job_id=r.id, view='mine') }}">
           {{ 'Show all changes' if only_mine else 'Show only what needs me (' ~ waiting ~ ')' }}</a>
@@ -92,14 +76,14 @@
           <span class="amount num">{{ item.price | rm if item.state != 'record_only' else 'No charge' }}</span>
         </div>
         <div class="tags">{{ state_tag(item.state) }} {{ chat_tag(item) }}
-          {% if c.confidence != 'high' %}<span class="tag t-muted">Confidence: {{ c.confidence }}</span>{% endif %}</div>
+          {% if c.confidence != 'high' %}<span class="tag t-wait">{{ c.confidence|capitalize }} confidence: check carefully</span>{% endif %}</div>
         <p class="reason">{{ c.reason }}</p>
         {% if item.notes %}<p class="reason">{% for when, who, note in item.notes %}{{ who }}: “{{ note }}”{% if not loop.last %}<br>{% endif %}{% endfor %}</p>{% endif %}
         <button type="button" class="show-src">Show in chat ({{ c.evidence_ids|length }} message{{ '' if c.evidence_ids|length == 1 else 's' }})</button>
         {{ action_forms(r, key, item, allowed(item, role), url_for('job_page', job_id=r.id, show=key)) }}
       </article>
     {% else %}
-      <p class="panel empty-state">Nothing needs you right now. You can <a href="{{ url_for('job_page', job_id=r.id) }}">show all changes</a>, switch the demo role above, or check the bill and activity log.</p>
+      {% if total_items %}<p class="panel empty-state">Nothing needs you right now. <a href="{{ url_for('job_page', job_id=r.id) }}">Show all changes</a></p>{% else %}<p class="panel empty-state">No changes yet. They appear here as messages arrive.</p>{% endif %}
     {% endfor %}
   </section>
 </div>

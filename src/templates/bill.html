@@ -10,6 +10,7 @@
   {% if bill.outstanding %}{{ bill.outstanding|length }} more change{{ '' if bill.outstanding|length == 1 else 's' }}
   ({{ bill.outstanding_priced_total | rm }}{% if bill.outstanding_unpriced %} plus {{ bill.outstanding_unpriced }} without a price{% endif %}) {{ 'is' if bill.outstanding|length == 1 else 'are' }} not on the bill yet.{% endif %}
 </p>
+{% include "_guide.html" %}
 {% include "_job_nav.html" %}
 
 <div class="panel">

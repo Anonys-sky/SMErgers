@@ -8,7 +8,7 @@
 {%- set s = item.change.status -%}
 {%- if item.price is none and s != 'withdrawn' -%}<span class="tag t-wait">{{ status_labels['needs_decision'] if s == 'needs_decision' else status_labels['needs_price'] }}</span>
 {%- elif s == 'unconfirmed' -%}<span class="tag t-wait">{{ status_labels[s] }}</span>
-{%- elif s in ('withdrawn', 'log_only') -%}<span class="tag t-muted">{{ status_labels[s] }}</span>
+{%- elif s == 'withdrawn' -%}<span class="tag t-muted">{{ status_labels[s] }}</span>
 {%- endif -%}
 {%- endmacro %}
 
