@@ -112,6 +112,29 @@ class Job:
             self.items[c.key] = item
         self.log.add(now, SYSTEM, "import", "-", f"{len(changes)} changes found in the chat")
 
+    def refresh(self, changes, now=None):
+        """Take in a fresh extraction after new chat messages arrive. New changes are added;
+        a change nobody has acted on yet is updated (say, its price was just stated); anything
+        a person already acted on is left alone. Returns the keys that are new."""
+        now = now or datetime.now()
+        new = []
+        for c in changes:
+            item = self.items.get(c.key)
+            if item is None:
+                item = Item(c, price=c.price_delta)
+                if c.status in ("withdrawn", "log_only"):
+                    item.state = "record_only"
+                self.items[c.key] = item
+                new.append(c.key)
+                self.log.add(now, SYSTEM, "detect", c.key, f"found in chat: {c.item}")
+            elif item.state in ("detected", "record_only") and not item.notes:
+                changed = item.change.status != c.status or item.change.price_delta != c.price_delta
+                item.change, item.price = c, c.price_delta
+                item.state = "record_only" if c.status in ("withdrawn", "log_only") else "detected"
+                if changed:
+                    self.log.add(now, SYSTEM, "update", c.key, f"updated from chat: {STATE_LABELS[item.state].lower()}")
+        return new
+
     def needs_owner(self, item):
         """Why the owner must approve this change, or '' if the PM's review is enough."""
         c = item.change
