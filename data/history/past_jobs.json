@@ -1,0 +1,43 @@
+{
+  "label": "SIMULATED: synthetic history of past jobs, as SMErgers would store them after use",
+  "company": "Fiesta Demo Events Sdn Bhd",
+  "notes": "Each late change is one that was agreed in the chat after the quote was signed. days_before = days before the event it was agreed. priced_in_chat = false when nobody stated a price at the time.",
+  "jobs": [
+    {"id": "P-D1", "event_type": "dinner", "event_date": "2026-03-14", "quote_total": 31200, "late_changes": [
+      {"category": "guests", "amount": 1280, "days_before": 14, "priced_in_chat": true},
+      {"category": "overtime", "amount": 300, "days_before": 0, "priced_in_chat": true},
+      {"category": "av_extras", "amount": 320, "days_before": 0, "priced_in_chat": false}]},
+    {"id": "P-D2", "event_type": "dinner", "event_date": "2026-05-09", "quote_total": 36800, "late_changes": [
+      {"category": "guests", "amount": 2560, "days_before": 10, "priced_in_chat": true},
+      {"category": "screen", "amount": 900, "days_before": 12, "priced_in_chat": true},
+      {"category": "overtime", "amount": 250, "days_before": 2, "priced_in_chat": true}]},
+    {"id": "P-D3", "event_type": "dinner", "event_date": "2026-07-18", "quote_total": 28900, "late_changes": [
+      {"category": "guests", "amount": 1024, "days_before": 7, "priced_in_chat": true},
+      {"category": "signage", "amount": 180, "days_before": 9, "priced_in_chat": true},
+      {"category": "overtime", "amount": 300, "days_before": 1, "priced_in_chat": true},
+      {"category": "av_extras", "amount": 160, "days_before": 0, "priced_in_chat": false}]},
+    {"id": "P-D4", "event_type": "dinner", "event_date": "2026-08-22", "quote_total": 33500, "late_changes": [
+      {"category": "screen", "amount": 1100, "days_before": 15, "priced_in_chat": true},
+      {"category": "overtime", "amount": 200, "days_before": 0, "priced_in_chat": true}]},
+    {"id": "P-L1", "event_type": "launch", "event_date": "2026-04-03", "quote_total": 14200, "late_changes": [
+      {"category": "staffing", "amount": 360, "days_before": 20, "priced_in_chat": true},
+      {"category": "giveaways", "amount": 360, "days_before": 14, "priced_in_chat": true},
+      {"category": "rehearsal", "amount": 600, "days_before": 3, "priced_in_chat": true}]},
+    {"id": "P-L2", "event_type": "launch", "event_date": "2026-06-12", "quote_total": 16900, "late_changes": [
+      {"category": "staffing", "amount": 720, "days_before": 9, "priced_in_chat": true},
+      {"category": "signage", "amount": 650, "days_before": 12, "priced_in_chat": true}]},
+    {"id": "P-L3", "event_type": "launch", "event_date": "2026-08-28", "quote_total": 15400, "late_changes": [
+      {"category": "rehearsal", "amount": 600, "days_before": 2, "priced_in_chat": true},
+      {"category": "staffing", "amount": 360, "days_before": 1, "priced_in_chat": true}]},
+    {"id": "P-W1", "event_type": "wedding", "event_date": "2026-02-21", "quote_total": 45100, "late_changes": [
+      {"category": "guests", "amount": 2576, "days_before": 35, "priced_in_chat": true},
+      {"category": "overtime", "amount": 300, "days_before": 0, "priced_in_chat": true},
+      {"category": "discount", "amount": -1800, "days_before": 10, "priced_in_chat": false}]},
+    {"id": "P-W2", "event_type": "wedding", "event_date": "2026-05-30", "quote_total": 52300, "late_changes": [
+      {"category": "guests", "amount": 3864, "days_before": 20, "priced_in_chat": true},
+      {"category": "overtime", "amount": 300, "days_before": 0, "priced_in_chat": true}]},
+    {"id": "P-W3", "event_type": "wedding", "event_date": "2026-07-04", "quote_total": 41800, "late_changes": [
+      {"category": "discount", "amount": -1500, "days_before": 8, "priced_in_chat": false},
+      {"category": "guests", "amount": 1288, "days_before": 30, "priced_in_chat": true}]}
+  ]
+}
