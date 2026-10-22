@@ -9,6 +9,7 @@ from flask import Flask, Response, abort, flash, jsonify, redirect, render_templ
 from markupsafe import Markup, escape
 
 import store
+import suggest
 import sync
 import webhook
 import whatsapp_bridge
@@ -232,7 +233,8 @@ def job_page(job_id):
     return render_template("job.html", r=record, bill=bill, items=items, total_items=len(record.job.items),
                            allowed=allowed_actions, highlighted=highlighted, show=show, waiting=waiting,
                            only_mine=only_mine, owner_limit=record.job.policy["owner_approval_at"], linked=linked,
-                           stages=progress(record.job), bulk=bulk_candidates(record.job, role))
+                           stages=progress(record.job), bulk=bulk_candidates(record.job, role),
+                           suggestions=suggest.for_job(record) if role in ("pm", "owner") else [])
 
 
 # One step of the journey per role; "do all" applies it to every change that is ready for it.
@@ -369,6 +371,7 @@ def job_api(job_id):
                  "draft_total": bill.draft_total, "not_on_bill_yet": bill.outstanding_priced_total,
                  "agreed_in_chat_beyond_quote": bill.agreed_beyond_quote},
         "activity_log": {"intact": record.job.log.intact(), "entries": [vars(e) for e in record.job.log.entries]},
+        "suggestions": [vars(s) for s in suggest.for_job(record)],
     })
 
 

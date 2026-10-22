@@ -35,6 +35,20 @@
 </ol>
 {% include "_job_nav.html" %}
 
+{% if suggestions %}
+<details class="panel suggestions" {{ 'open' if role == 'owner' }}>
+  <summary><strong>Next time, quote it upfront:</strong> what changed late in {{ suggestions[0].of_jobs }} past {{ r.catalogue.quote.event_type }} jobs</summary>
+  <ul>
+  {% for s in suggestions %}
+    <li><span class="num">{{ s.seen_in }} of {{ s.of_jobs }}</span> · <strong>{{ s.title }}</strong>, usually {{ s.typical_amount | rm }}
+      {% if s.typical_days_before < 1 %}on the day{% else %}about {{ s.typical_days_before|round|int }} days before{% endif %}{% if s.unpriced %}, {{ s.unpriced }} agreed with no price{% endif %}.
+      <br><span class="t-muted">{{ s.advice }}</span></li>
+  {% endfor %}
+  </ul>
+  <p class="hint">Counted from the company’s past jobs (simulated history). Plain counts, so each line can be checked by hand.</p>
+</details>
+{% endif %}
+
 <div class="grid">
   <section class="panel chat" aria-label="Chat">
     <h2 class="section-title" style="margin-top:0">Chat ({{ r.messages|length }} messages)</h2>

@@ -51,6 +51,7 @@ Decisions are made by fixed, explainable rules. When something is unclear, SMErg
 - **Approval by the right role:** PM checks, owner signs off at RM500 or more (and on discounts, unconfirmed items and staff-entered prices), client confirms or disputes with a reason. Enforced on the server, not only hidden in the page.
 - **Live from WhatsApp:** messages arrive through the webhook; new changes appear as people talk, and the PM is told straight away.
 - **Everyone in sync:** the next person is messaged when a change needs them (owner approval, client confirmation); each client confirmation makes quote version 2, 3… and posts a summary back to the group.
+- **Next time, quote it upfront:** counts from past jobs show what usually changes late in this kind of event (e.g. "the event ran past the planned end in 4 of 4 dinners") and the one step that moves that decision into the quote. Plain counting over a simulated job history, so every line can be checked by hand; a trained model can replace it once real, human-approved history exists.
 - **Named approvers:** people come from a company directory (Orbyte's Directory, simulated in `data/team.json`).
 - **Draft final bill:** the quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV export for accounting software.
 - **Activity log:** who did what and when, each entry chained to the one before so later edits show.
