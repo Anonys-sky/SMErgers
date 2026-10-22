@@ -375,10 +375,13 @@ def job_api(job_id):
     })
 
 
+NEXT_STEP = {"pm": {"review", "set_price"}, "owner": {"approve", "decide"}, "client": {"confirm"}}
+
+
 def needs(item, role):
-    """True if this change waits for this role's next step. Reject and dispute are always
-    possible, so they do not count as work waiting."""
-    return bool(set(allowed_actions(item, role)) - {"reject", "dispute"})
+    """True if this change waits for this role's own next step. Reject and dispute are always
+    possible, and the owner may also price a change, so those do not count as work waiting."""
+    return bool(set(allowed_actions(item, role)) & NEXT_STEP.get(role, set()))
 
 
 def allowed_actions(item, role):
