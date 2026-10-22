@@ -36,8 +36,9 @@ When something is unclear, SMErgers does not guess. A change with no price anywh
 | Live from WhatsApp | Receives messages in Meta's official Cloud API webhook format, with signature checking and the verification handshake. The demo feeds a synthetic chat one message at a time. |
 | Change finder | Rules that handle follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals. |
 | Show in chat | Every change and bill line highlights the exact messages it came from. Clicking a message jumps to its change. |
-| Approval by the right person | Named people from a company directory. The owner signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff. Enforced on the server, not only hidden in the page. |
-| Quote versions and messages | Each confirmation makes a new quote version and posts it to the group. Approval and confirmation requests go to the next person. |
+| Approval by the right person | Named people from a company directory: the PM and the owner use the app; the client confirms on a phone-sized page opened from a WhatsApp link; finance downloads the CSV. The owner signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff. Enforced on the server, not only hidden in the page. |
+| Quote versions and messages | Each confirmation makes a new quote version and posts it to the group. Approval and confirmation requests go to the next person. All of it, with the activity log, is on the job's History page. |
+| Guided journey | A five-step guide on every job (messages arrive, PM checks, owner approves, client confirms, everyone in sync) says who acts next and hands over in one click. |
 | Next time, quote it upfront | Counts from past jobs show what usually changes late in this kind of event and the one step that moves the decision into the quote, e.g. "the event ran past the planned end in 4 of 4 dinners: put overtime rates in the quote". |
 | Draft final bill | The quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV for accounting software. A draft, never an invoice. |
 | Activity log | Who did what, in which role, and when. Each entry is chained to the one before, so a later edit shows. |
@@ -175,12 +176,14 @@ npm run whatsapp                 # then link a test number from /whatsapp
 
 ## Demo walkthrough (about 3 minutes)
 
-1. On the home page, click **Start with the demo**. Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then press **Play the rest**.
-2. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
-3. The wireless mics have no price anywhere, so they are marked **Needs a price**. Set RM320. The owner must now approve it, because staff entered the price.
-4. As **Project manager**, check the changes. As **Owner**, approve the ones of RM500 or more and read **Next time, quote it upfront**.
-5. As **Client**, dispute the banners ("we asked for 2") and confirm the rest. Switch back to Project manager and click **Show in chat** on the banners: the client's own "2 more" and "and 1 at the lift lobby" settle it.
-6. In the chat, SMErgers has posted "quote version 2" to the group. Open **Quote versions and messages**, **Draft bill** and **Activity log**.
+The guide bar at the top of each job always says what happens next and who does it, and hands over to the next person with one button.
+
+1. On the home page, click **Start the demo**. Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then press **Play the rest**.
+2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
+3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the owner must now approve it, because staff entered the price), then **Check all**.
+4. Press **Continue as Daniel (Owner)**. Read **Next time, quote it upfront**, then approve.
+5. Press **Open the client's link**: the phone-sized page the client sees from WhatsApp. Dispute the banners ("we asked for 2") and confirm the rest.
+6. Press **Back to Aisyah**. In the chat, SMErgers has posted "quote version 2" to the group. Click **Show in chat** on the disputed banners: the client's own "2 more" and "and 1 at the lift lobby" settle it. Then open **Bill** and **History**.
 
 ---
 
@@ -215,7 +218,7 @@ Usage pricing through Orbyte credits is the alternative. Break-even: Confirm cos
 
 - **Synthetic data only.** Every chat, quote, company and person in this repository is invented and labelled.
 - **No payments, filings or advice.** The bill is a draft for accounting software. Nothing is sent or paid. The record of what was agreed is not legal advice.
-- **Sign-in and roles are simulated,** as the brief allows. Permissions are still checked on the server.
+- **Sign-in is simulated,** as the brief allows: switch people with the menu at the top or the guide's hand-over button. Permissions are still checked on the server.
 - **PDPA in a real deployment:** clients and vendors are told why the group is read; only messages linked to changes are kept; access is limited by role; a retention period is set; access and deletion requests are honoured. A pilot with real chats needs a legal review first.
 
 ## Known limits
