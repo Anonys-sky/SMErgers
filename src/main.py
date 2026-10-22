@@ -205,13 +205,61 @@ def live_next(job_id):
     return redirect(url_for("job_page", job_id=job_id) + "#chat-end")
 
 
-@app.get("/job/<job_id>/updates")
-def updates_page(job_id):
-    """Quote versions and every message SMErgers sent back to the group or to a person."""
+@app.get("/job/<job_id>/history")
+def history_page(job_id):
+    """Quote versions, messages SMErgers sent, and the activity log, in one place."""
     record = get_record(job_id)
     if redirect_client := staff_only(job_id):
         return redirect_client
-    return render_template("updates.html", r=record, versions=record.versions, outbox=list(reversed(record.outbox)))
+    return render_template("history.html", r=record, versions=record.versions, outbox=list(reversed(record.outbox)),
+                           entries=record.job.log.entries, intact=record.job.log.intact(), guide=guide(record))
+
+
+@app.get("/job/<job_id>/updates")
+def updates_page(job_id):
+    return redirect(url_for("history_page", job_id=job_id))
+
+
+@app.post("/job/<job_id>/as/<role>")
+def continue_as(job_id, role):
+    """Demo: hand the job to the next person and open the page they would see."""
+    get_record(job_id)
+    session["role"] = role if role in store.ROLE_LABELS else "pm"
+    if session["role"] == "client":
+        return redirect(url_for("client_page", job_id=job_id))
+    return redirect(url_for("job_page", job_id=job_id))
+
+
+GUIDE_STEPS = ["Messages arrive", "PM checks", "Owner approves", "Client confirms", "Everyone in sync"]
+
+
+def guide(record):
+    """Where the job is in its journey, and who acts next: drives the guided demo bar."""
+    team, items, role = record.team, record.job.items.values(), current_role()
+    disputed = any(i.state == "disputed" for i in items)
+    if record.live and record.live.script:
+        step, who = 0, "pm"
+        text = "New messages are waiting in the job's WhatsApp group. Press Next message to watch changes appear."
+    elif any(needs(i, "pm") for i in items):
+        step, who = 1, "pm"
+        text = ("The client disputed a change. Use Show in chat to see who said what, then check it again."
+                if disputed else f"{team['pm']} checks each change against its messages and adds any missing price.")
+    elif any(needs(i, "owner") for i in items):
+        step, who = 2, "owner"
+        text = f"{team['owner']} approves the large or unusual changes {team['pm']} sent up."
+    elif any(needs(i, "client") for i in items):
+        step, who = 3, "client"
+        text = "The client opens the link they got in WhatsApp and confirms or disputes each change."
+    else:
+        step, who = 4, None
+        text = f"Done for now: quote version {record.versions[-1].number} was posted to the WhatsApp group."
+    hand_over = None
+    if who and who != role:
+        label = "Open the client's link" if who == "client" else f"Continue as {team[who]} ({store.ROLE_LABELS[who]})"
+        hand_over = (who, label)
+    elif who is None and role == "client":
+        hand_over = ("pm", f"Back to {team['pm']}: see the update in the group")
+    return {"steps": GUIDE_STEPS, "step": step, "text": text, "hand_over": hand_over}
 
 
 @app.get("/job/<job_id>")
@@ -234,7 +282,7 @@ def job_page(job_id):
                            allowed=allowed_actions, highlighted=highlighted, show=show, waiting=waiting,
                            only_mine=only_mine, owner_limit=record.job.policy["owner_approval_at"], linked=linked,
                            stages=progress(record.job), bulk=bulk_candidates(record.job, role),
-                           suggestions=suggest.for_job(record) if role in ("pm", "owner") else [])
+                           suggestions=suggest.for_job(record) if role in ("pm", "owner") else [], guide=guide(record))
 
 
 # One step of the journey per role; "do all" applies it to every change that is ready for it.
@@ -313,7 +361,7 @@ def bill_page(job_id):
     record = get_record(job_id)
     if redirect_client := staff_only(job_id):
         return redirect_client
-    return render_template("bill.html", r=record, bill=build_bill(record.catalogue, record.job))
+    return render_template("bill.html", r=record, bill=build_bill(record.catalogue, record.job), guide=guide(record))
 
 
 @app.get("/job/<job_id>/bill.csv")
@@ -342,7 +390,8 @@ def client_page(job_id):
     shown = [(k, i) for k, i in record.job.items.items() if i.state in ("approved", "confirmed", "disputed")]
     by_id = {m.id: m for m in record.messages}
     return render_template("client.html", r=record, items=shown, by_id=by_id, allowed=allowed_actions,
-                           bulk=bulk_candidates(record.job, current_role()) if current_role() == "client" else None)
+                           bulk=bulk_candidates(record.job, current_role()) if current_role() == "client" else None,
+                           guide=guide(record))
 
 
 @app.get("/job/<job_id>/log")
@@ -350,7 +399,7 @@ def log_page(job_id):
     record = get_record(job_id)
     if redirect_client := staff_only(job_id):
         return redirect_client
-    return render_template("log.html", r=record, entries=record.job.log.entries, intact=record.job.log.intact())
+    return redirect(url_for("history_page", job_id=job_id) + "#log")
 
 
 @app.get("/api/jobs/<job_id>")
