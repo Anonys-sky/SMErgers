@@ -24,10 +24,10 @@ def key_for(job_id, item_name):
 
 def test_every_page_renders(client):
     assert client.get("/").status_code == 200
-    for path in ("", "/bill", "/client", "/log"):
+    for path in ("", "/bill", "/client", "/history"):
         page = client.get(f"/job/annual-dinner{path}")
         assert page.status_code == 200, path
-    assert b"Simulated data" in client.get("/").data
+    assert b"synthetic data" in client.get("/").data
 
 
 def test_headline_shows_money_agreed_in_chat(client):
@@ -41,10 +41,10 @@ def test_full_flow_through_the_pages(client):
     as_role(client, "client")
     client.post(f"/job/annual-dinner/act/{banners}", data={"action": "confirm"})
     assert store.JOBS["annual-dinner"].job.items[banners].state == "confirmed"
-    as_role(client, "finance")
+    as_role(client, "pm")
     bill = client.get("/job/annual-dinner/bill").data.decode()
     assert "quote: 4" in bill
-    assert "confirm" in client.get("/job/annual-dinner/log").data.decode()
+    assert "confirm" in client.get("/job/annual-dinner/history").data.decode()
 
 
 def test_server_refuses_actions_the_role_may_not_take(client):
@@ -102,7 +102,7 @@ def test_highlighting_marks_deal_terms_but_still_escapes(client):
 def test_success_message_after_an_action(client):
     banners = key_for("annual-dinner", "Roll-up banner")
     page = client.post(f"/job/annual-dinner/act/{banners}", data={"action": "review"}, follow_redirects=True)
-    assert "Roll-up banner: approved, waiting for client." in page.data.decode()
+    assert "Roll-up banner: waiting for the client." in page.data.decode()
 
 
 def test_chat_text_is_escaped(client):

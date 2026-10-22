@@ -73,10 +73,24 @@ def test_confirmation_shows_up_in_the_group_and_versions_page(client):
     client.post("/role", data={"role": "pm"})
     page = client.get("/job/annual-dinner-live").data.decode()
     assert "SMErgers → group" in page and "version 2" in page
-    assert "version 2" in client.get("/job/annual-dinner-live/updates").data.decode()
+    assert "version 2" in client.get("/job/annual-dinner-live/history").data.decode()
 
 
-def test_finance_gets_its_own_guidance(client):
-    client.post("/role", data={"role": "finance"})
-    page = client.get("/job/annual-dinner").data.decode()
-    assert "Farah (Finance)" in page and "View only" in page
+def test_guide_walks_through_the_journey(client):
+    page = client.get("/job/annual-dinner-live").data.decode()
+    assert "New messages are waiting" in page
+    client.post("/job/annual-dinner-live/live/next", data={"all": "1"})
+    assert "Aisyah checks each change" in client.get("/job/annual-dinner-live").data.decode()
+    mic = next(k for k, i in store.JOBS["annual-dinner-live"].job.items.items() if i.change.item == "Wireless mic")
+    client.post(f"/job/annual-dinner-live/act/{mic}", data={"action": "set_price", "price": "320"})
+    assert "Aisyah checks each change" in client.get("/job/annual-dinner-live").data.decode()   # still the PM's turn
+    client.post("/job/annual-dinner-live/bulk")
+    page = client.get("/job/annual-dinner-live").data.decode()
+    assert "Continue as Daniel (Owner)" in page
+    assert client.post("/job/annual-dinner-live/as/owner").location.endswith("/job/annual-dinner-live")
+    assert client.post("/job/annual-dinner-live/as/client").location.endswith("/job/annual-dinner-live/client")
+
+
+def test_old_pages_redirect_to_history(client):
+    assert client.get("/job/annual-dinner/log").location.endswith("/job/annual-dinner/history#log")
+    assert client.get("/job/annual-dinner/updates").location.endswith("/job/annual-dinner/history")

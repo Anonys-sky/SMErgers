@@ -36,13 +36,13 @@ def client():
         yield c
 
 
-def test_owner_sees_suggestions_finance_does_not(client):
+def test_owner_sees_suggestions_client_does_not(client):
     client.post("/role", data={"role": "owner"})
     page = client.get("/job/annual-dinner").data.decode()
     assert "Next time, quote it upfront" in page
     assert "Decide amount" not in page and "Nothing waits for you as Owner" in page
-    client.post("/role", data={"role": "finance"})
-    assert "Next time, quote it upfront" not in client.get("/job/annual-dinner").data.decode()
+    client.post("/role", data={"role": "client"})
+    assert client.get("/job/annual-dinner").status_code == 302      # clients never see the team's page
 
 
 def test_api_includes_suggestions(client):
