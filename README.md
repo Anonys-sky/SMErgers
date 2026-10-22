@@ -1,130 +1,153 @@
 # SMErgers
 
-> Turns changes agreed in WhatsApp into approved changes and a correct draft final bill, for small event companies and other businesses that work job by job.
+> Changes agreed in a job's WhatsApp group become approved, traceable changes, a new version of the quote for everyone, and a correct draft final bill. Built for small event companies first, and for any business that works job by job.
+
+**Team VBall** · SDC Hackathon 2026, Domain 2: Orbyte Smart SME Challenge · SDG 8 (targets 8.2 and 8.3) · Licensed under Apache 2.0
+
+| Resource | Link |
+| --- | --- |
+| GitHub repository | https://github.com/Anonys-sky/SMErgers |
+| Pitch deck | https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx |
+
+All data in this repository is synthetic. No real chat, person, client or company is used.
 
 ---
 
-## Team Information
+## The problem
 
-| Field                  | Details |
-| ---------------------- | ------- |
-| **Team Name**          | VBall |
-| **Team Domain**        | Domain 2: Orbyte Smart SME Challenge |
-| **SDG Track (1–17)**   | SDG 8 (Decent Work and Economic Growth), targets 8.2 and 8.3 |
-| **Team Leader**        | Vincent Chew Wen Jie |
-| **University**         | *To fill* |
-| **Number of Members**  | 3 |
+In a small event company the quote is signed early, and then the job changes inside the WhatsApp group: 15 more guests, a bigger LED wall, the emcee staying an extra hour, two microphones on the night. Nobody turns those messages into a record. Everyone remembers a different version. At the end of the job someone rebuilds the final bill by scrolling the chat, extras go unbilled, and when the client says "I never agreed to that" there is nothing to show, so the owner often gives the money away.
 
-## Links
+This comes from a team member's experience at an event company, where it happened on almost every event. It is one person's account, not a survey.
 
-| Resource          | Link |
-| ----------------- | ---- |
-| GitHub Repository | https://github.com/Anonys-sky/SMErgers |
-| Replit Project    | *To add after import* |
-| Live Demo         | *To add after deployment* |
-| RunPod Endpoint   | Not used (no GPU work, see below) |
-| Slide Deck        | *To add* |
-| Demo Video        | *To add* |
+## What SMErgers does
 
----
+**Catch it.** SMErgers reads the job's WhatsApp group as messages arrive, so nobody exports anything. It groups messages into threads (a request and its replies) and works out what changed, by how much, at what price, and whether both sides agreed.
 
-## Overview
+**Confirm it.** Each change goes to the right person. The project manager checks it, the owner signs off on large or unusual items, and the client confirms or disputes it on their own page. Each person is messaged when it is their turn.
 
-### Problem
+**Sync it.** Every client confirmation creates a new version of the quote (v2, v3 and so on) and posts a summary back to the group, so everyone works from the same numbers. Only confirmed changes reach the draft bill, and every line links back to the messages it came from.
 
-In a small event company, the quote is signed early, then the job changes in the WhatsApp group: 15 more guests, a bigger LED wall, the emcee staying an extra hour. Nobody turns those messages into a record. At the end of the job someone rebuilds the final bill from memory and the chat scroll, extras go unbilled, and when the client says "I never agreed to that", nobody can prove it, so the owner often gives the money away.
+When something is unclear, SMErgers does not guess. A change with no price anywhere is marked "needs a price", a discount with no clear base goes to the owner, and a request nobody agreed to stays "discussed, not confirmed".
 
-This comes from a team member's experience working in an event company, where it happened on almost every event. It is one person's account, not a survey.
+## Features
 
-### Solution
+| Feature | What it does |
+| --- | --- |
+| Live from WhatsApp | Receives messages in Meta's official Cloud API webhook format, with signature checking and the verification handshake. The demo feeds a synthetic chat one message at a time. |
+| Change finder | Rules that handle follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals. |
+| Show in chat | Every change and bill line highlights the exact messages it came from. Clicking a message jumps to its change. |
+| Approval by the right person | Named people from a company directory. The owner signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff. Enforced on the server, not only hidden in the page. |
+| Quote versions and messages | Each confirmation makes a new quote version and posts it to the group. Approval and confirmation requests go to the next person. |
+| Next time, quote it upfront | Counts from past jobs show what usually changes late in this kind of event and the one step that moves the decision into the quote, e.g. "the event ran past the planned end in 4 of 4 dinners: put overtime rates in the quote". |
+| Draft final bill | The quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV for accounting software. A draft, never an invoice. |
+| Activity log | Who did what, in which role, and when. Each entry is chained to the one before, so a later edit shows. |
+| Job API | `GET /api/jobs/<id>` returns changes, approvals, bill totals, suggestions and the log, as a building block for Orbyte. |
 
-SMErgers reads the job's WhatsApp group as messages arrive (no export needed), finds each change that was agreed, prices it from the chat, the quote or the rate card, and sends it through the right people: the project manager checks it, the owner signs off on large or unusual items, and the client confirms it on their own page. Each confirmation makes a new version of the quote and posts a summary back to the group, so everyone works from the same numbers. Only confirmed changes reach the draft bill, and every line links back to the exact messages it came from.
+## How it fits the Domain 2 journey
 
-**How WhatsApp is read.** The design uses Meta's official WhatsApp Business (Cloud) API: the business number creates one group per job and receives its messages by webhook. The prototype implements that webhook (`POST /webhooks/whatsapp`, Meta's payload format, signature check, verification handshake) and feeds it a synthetic chat one message at a time ("Next message" on the live demo job). Known limits of the official Groups API: up to 8 participants per group and an Official Business Account is required. An optional local connector built on whatsapp-web.js (`whatsapp/bridge.js`) can read an existing group for team testing only: it is an unofficial client, against WhatsApp's terms for production use, so it is not part of the product. Chat exports (.txt) still work as a fallback.
+| Step in the brief | In SMErgers |
+| --- | --- |
+| Trigger | A message arrives in the job's WhatsApp group (webhook) |
+| Connected data | The signed quote, the rate card, the client, the job and the company directory |
+| Decision logic | Fixed, explainable rules find each change, its quantity and price, and whether both sides agreed |
+| Human approval | PM checks; owner signs off on large or unusual items; client confirms |
+| Visible outcome | Quote v2 posted to the group, the draft bill and CSV, and the activity log |
 
-Decisions are made by fixed, explainable rules. When something is unclear, SMErgers does not guess: it marks the change "needs a price" or "needs the owner's decision" and hands it to a person.
+## Where AI fits, and where it does not
 
-### Key Features
+SMErgers uses **no AI model** at run time. Every decision is made by rules, because an owner and a client need a reason they can read, not a score. A model is added only where it beats the rules on chats they were not written for.
 
-- **Change finder:** groups messages into threads and works out what changed, by how much, at what price, and whether both sides agreed. Handles follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests and "let me ask boss first".
-- **Show in chat:** every change and bill line highlights the messages it came from, which settles disputes in seconds.
-- **Approval by the right role:** PM checks, owner signs off at RM500 or more (and on discounts, unconfirmed items and staff-entered prices), client confirms or disputes with a reason. Enforced on the server, not only hidden in the page.
-- **Live from WhatsApp:** messages arrive through the webhook; new changes appear as people talk, and the PM is told straight away.
-- **Everyone in sync:** the next person is messaged when a change needs them (owner approval, client confirmation); each client confirmation makes quote version 2, 3… and posts a summary back to the group.
-- **Next time, quote it upfront:** counts from past jobs show what usually changes late in this kind of event (e.g. "the event ran past the planned end in 4 of 4 dinners") and the one step that moves that decision into the quote. Plain counting over a simulated job history, so every line can be checked by hand; a trained model can replace it once real, human-approved history exists.
-- **Named approvers:** people come from a company directory (Orbyte's Directory, simulated in `data/team.json`).
-- **Draft final bill:** the quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV export for accounting software.
-- **Activity log:** who did what and when, each entry chained to the one before so later edits show.
+The product creates its own training data: every approval, rejection and dispute is a human-checked label on real chat messages. After a pilot with real companies, that data can train a model to read messages and to make the "quote it upfront" suggestions. We do not train on made-up chats.
 
-### Where AI fits
+## Orbyte fit
 
-The current version uses **no AI model**: rules handle the extraction and every decision, because a reason an owner can read matters more than a score. A language model may later read phrasing the rules have never seen, but only if it beats the rules on chats the rules were not written for (see [Results](#results)). No model is trained, so no GPU is needed.
-
-### Tech Stack
-
-| Layer         | Technology |
-| ------------- | ---------- |
-| Frontend      | Server-rendered HTML (Jinja templates), one CSS file, a few lines of JavaScript for highlighting |
-| Backend       | Python 3.12, Flask |
-| Database      | In-memory store for the prototype (demo data resets on restart) |
-| AI / Compute  | None in this version |
-| Hosting / Dev | Replit |
+SMErgers is a module for Orbyte's hub. It reuses Orbyte's clients and projects, directory and roles, approvals, eSign and audit trail, and adds one capability Orbyte does not have: turning chat into approved changes. The same engine runs a café renovation chat with only a different quote file. Interface assumptions are in [docs/orbyte-integration.md](docs/orbyte-integration.md).
 
 ---
 
-## Project Structure
+## How WhatsApp is read
+
+The product uses Meta's official WhatsApp Business (Cloud) API. The business number creates one group per job, the client and vendors join by invite link, and messages arrive by webhook.
+
+- `POST /webhooks/whatsapp` accepts Meta's payload format and checks the `X-Hub-Signature-256` signature when `WHATSAPP_APP_SECRET` is set.
+- `GET /webhooks/whatsapp` answers Meta's verification handshake using `WHATSAPP_VERIFY_TOKEN`.
+- The live demo job sends synthetic messages through the same code ("Next message", "Play the rest").
+
+Known limits of the official Groups API: at most 8 participants per group, and an Official Business Account is required. Chat export (.txt) remains as a fallback.
+
+`whatsapp/bridge.js` is an optional local connector built on whatsapp-web.js for reading an existing group during team testing. It is an unofficial client and against WhatsApp's terms for production use, so it is not part of the product.
+
+---
+
+## Tech stack
+
+| Layer | Technology |
+| --- | --- |
+| Web app | Python 3.12, Flask, server-rendered Jinja templates, one CSS file |
+| Logic | Rules engine, approval workflow, quote versioning, suggestions (all Python) |
+| Data | In-memory store for the prototype; synthetic JSON data |
+| WhatsApp | Meta Cloud API webhook format; optional Node.js bridge for testing |
+| Tests | pytest (92 tests); Node test runner for the bridge |
+| Hosting and development | Replit |
+
+## Project structure
 
 ```
 .
-├── data/                    # Synthetic data only (see data/README.md)
-│   ├── quotes/              # Signed quote + rate card per job
-│   ├── chats/               # WhatsApp-style exports
-│   ├── answer_keys/         # Hand-written expected changes, for scoring
-│   └── vendor_invoices/     # Synthetic vendor invoice (for a later vendor check)
+├── data/                      Synthetic data only (see data/README.md)
+│   ├── quotes/                Signed quote and rate card per job
+│   ├── chats/                 WhatsApp-style chats
+│   ├── answer_keys/           Hand-written expected changes, for scoring
+│   ├── history/               Past jobs, for "quote it upfront" suggestions
+│   ├── vendor_invoices/       Vendor invoice for a future vendor check
+│   └── team.json              Company directory (stands in for Orbyte's Directory)
 ├── docs/
-│   ├── results.md           # Every accuracy run, including caveats
-│   └── orbyte-integration.md
+│   ├── results.md             Every accuracy run, with caveats
+│   └── orbyte-integration.md  Interface assumptions and the WhatsApp design
 ├── src/
-│   ├── main.py              # Web app entry point (routes only)
-│   ├── chat_import.py       # WhatsApp export parser
-│   ├── catalogue.py         # Quote lines and rate card, and the words that name them
-│   ├── rules_extractor.py   # Finds the changes agreed in a chat
-│   ├── workflow.py          # Approval flow, permissions, activity log
-│   ├── bill.py              # Matches confirmed changes to the quote, builds the draft bill
-│   ├── evaluate.py          # Scores the extractor against the answer keys
-│   ├── schema.py            # Shared data shapes
-│   ├── store.py             # In-memory jobs, demo reset, live demo feed
-│   ├── webhook.py           # WhatsApp Cloud API webhook format, signature check, live ingestion
-│   ├── sync.py              # Quote versions and messages back to the group or the next approver
-│   ├── whatsapp_bridge.py   # Optional local connector to whatsapp/bridge.js (team testing only)
-│   ├── templates/  static/
-├── submission/              # Required submission documents (see submission/README.md)
-├── tests/                   # pytest
-├── .env.example  .gitignore  .gitattributes  .replit  LICENSE  requirements.txt  README.md
+│   ├── main.py                Web app entry point (routes only)
+│   ├── webhook.py             WhatsApp Cloud API webhook format and live ingestion
+│   ├── chat_import.py         Chat parsing (exports and live messages)
+│   ├── catalogue.py           Quote lines, rate card and the words that name them
+│   ├── rules_extractor.py     Finds the changes agreed in a chat
+│   ├── workflow.py            Approval flow, permissions, activity log
+│   ├── sync.py                Quote versions and messages to the group and approvers
+│   ├── bill.py                Matches confirmed changes to the quote, builds the draft bill
+│   ├── suggest.py             Suggestions from past jobs
+│   ├── evaluate.py            Scores the extractor against the answer keys
+│   ├── store.py               Jobs, demo reset and the live demo feed
+│   ├── whatsapp_bridge.py     Client for the optional local bridge
+│   ├── schema.py              Shared data shapes
+│   └── templates/, static/    Pages and styles
+├── whatsapp/                  Optional local bridge (Node.js, team testing only)
+├── submission/                Submission documents (see submission/README.md)
+├── tests/                     pytest suite
+├── .env.example  .replit  replit.md  requirements.txt  package.json  LICENSE
 ```
 
-### Architecture
+## Architecture
 
 ```
-WhatsApp group ──webhook──► webhook.py ──► rules_extractor ──► workflow (PM ► owner ► client) ──► bill ──► CSV
-(or .txt export ──► chat_import)              ▲                       │                              │
-                                quote + rate card (catalogue)   sync.py: quote v2, v3…        GET /api/jobs/<id>
-                                                                messages back to the group
-                                                                and the next approver
-                                                                activity log
+WhatsApp group ──webhook──► webhook.py ──► rules_extractor ──► workflow ──► sync.py ──► group update, quote v2
+   (.txt export ──► chat_import)              ▲                (PM ► owner ► client)        approval and confirm requests
+                                 quote, rate card, directory                    │
+                                                                                ▼
+                                       suggest.py ◄── past jobs        bill.py ──► draft bill, CSV
+                                                                                ▼
+                                                                  activity log, GET /api/jobs/<id>
 ```
 
 ---
 
-## How to Run
+## How to run
 
-### Option 1: Run on Replit
+### On Replit
 
 1. Import this repository: **Create Repl → Import from GitHub**.
-2. Optional: in **Secrets**, add `SECRET_KEY` (see `.env.example`).
-3. Click **Run**. Replit uses `.replit` to start `python src/main.py`.
+2. Optional: add `SECRET_KEY` in **Secrets** (see `.env.example`).
+3. Click **Run**. The `.replit` workflow starts `python src/main.py` on port 5000.
 
-### Option 2: Run locally
+### Locally
 
 ```bash
 git clone https://github.com/Anonys-sky/SMErgers.git
@@ -132,96 +155,102 @@ cd SMErgers
 python -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-python src/main.py               # then open http://localhost:8080
+python src/main.py               # then open http://localhost:5000
 ```
 
-### Run tests and accuracy scores
+### Tests and accuracy scores
 
 ```bash
 python -m pytest
 python src/evaluate.py
+npm test                         # bridge conversion tests (needs Node.js)
 ```
 
-### Demo walkthrough (about 3 minutes)
+### Optional local WhatsApp bridge (team testing only)
 
-1. Open the live job (**Start with the demo** on the home page). Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then **Play the rest**.
+```bash
+npm install
+npm run whatsapp                 # then link a test number from /whatsapp
+```
+
+## Demo walkthrough (about 3 minutes)
+
+1. On the home page, click **Start with the demo**. Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then press **Play the rest**.
 2. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
-3. The wireless mics have no price anywhere, so they are marked **Needs a price**. Set RM320; the owner must now approve it, because staff entered the price.
-4. As **Project manager**, check the changes. As **Owner**, approve the ones over RM500.
-5. As **Client**, confirm the changes, and dispute the banners ("we asked for 2"). Switch back and click **Show in chat**: the client's own "2 more" and "and 1 at the lift lobby" settle it.
-6. Back in the chat, SMErgers has posted "quote version 2" to the group. Open **Quote versions and messages**, **Draft bill** and **Activity log**.
-
----
-
-## How We Use Replit *(Required)*
-
-- **Hosting:** *to complete after deployment: Replit Deployments at the Live Demo link above.*
-- **Development:** *to complete: describe how the team used the Repl.*
-- **Secrets:** `SECRET_KEY` is kept in Replit Secrets, never in the code.
-
-Proof of use: `submission/REPLIT PROOF OF USE.pdf` *(to add)*
-
-## How We Use RunPod
-
-Not used. The handbook (section 9.4) requires RunPod for work that needs a GPU: training, fine-tuning or running a model on a GPU. SMErgers runs no model, so it needs no GPU.
+3. The wireless mics have no price anywhere, so they are marked **Needs a price**. Set RM320. The owner must now approve it, because staff entered the price.
+4. As **Project manager**, check the changes. As **Owner**, approve the ones of RM500 or more and read **Next time, quote it upfront**.
+5. As **Client**, dispute the banners ("we asked for 2") and confirm the rest. Switch back to Project manager and click **Show in chat** on the banners: the client's own "2 more" and "and 1 at the lift lobby" settle it.
+6. In the chat, SMErgers has posted "quote version 2" to the group. Open **Quote versions and messages**, **Draft bill** and **Activity log**.
 
 ---
 
 ## Results
 
-Scored with `python src/evaluate.py` against hand-written answer keys. Full log, with caveats: [docs/results.md](docs/results.md).
+Scored with `python src/evaluate.py` against hand-written answer keys. A change is fully right when both its status and its price match.
 
-| Chats | Changes | Rules: fully right | Baseline (any message with an RM amount): fully right |
-|---|---|---|---|
-| Tuning (dinner) | 10 | 10 | 3 |
-| Other three chats | 20 | 20 | 5 |
+| Chats | Changes | Rules: fully right | Baseline: fully right |
+| --- | --- | --- | --- |
+| The chat the rules were built on | 10 | 10 | 3 |
+| Three more chats by the same author | 20 | 20 | 5 |
 
-**These are not accuracy figures.** The same person wrote the chats, the answer keys and the rules. An honest score needs new chats written by someone who has not seen the rules, run once.
+Baseline: every message with an RM amount counts as a change.
+
+**These are not accuracy figures.** The same person wrote the chats, the answer keys and the rules. An honest score needs chats written by someone who has not seen the rules, scored once and reported as it comes out. The full log is in [docs/results.md](docs/results.md).
+
+Fed one message at a time through the webhook, the live demo job ends with exactly the same 10 changes as reading the whole chat at once (tested).
+
+## Business model
+
+The owner pays, because the owner is the one giving money away; the PM and finance use it every day. Tiers, as hypotheses to test in a pilot:
+
+| Tier | Price | Includes |
+| --- | --- | --- |
+| Capture | Free | One active job, find and list changes |
+| Confirm | RM100 a month | Approvals, client confirmation links, group updates |
+| Settle | RM250 a month | Draft bills, CSV, log export, suggestions, all jobs |
+
+Usage pricing through Orbyte credits is the alternative. Break-even: Confirm costs RM1,200 a year, so recovering one forgotten RM1,200 extra a year pays for it.
 
 ## Privacy and boundaries
 
-- **Synthetic data only.** No real chat, person, client or company is used.
-- **No payments, filings or advice.** The bill is a draft for accounting software; nothing is sent or paid. The record of what was agreed is not legal proof or legal advice.
-- **PDPA in a real deployment:** chat exports contain personal data of clients and vendors, so the company would tell them chats are used to record agreed changes, keep only the messages linked to changes and delete the rest after import, limit access by role, set a retention period, and let people ask for their data. A real pilot needs a legal review first.
+- **Synthetic data only.** Every chat, quote, company and person in this repository is invented and labelled.
+- **No payments, filings or advice.** The bill is a draft for accounting software. Nothing is sent or paid. The record of what was agreed is not legal advice.
+- **Sign-in and roles are simulated,** as the brief allows. Permissions are still checked on the server.
+- **PDPA in a real deployment:** clients and vendors are told why the group is read; only messages linked to changes are kept; access is limited by role; a retention period is set; access and deletion requests are honoured. A pilot with real chats needs a legal review first.
 
 ## Known limits
 
-- Rules only understand phrasing they were written for; unseen slang, typos and voice notes will be missed.
-- Dates are read day-first, as WhatsApp exports them in Malaysia.
+- Rules understand the phrasing they were written for. New slang, typos and voice notes can be missed, which is why nothing reaches the bill without a person's check and the client's confirmation.
 - Data is held in memory; a restart resets the demo.
-- Sign-in and roles are simulated.
+- Messages to the group and to approvers are queued and shown on screen; delivering them needs the official WhatsApp API.
+- Dates in chat exports are read day-first, as WhatsApp exports them in Malaysia.
 
-## Future Improvements
+## Roadmap
 
-- [ ] Score on chats written by someone who has not seen the rules, then decide whether a language model is worth adding.
-- [ ] Vendor check: the vendor's invoice against what was agreed with them (synthetic data is in `data/vendor_invoices/`).
-- [ ] Connect to Orbyte projects, approvals, eSign and audit trail ([docs/orbyte-integration.md](docs/orbyte-integration.md)).
-
-## Team
-
-| Name | Role | GitHub |
-| ---- | ---- | ------ |
-| Vincent Chew Wen Jie | Team leader | [@Anonys-sky](https://github.com/Anonys-sky) |
-| Looi Wan Wei | *To fill* | *To fill* |
-| Steven Elnathan Meliala | *To fill* | *To fill* |
+| Phase | What | Proof we will need |
+| --- | --- | --- |
+| Now | Prototype: live webhook, rules, approvals, quote versions, suggestions | Score on unseen chats; timed test of building the final bill by hand against SMErgers |
+| Pilot | 3 to 5 event companies on the official WhatsApp API with consent; Orbyte approvals and eSign; a model trained on approvals | Hours saved per job, changes caught, disputes settled with a source |
+| Grow | Renovation, agencies and print; vendor quote comparison; turning a client's photo into a change | Paying teams who stay |
 
 ---
 
-## Submission Checklist
+## Tools we used
 
-- [x] Domain and SDG track filled in
-- [x] Team name, leader and members filled in
-- [ ] University, member roles and GitHub handles filled in
-- [ ] Slide deck link added
-- [ ] Demo video link added
-- [ ] Replit used, with proof of use in `submission/`
-- [x] RunPod: not used (no GPU work), stated above
-- [ ] Submission template completed in `submission/`
-- [ ] Technical Tools Declaration lists every tool, including AI coding assistants
-- [ ] "How to Run" steps verified on Replit
-- [x] No API keys or secrets committed
-- [ ] Repository public, committee accounts added as collaborators
+| Tool | How we used it |
+| --- | --- |
+| Replit | Development and running the app; `.replit` defines the run workflow. Replit Agent assisted with configuration and styling. |
+| GitHub | This repository: Apache 2.0, small commits through the hackathon |
+| RunPod | Not used: no GPU work (handbook section 9.4) |
+| Claude and Replit Agent | AI coding assistants; declared in the Technical Tools Declaration |
+| whatsapp-web.js | Optional local bridge for team testing only |
+
+## Team VBall
+
+- **Vincent Chew Wen Jie**, team leader ([@Anonys-sky](https://github.com/Anonys-sky))
+- **Steven Elnathan Meliala**, WhatsApp connector (`whatsapp/`)
+- **Looi Wan Wei**
 
 ## License
 
-This project is licensed under the [Apache License 2.0](LICENSE).
+[Apache License 2.0](LICENSE)
