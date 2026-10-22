@@ -17,13 +17,13 @@ DEFAULT_POLICY = {
 }
 
 STATE_LABELS = {
-    "detected": "Found in chat",
-    "reviewed": "Checked by PM, waiting for owner",
-    "approved": "Approved, waiting for client",
-    "confirmed": "Confirmed by client",
-    "disputed": "Disputed by client",
+    "detected": "Needs the PM's check",
+    "reviewed": "Waiting for the owner",
+    "approved": "Waiting for the client",
+    "confirmed": "On the bill",
+    "disputed": "Disputed by the client",
     "rejected": "Rejected",
-    "record_only": "Kept on record",
+    "record_only": "No charge",
 }
 
 # action: (roles allowed, states it can start from)

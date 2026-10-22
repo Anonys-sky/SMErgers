@@ -18,7 +18,8 @@ DEMO_JOBS = [  # (job id, chat file, quote file)
     ("cafe-fit-out", "cafe_client.txt", "q_cafe.json"),
 ]
 
-ROLE_LABELS = {"pm": "Project manager", "owner": "Owner", "client": "Client", "finance": "Finance"}
+# People who use the web app. The client only opens a link from WhatsApp; finance downloads the CSV.
+ROLE_LABELS = {"pm": "Project manager", "owner": "Owner", "client": "Client (WhatsApp link)"}
 
 
 @dataclass
