@@ -2,6 +2,7 @@
 <nav class="tabs" aria-label="Job sections">
   <a href="{{ url_for('job_page', job_id=r.id) }}" class="{{ 'on' if tab == 'changes' }}">Changes</a>
   <a href="{{ url_for('bill_page', job_id=r.id) }}" class="{{ 'on' if tab == 'bill' }}">Draft bill</a>
+  <a href="{{ url_for('updates_page', job_id=r.id) }}" class="{{ 'on' if tab == 'updates' }}">Quote versions and messages</a>
   <a href="{{ url_for('client_page', job_id=r.id) }}" class="{{ 'on' if tab == 'client' }}">Client link</a>
   <a href="{{ url_for('log_page', job_id=r.id) }}" class="{{ 'on' if tab == 'log' }}">Activity log</a>
 </nav>

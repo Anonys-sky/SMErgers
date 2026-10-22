@@ -1,0 +1,40 @@
+{% extends "base.html" %}
+{% block title %}Quote versions · {{ r.title }}{% endblock %}
+{% block content %}
+{% set tab = 'updates' %}
+<h1>Quote versions and messages</h1>
+<p class="lede">Each client confirmation makes a new version of the quote and tells the group, so everyone works from the same numbers.</p>
+<p class="headline">Quote {{ r.catalogue.quote.quote_id }} is at <strong>version {{ versions[-1].number }}</strong>:
+  <span class="num">{{ versions[-1].total | rm }}</span>.</p>
+{% include "_job_nav.html" %}
+
+<div class="grid grid-even">
+  <section class="panel" aria-label="Quote versions">
+    <h2 class="section-title" style="margin-top:0">Versions</h2>
+    <div class="table-wrap"><table>
+      <thead><tr><th>Version</th><th>Confirmed by</th><th>Changes added</th><th class="r">Total</th></tr></thead>
+      <tbody>
+      {% for v in versions|reverse %}
+        <tr><td class="num">v{{ v.number }}<br><small class="t-muted">{{ v.at.strftime('%d %b, %H:%M') }}</small></td>
+          <td>{{ v.by }}</td>
+          <td>{% if v.change_keys %}{% for k in v.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">{{ r.job.items[k].change.item }}</a>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}{{ v.note }}{% endif %}</td>
+          <td class="r num">{{ v.total | rm }}</td></tr>
+      {% endfor %}
+      </tbody>
+    </table></div>
+  </section>
+
+  <section class="panel" aria-label="Messages sent">
+    <h2 class="section-title" style="margin-top:0">Messages sent ({{ outbox|length }})</h2>
+    <p class="hint">Simulated: with the official WhatsApp API these would be delivered to the group or the person.</p>
+    {% for out in outbox %}
+      <div class="msg outgoing">
+        <span class="who">To {{ out.to }}</span><span class="when">{{ out.at.strftime('%d %b, %H:%M') }}</span>
+        <div class="text">{{ out.text }}</div>
+      </div>
+    {% else %}
+      <p class="reason">Nothing sent yet. Messages appear when a change needs the next person, or when the client confirms.</p>
+    {% endfor %}
+  </section>
+</div>
+{% endblock %}

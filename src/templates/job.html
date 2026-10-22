@@ -6,19 +6,27 @@
 <h1>{{ r.title }}</h1>
 <p class="lede">{{ r.catalogue.quote.client }} · quote {{ r.catalogue.quote.quote_id }} · chat {{ r.chat_name }} ·
   owner sign-off needed at {{ owner_limit | rm }} or more</p>
-{% if role == 'pm' %}
-  <p class="hint role-guidance"><strong>Your next step as project manager:</strong> check each extracted change against the highlighted chat evidence. Add a price or note when prompted, then mark it checked. Unclear or unpriced items need individual attention.</p>
-{% elif role == 'owner' %}
-  <p class="hint role-guidance"><strong>Your next step as owner:</strong> review the PM-checked items that need your approval. Approve individually or use the bulk action for ready items; items needing a price or decision stay separate.</p>
-{% else %}
-  <p class="hint role-guidance"><strong>Client review:</strong> this internal review is not your confirmation page. Open <a href="{{ url_for('client_page', job_id=r.id) }}">Client link</a> to confirm or dispute changes that have been approved.</p>
-{% endif %}
+{% set guidance = {'pm': 'Check each change against its messages; add a price where asked.',
+                    'owner': 'Approve the changes the PM sent you.',
+                    'finance': 'View only. The draft bill and CSV are under Draft bill.'} %}
+<p class="hint role-guidance"><strong>{{ r.team[role] }} ({{ roles[role] }}):</strong> {{ guidance[role] }}</p>
 <p class="headline">
   <strong class="num">{{ bill.agreed_beyond_quote | rm }}</strong> was agreed in the chat on top of the
   <span class="num">{{ bill.quote_total | rm }}</span> quote.
   {% if waiting %}{{ waiting }} change{{ '' if waiting == 1 else 's' }} wait{{ 's' if waiting == 1 }} for you as {{ roles[role] }}.
   {% else %}Nothing waits for you as {{ roles[role] }}.{% endif %}
 </p>
+
+{% if r.live %}
+<form class="live-bar" method="post" action="{{ url_for('live_next', job_id=r.id) }}">
+  <span class="live-dot" aria-hidden="true"></span>
+  <span><strong>Live from the WhatsApp group.</strong> Messages arrive through the official API’s webhook format (simulated: {{ r.live.script|length }} synthetic message{{ '' if r.live.script|length == 1 else 's' }} left).</span>
+  {% if r.live.script %}
+    <button class="primary" name="all" value="0">Next message</button>
+    <button name="all" value="1">Play the rest</button>
+  {% endif %}
+</form>
+{% endif %}
 
 <ol class="stages" aria-label="Where the changes are">
   {% for state, label, count in stages %}
@@ -38,6 +46,13 @@
         <div class="text">{{ m.text | marked }}</div>
       </div>
     {% endfor %}
+    {% for out in r.outbox if out.to == 'Group' %}
+      <div class="msg outgoing">
+        <span class="who">SMErgers → group</span><span class="when">{{ out.at.strftime('%d %b, %H:%M') }}</span>
+        <div class="text">{{ out.text }}</div>
+      </div>
+    {% endfor %}
+    <div id="chat-end"></div>
   </section>
 
   <section aria-label="Changes found">
