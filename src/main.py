@@ -15,7 +15,7 @@ from schema import STATUSES
 from workflow import ACTIONS, STATE_LABELS, NotAllowed
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY") or secrets.token_hex(16)
+app.secret_key = os.environ.get("SECRET_KEY") or os.environ.get("SESSION_SECRET") or secrets.token_hex(16)
 app.config["MAX_CONTENT_LENGTH"] = 1_000_000  # chat exports are small text files
 
 store.reset_demo()
@@ -344,4 +344,4 @@ def allowed_actions(item, role):
 
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "8080")))
+    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", "5000")))
