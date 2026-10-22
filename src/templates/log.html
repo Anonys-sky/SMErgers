@@ -5,11 +5,13 @@
 <h1>Activity log</h1>
 <p class="lede">Who did what to each change, and when.</p>
 <p class="headline">
-  {% if intact %}Record intact: each entry is chained to the one before, so a later edit would show here.
-  {% else %}<strong>Warning:</strong> an entry was changed after it was written.{% endif %}
+  {% if intact %}Record integrity check passed: entries are chained together. This helps the team trace decisions; it is not a legal record.
+  {% else %}<strong>Integrity warning:</strong> an entry no longer matches the recorded chain. Ask an administrator to investigate.{% endif %}
 </p>
 {% include "_job_nav.html" %}
 <div class="panel">
+  {% if not entries %}<p class="reason">No actions have been recorded yet. As the team prices, reviews, approves and confirms changes, those actions will appear here.</p>{% endif %}
+  <div class="table-wrap">
   <table>
     <thead><tr><th>#</th><th>When</th><th>Who</th><th>Action</th><th>Change</th><th>Detail</th></tr></thead>
     <tbody>
@@ -22,5 +24,6 @@
     {% endfor %}
     </tbody>
   </table>
+  </div>
 </div>
 {% endblock %}

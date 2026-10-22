@@ -6,6 +6,13 @@
 <h1>{{ r.title }}</h1>
 <p class="lede">{{ r.catalogue.quote.client }} · quote {{ r.catalogue.quote.quote_id }} · chat {{ r.chat_name }} ·
   owner sign-off needed at {{ owner_limit | rm }} or more</p>
+{% if role == 'pm' %}
+  <p class="hint role-guidance"><strong>Your next step as project manager:</strong> check each extracted change against the highlighted chat evidence. Add a price or note when prompted, then mark it checked. Unclear or unpriced items need individual attention.</p>
+{% elif role == 'owner' %}
+  <p class="hint role-guidance"><strong>Your next step as owner:</strong> review the PM-checked items that need your approval. Approve individually or use the bulk action for ready items; items needing a price or decision stay separate.</p>
+{% else %}
+  <p class="hint role-guidance"><strong>Client review:</strong> this internal review is not your confirmation page. Open <a href="{{ url_for('client_page', job_id=r.id) }}">Client link</a> to confirm or dispute changes that have been approved.</p>
+{% endif %}
 <p class="headline">
   <strong class="num">{{ bill.agreed_beyond_quote | rm }}</strong> was agreed in the chat on top of the
   <span class="num">{{ bill.quote_total | rm }}</span> quote.
@@ -23,7 +30,7 @@
 <div class="grid">
   <section class="panel chat" aria-label="Chat">
     <h2 class="section-title" style="margin-top:0">Chat ({{ r.messages|length }} messages)</h2>
-    <p class="hint">Highlighted words carry the deal. Click a message to see the change it belongs to.</p>
+    <p class="hint">Highlighted words carry the deal. Select a linked message or use “Show in chat” on a change to compare its evidence.</p>
     {% for m in r.messages %}
       <div class="msg {{ 'system' if m.sender is none }} {{ 'media' if m.is_media }} {{ 'hl' if m.id in highlighted }} {{ 'linked' if m.id in linked }}"
            id="m-{{ m.id }}" {% if m.id in linked %}data-changes="{{ linked[m.id]|join(' ') }}" tabindex="0" role="button"{% endif %}>
@@ -35,7 +42,7 @@
 
   <section aria-label="Changes found">
     <div class="list-head">
-      <h2 class="section-title" style="margin:0">Changes found ({{ total_items }})</h2>
+      <div><h2 class="section-title" style="margin:0">Changes found ({{ total_items }})</h2><p class="hint">Read the reason and source before taking an action. Actions available here depend on your demo role.</p></div>
       {% if waiting %}
         <a class="btn" href="{{ url_for('job_page', job_id=r.id) if only_mine else url_for('job_page', job_id=r.id, view='mine') }}">
           {{ 'Show all changes' if only_mine else 'Show only what needs me (' ~ waiting ~ ')' }}</a>
@@ -63,7 +70,7 @@
         {{ action_forms(r, key, item, allowed(item, role), url_for('job_page', job_id=r.id, show=key)) }}
       </article>
     {% else %}
-      <p class="panel">Nothing needs you right now. <a href="{{ url_for('job_page', job_id=r.id) }}">Show all changes</a></p>
+      <p class="panel empty-state">Nothing needs you right now. You can <a href="{{ url_for('job_page', job_id=r.id) }}">show all changes</a>, switch the demo role above, or check the bill and activity log.</p>
     {% endfor %}
   </section>
 </div>

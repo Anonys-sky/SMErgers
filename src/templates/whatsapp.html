@@ -14,7 +14,7 @@
 } %}
 {% set label, tone = labels.get(status.status, (status.status, 't-info')) %}
 <h1>Read a group from WhatsApp</h1>
-<p class="lede">Connect directly to your WhatsApp to analyze group chats without exporting a .txt file.</p>
+<p class="lede">Optional shortcut: when the separate WhatsApp bridge is running and linked, read a group without exporting a file. The export-and-upload method on the jobs page works without this bridge.</p>
 
 <div class="panel" id="wa-status" style="margin-bottom: 20px;">
   <p><span class="tag {{ tone }}" id="status-badge">{{ label }}</span>
@@ -24,7 +24,7 @@
   {% if status.error %}<p class="hint" style="color: var(--bad);">{{ status.error }}</p>{% endif %}
 
   {% if status.status == 'offline' %}
-    <p>In your terminal, start the bridge:</p>
+    <p><strong>The live connection is not available right now.</strong> No WhatsApp account or groups are connected to this page. Use a synthetic .txt export from the jobs page, or start the bridge in the development environment:</p>
     <pre><code>npm run whatsapp</code></pre>
   {% elif status.status != 'ready' %}
     {% if status.pairing_code %}
@@ -39,7 +39,7 @@
 
     <div style="display: flex; flex-wrap: wrap; gap: 24px; align-items: flex-start; margin-top: 16px;">
       <div style="flex: 1 1 280px;">
-        <h3 style="margin-top: 0;">Option 1: Scan QR Code</h3>
+        <h3 style="margin-top: 0;">Option 1: Scan QR code</h3>
         <p style="font-size: 14px; color: var(--muted); margin-bottom: 12px;">Open WhatsApp on phone ➔ <strong>Settings</strong> (or ⋮) ➔ <strong>Linked devices</strong> ➔ <strong>Link a device</strong>.</p>
         <div style="background: #fff; display: inline-block; padding: 8px; border-radius: 8px; border: 1px solid var(--line);">
           <img id="wa-qr" src="{{ qr or '' }}" width="260" height="260" alt="WhatsApp login QR code" style="display: block; {% if not qr %}visibility: hidden;{% endif %}">
@@ -48,7 +48,7 @@
       </div>
 
       <div style="flex: 1 1 280px; border-left: 1px solid var(--line); padding-left: 20px;">
-        <h3 style="margin-top: 0;">Option 2: Link with Phone Number</h3>
+        <h3 style="margin-top: 0;">Option 2: Link with phone number</h3>
         <p style="font-size: 14px; color: var(--muted);">If QR scanning doesn't work, get an 8-character code sent to your phone instead:</p>
         <form method="post" action="{{ url_for('whatsapp_pair') }}" style="margin-top: 12px;">
           <label style="display: block; font-size: 14px; margin-bottom: 6px;">
@@ -70,6 +70,7 @@
 {% if status.status == 'ready' %}
   {% if error %}<div class="flash" role="alert">{{ error }}</div>{% endif %}
   <h2 class="section-title">Choose the group</h2>
+  <p class="hint">Pick the existing quote that belongs to this event, then select how many of the latest synced messages to read. A job is created for the imported conversation.</p>
   {% if groups %}
   <form class="panel actions" method="post" action="{{ url_for('whatsapp_import') }}" id="wa-import"
         onsubmit="var b=document.getElementById('wa-submit'); b.disabled=true; b.textContent='Reading the group…';">
@@ -86,7 +87,7 @@
     </label>
     <button class="primary" id="wa-submit">Read group and find changes</button>
   </form>
-  <p class="hint">Only messages synced on WhatsApp can be read. A long history can take a few moments.</p>
+  <p class="hint">Only messages synced on WhatsApp can be read. A long history can take a few moments. Use synthetic chats only in this prototype.</p>
   {% elif not error %}
   <p class="panel">This number is not in any group yet.</p>
   {% endif %}

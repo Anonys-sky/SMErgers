@@ -5,9 +5,11 @@
 {% set tab = 'client' %}
 <h1>Changes to confirm</h1>
 <p class="lede">{{ r.catalogue.quote.company }} recorded these changes to {{ r.title }} from your WhatsApp group.
-  Please confirm each one, or tell us what is wrong.</p>
+  Compare each item with the message evidence, then confirm it or explain what is wrong.</p>
 {% if role != 'client' %}
-  <p class="headline">This is the page the client's link opens. Switch “Viewing as” to Client to confirm or dispute.</p>
+  <p class="headline">This is the page a client would use. In this demo, switch the role selector to Client to try the available confirm or dispute actions. Role switching is simulated, not authentication.</p>
+{% else %}
+  <p class="hint role-guidance"><strong>Your next step:</strong> review the source messages under each change. Choose Confirm if the description and amount match what you agreed. Choose Dispute and explain the issue if they do not.</p>
 {% endif %}
 {% include "_job_nav.html" %}
 

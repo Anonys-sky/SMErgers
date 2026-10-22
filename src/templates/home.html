@@ -1,25 +1,37 @@
 {% extends "base.html" %}
-{% block title %}Jobs{% endblock %}
+{% block title %}Jobs and chat import{% endblock %}
 {% block content %}
-<h1>Jobs</h1>
-<p class="lede">Changes agreed in WhatsApp, turned into approved changes and a correct draft final bill.</p>
+<section class="home-intro">
+  <p class="section-title" style="margin-top:0">WhatsApp agreements, accounted for</p>
+  <h1>Finish the job without losing the extras.</h1>
+  <p class="lede">SMErgers turns event-team chat promises into traceable changes, approvals and a correct draft bill. Start with a demo job below, or bring in a WhatsApp conversation.</p>
+  <div class="actions" style="margin-bottom:24px">
+    <a class="btn btn-primary" href="#import">Import a chat</a>
+    {% if rows %}<a class="btn" href="{{ url_for('job_page', job_id=rows[0][0].id) }}">Try a demo job</a>{% endif %}
+    <a class="btn" href="#how-it-works">See how it works</a>
+  </div>
+</section>
 
-<ol class="steps" aria-label="How it works">
-  <li><strong>Import the group chat.</strong> SMErgers finds every change agreed in it and prices it from the chat, the quote or the rate card.</li>
-  <li><strong>The right people sign off.</strong> The PM checks, the owner approves large or unusual items, the client confirms.</li>
-  <li><strong>Get a draft bill with proof.</strong> Every line links back to the messages it came from.</li>
+<ol class="steps" id="how-it-works" aria-label="How SMErgers works">
+  <li><strong>Bring in a conversation</strong>Export a WhatsApp group as a text file, then select the matching existing quote. Changes are matched against the chat, quote and rate card.</li>
+  <li><strong>Check, price and approve</strong>The PM reviews what was found; the owner approves items at the job's approval threshold; the client confirms or disputes.</li>
+  <li><strong>Finish with a source-linked draft</strong>Confirmed changes appear on the draft bill. Each one can be traced to its evidence and the activity log.</li>
 </ol>
-{% if rows %}
-  <p><a class="btn btn-primary" href="{{ url_for('job_page', job_id=rows[0][0].id) }}">Start with the demo: {{ rows[0][0].title }}</a></p>
-{% endif %}
 
-<div class="panel">
+<div class="list-head">
+  <div>
+    <h2 class="section-title" style="margin:0 0 4px">Your jobs</h2>
+    <p class="hint">Sample jobs are included to help you get started. Open any job to review changes, see the chat evidence, or follow its draft bill.</p>
+  </div>
+</div>
+{% if rows %}
+<div class="panel table-wrap">
   <table>
-    <thead><tr><th>Job</th><th>Client</th><th class="r">Quote</th><th class="r">Agreed in chat on top</th><th>Still open</th></tr></thead>
+    <thead><tr><th>Job and chat</th><th>Client</th><th class="r">Original quote</th><th class="r">Agreed beyond quote</th><th>Changes open</th></tr></thead>
     <tbody>
     {% for r, bill in rows %}
       <tr>
-        <td><a href="{{ url_for('job_page', job_id=r.id) }}">{{ r.title }}</a><br><small class="t-muted">{{ r.chat_name }}</small></td>
+        <td><a href="{{ url_for('job_page', job_id=r.id) }}"><strong>{{ r.title }}</strong></a><br><small class="t-muted">{{ r.chat_name }}</small></td>
         <td>{{ r.catalogue.quote.client }}</td>
         <td class="r num">RM{{ "{:,.0f}".format(bill.quote_total) }}</td>
         <td class="r num">RM{{ "{:,.0f}".format(bill.agreed_beyond_quote) }}</td>
@@ -29,18 +41,55 @@
     </tbody>
   </table>
 </div>
+{% else %}
+<div class="panel"><h2>No jobs in this session</h2><p class="reason">Import a WhatsApp export below to create a job. Demo records are held in memory and reset when the app restarts.</p></div>
+{% endif %}
 
-<h2 class="section-title">Import a chat</h2>
-<p><a class="btn btn-primary" id="read-from-whatsapp" href="{{ url_for('whatsapp_page') }}">Read a group directly from WhatsApp</a></p>
-<p class="lede">Or upload an exported chat:</p>
-<form class="panel actions" method="post" action="{{ url_for('import_chat') }}" enctype="multipart/form-data">
-  <label>WhatsApp export (.txt) <input type="file" name="chat" accept=".txt" required></label>
-  <label>Quote
-    <select name="quote">{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
-  </label>
-  <button class="primary">Find changes</button>
-</form>
-<p class="lede">In WhatsApp: open the group, More, Export chat, Without media. Use synthetic chats only in this prototype.</p>
-
-<form method="post" action="{{ url_for('reset') }}" class="no-print"><button>Reset demo data</button></form>
+<section id="import" aria-labelledby="import-title" style="margin-top:34px">
+  <p class="section-title">Start a job</p>
+  <h2 id="import-title" style="margin:0 0 6px;font-size:28px">Import a WhatsApp chat</h2>
+  <p class="lede">Choose one of the two methods. Direct connection is optional and only available when the WhatsApp bridge is running; export-and-upload works without it.</p>
+  <div class="grid">
+    <section class="panel">
+      <p class="tag t-info">Recommended for this prototype</p>
+      <h3>Upload a text export</h3>
+      <ol class="import-steps">
+        <li>In WhatsApp, open the event's group chat.</li>
+        <li>Choose <strong>More</strong> (or the chat menu) → <strong>Export chat</strong> → <strong>Without media</strong>.</li>
+        <li>Select the exported <code>.txt</code> file and the quote for this same job.</li>
+        <li>Choose <strong>Find changes</strong>. Review the extracted changes and linked chat evidence on the next page.</li>
+      </ol>
+      <p class="hint">Only text exports are accepted. There is no quote upload: select the matching quote already in the list. Use synthetic chats only in this prototype; do not upload private client conversations.</p>
+      <form class="import-form" method="post" action="{{ url_for('import_chat') }}" enctype="multipart/form-data">
+        <label>WhatsApp text export (.txt)
+          <input type="file" name="chat" accept=".txt,text/plain" required>
+        </label>
+        <label>Matching existing quote
+          <select name="quote" required><option value="" disabled selected>Choose the quote for this chat</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
+        </label>
+        <button class="primary">Find changes</button>
+      </form>
+    </section>
+    <section class="panel">
+      <p class="tag t-wait">Optional · requires a running bridge</p>
+      <h3>Read a group directly</h3>
+      <p class="reason">If the separate WhatsApp bridge is online and paired, you can choose a group and read its latest messages without exporting a file.</p>
+      <p class="hint">This prototype may show the bridge as offline. It does not mean WhatsApp is connected. If it is offline, use the text-export steps instead.</p>
+      <a class="btn btn-primary" id="read-from-whatsapp" href="{{ url_for('whatsapp_page') }}">Check WhatsApp connection</a>
+    </section>
+  </div>
+</section>
+<section class="reset-area no-print">
+  <h2 class="section-title">Prototype controls</h2>
+  <p class="hint">Reset demo data restores the sample jobs and removes imported jobs from this in-memory session.</p>
+  <form method="post" action="{{ url_for('reset') }}" onsubmit="return confirm('Reset demo data? Imported jobs and changes in memory will be removed.');"><button>Reset demo data</button></form>
+</section>
+<style>
+.import-steps { padding-left:20px; margin:12px 0 16px; color:var(--muted); font-size:14px; }
+.import-steps li { padding:3px 0 3px 3px; }
+.import-form { display:grid; gap:12px; margin-top:15px; }
+.import-form input[type=file] { width:100%; min-height:unset; }
+.reset-area { margin-top:30px; padding-top:10px; border-top:1px solid var(--line); }
+@media(max-width:640px) { .import-form button { width:100%; } }
+</style>
 {% endblock %}
