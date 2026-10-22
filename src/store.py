@@ -2,9 +2,10 @@
 A real deployment would keep this in Orbyte's project records instead."""
 import json
 import re
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 
+import sync
 from catalogue import DATA, Catalogue
 from chat_import import parse_chat
 from rules_extractor import extract
@@ -28,15 +29,28 @@ class JobRecord:
     catalogue: Catalogue
     job: Job
     imported_at: datetime
+    versions: list = field(default_factory=list)   # sync.QuoteVersion, v1 = signed quote
+    outbox: list = field(default_factory=list)     # sync.Outgoing, messages to the group or a person
+    live: object = None                            # webhook.LiveFeed when fed message by message
 
     @property
     def title(self):
         return self.catalogue.quote["job"]
 
-    def actor(self, role):
+    @property
+    def team(self):
+        """Named people for each role, from the company directory (Orbyte's Directory, simulated)."""
         q = self.catalogue.quote
-        names = {"pm": "Project manager", "owner": "Owner", "client": q["client"], "finance": "Finance"}
-        return Actor(names[role], role)
+        people = team_directory().get(q["company"], {})
+        return {"pm": people.get("pm", "Project manager"), "owner": people.get("owner", "Owner"),
+                "finance": people.get("finance", "Finance"), "client": q["client"]}
+
+    def actor(self, role):
+        return Actor(self.team[role], role)
+
+
+def team_directory():
+    return json.loads((DATA / "team.json").read_text(encoding="utf-8"))["companies"]
 
 
 JOBS: dict[str, JobRecord] = {}
@@ -51,6 +65,7 @@ def build_from_messages(job_id, messages, chat_name, quote_file):
     catalogue = Catalogue.load(quote_file)
     now = datetime.now()
     record = JobRecord(job_id, chat_name, messages, catalogue, Job(extract(messages, catalogue), now=now), now)
+    sync.start(record)
     JOBS[job_id] = record
     return record
 

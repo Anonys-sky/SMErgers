@@ -9,6 +9,7 @@ from flask import Flask, Response, abort, flash, jsonify, redirect, render_templ
 from markupsafe import Markup, escape
 
 import store
+import sync
 import whatsapp_bridge
 from bill import build_bill
 from schema import STATUSES
@@ -230,14 +231,15 @@ def bulk(job_id):
         return redirect(request.form.get("next") or url_for("job_page", job_id=job_id))
     action, label, keys, total = candidates
     actor = record.actor(role)
-    done = 0
+    done = []
     for key in keys:
         try:
             record.job.act(key, action, actor)
-            done += 1
+            done.append(key)
         except NotAllowed:
             pass
-    flash(f"{DONE[action]} {done} change{'' if done == 1 else 's'} ({rm(total)}).", "ok")
+    sync.after_actions(record, action, done, actor)
+    flash(f"{DONE[action]} {len(done)} change{'' if len(done) == 1 else 's'} ({rm(total)}).", "ok")
     return redirect(request.form.get("next") or url_for("job_page", job_id=job_id))
 
 
@@ -247,9 +249,11 @@ def act(job_id, key):
     if key not in record.job.items:
         abort(404)
     price = request.form.get("price", "").replace(",", "").replace("RM", "").strip()
+    action, actor = request.form.get("action", ""), record.actor(current_role())
     try:
-        item = record.job.act(key, request.form.get("action", ""), record.actor(current_role()),
+        item = record.job.act(key, action, actor,
                               price=float(price) if price else None, note=request.form.get("note", "").strip())
+        sync.after_actions(record, action, [key], actor)
         flash(f"{item.change.item}: {STATE_LABELS[item.state].lower()}.", "ok")
     except NotAllowed as err:
         flash(str(err))

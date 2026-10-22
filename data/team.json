@@ -1,0 +1,7 @@
+{
+  "label": "SIMULATED: synthetic staff directory, standing in for Orbyte's Directory",
+  "companies": {
+    "Fiesta Demo Events Sdn Bhd": {"pm": "Aisyah", "owner": "Daniel", "finance": "Farah"},
+    "Demo Reno Works": {"pm": "Ah Seng", "owner": "Ah Seng", "finance": "Mei Ling"}
+  }
+}
