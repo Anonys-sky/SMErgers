@@ -1,4 +1,4 @@
-# OnRecord (working name)
+# SMErgers
 
 > Turns changes agreed in WhatsApp into approved changes and a correct draft final bill, for small event companies and other businesses that work job by job.
 
@@ -38,9 +38,9 @@ This comes from a team member's experience working in an event company, where it
 
 ### Solution
 
-OnRecord reads the group chat export, finds each change that was agreed, prices it from the chat, the quote or the rate card, and sends it through the right people: the project manager checks it, the owner signs off on large or unusual items, and the client confirms it on their own page. Only confirmed changes reach the draft bill, and every line links back to the exact messages it came from.
+SMErgers reads the group chat export, finds each change that was agreed, prices it from the chat, the quote or the rate card, and sends it through the right people: the project manager checks it, the owner signs off on large or unusual items, and the client confirms it on their own page. Only confirmed changes reach the draft bill, and every line links back to the exact messages it came from.
 
-Decisions are made by fixed, explainable rules. When something is unclear, OnRecord does not guess: it marks the change "needs a price" or "needs the owner's decision" and hands it to a person.
+Decisions are made by fixed, explainable rules. When something is unclear, SMErgers does not guess: it marks the change "needs a price" or "needs the owner's decision" and hands it to a person.
 
 ### Key Features
 
@@ -151,7 +151,7 @@ Proof of use: `submission/REPLIT PROOF OF USE.pdf` *(to add)*
 
 ## How We Use RunPod
 
-Not used. The handbook (section 9.4) requires RunPod for work that needs a GPU: training, fine-tuning or running a model on a GPU. OnRecord runs no model, so it needs no GPU.
+Not used. The handbook (section 9.4) requires RunPod for work that needs a GPU: training, fine-tuning or running a model on a GPU. SMErgers runs no model, so it needs no GPU.
 
 ---
 

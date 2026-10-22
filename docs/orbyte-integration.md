@@ -1,14 +1,14 @@
-# How OnRecord would fit Orbyte (interface assumptions)
+# How SMErgers would fit Orbyte (interface assumptions)
 
 The brief allows teams to create their own interface and API assumptions; we had no access to Orbyte. Everything below is an assumption, and in this prototype every Orbyte piece is simulated.
 
-## What OnRecord adds
+## What SMErgers adds
 
-Orbyte already provides people, roles, approvals, eSign and an audit trail. OnRecord adds one capability it does not reproduce: **turning changes agreed in chat into approved records and a correct draft final bill**, for any business that works job by job (events first; renovation, agencies and print shops use the same flow).
+Orbyte already provides people, roles, approvals, eSign and an audit trail. SMErgers adds one capability it does not reproduce: **turning changes agreed in chat into approved records and a correct draft final bill**, for any business that works job by job (events first; renovation, agencies and print shops use the same flow).
 
 ## Mapping
 
-| OnRecord needs | Orbyte piece we assume | In this prototype |
+| SMErgers needs | Orbyte piece we assume | In this prototype |
 |---|---|---|
 | The job and its client | Clients and projects | `data/quotes/*.json` |
 | The signed quote and rate card | Project documents | Same JSON files |
@@ -25,7 +25,7 @@ In a real deployment this would sit behind Orbyte's platform authentication. It 
 
 ## Events we assume Orbyte would send (not built)
 
-| Event | What OnRecord does |
+| Event | What SMErgers does |
 |---|---|
 | A chat export is attached to a project | Runs the extractor and lists the changes for the PM |
 | A change is approved or confirmed in Orbyte Approvals or eSign | Moves the change to the next state and logs it |

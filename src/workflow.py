@@ -94,7 +94,7 @@ class ActivityLog:
         return True
 
 
-SYSTEM = Actor("OnRecord", "system")
+SYSTEM = Actor("SMErgers", "system")
 
 
 class Job:

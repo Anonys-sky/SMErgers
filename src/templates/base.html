@@ -3,13 +3,13 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}OnRecord{% endblock %} · OnRecord</title>
+  <title>{% block title %}SMErgers{% endblock %} · SMErgers</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 <header class="top">
   <div>
-    <a class="brand" href="{{ url_for('home') }}">OnRecord</a>
+    <a class="brand" href="{{ url_for('home') }}">SMErgers</a>
     <span class="badge" title="Every chat, quote and company here is invented">Simulated data</span>
   </div>
   <form class="role-form" method="post" action="{{ url_for('set_role') }}">
