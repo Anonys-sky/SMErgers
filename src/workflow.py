@@ -176,6 +176,8 @@ class Job:
             item.state = self._after_approval()
             detail = "approved"
         elif action == "decide":
+            if item.change.kind != "discount":
+                raise NotAllowed("Only a discount is decided by the owner directly; other changes go through the PM first.")
             if price is None:
                 raise NotAllowed("Enter the amount decided.")
             item.price = float(price)

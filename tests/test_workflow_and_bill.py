@@ -92,6 +92,13 @@ def test_discount_is_owner_only():
     assert job.act(disc, "decide", OWNER, NOW, price=-2419.5, note="5% of the original quote").state == "approved"
 
 
+def test_owner_cannot_skip_the_pm_by_deciding_a_normal_change():
+    _, job, key = dinner_job()
+    with pytest.raises(NotAllowed):
+        job.act(key("195 people attending"), "decide", OWNER, NOW, price=1)
+    assert job.items[key("195 people attending")].state == "detected"
+
+
 def test_dispute_needs_a_reason_and_returns_to_pm():
     _, job, key = dinner_job()
     banners = key("2 more roll-up banner")

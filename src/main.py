@@ -391,6 +391,8 @@ def allowed_actions(item, role):
         actions = [a for a in actions if a != "set_price"]
     if item.change.kind == "discount":
         actions = [a for a in actions if a not in ("review", "set_price")]
+    else:
+        actions = [a for a in actions if a != "decide"]
     return actions
 
 

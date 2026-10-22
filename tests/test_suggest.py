@@ -38,7 +38,9 @@ def client():
 
 def test_owner_sees_suggestions_finance_does_not(client):
     client.post("/role", data={"role": "owner"})
-    assert "Next time, quote it upfront" in client.get("/job/annual-dinner").data.decode()
+    page = client.get("/job/annual-dinner").data.decode()
+    assert "Next time, quote it upfront" in page
+    assert "Decide amount" not in page and "Nothing waits for you as Owner" in page
     client.post("/role", data={"role": "finance"})
     assert "Next time, quote it upfront" not in client.get("/job/annual-dinner").data.decode()
 
