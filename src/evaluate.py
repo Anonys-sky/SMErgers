@@ -3,6 +3,7 @@
     python src/evaluate.py            # tuning chats only
     python src/evaluate.py --held-out # same-author chats (not an independent test)
     python src/evaluate.py --blind    # chats written blind by teammates: score once, report as is
+    python src/evaluate.py --blind --ai   # also score the AI reader (needs a model, see llm_extractor.py)
 
 A predicted change matches a key change when they share chat messages as evidence.
 """
@@ -14,6 +15,7 @@ from pathlib import Path
 from catalogue import Catalogue
 from chat_import import find_message, parse_chat
 from rules_extractor import extract
+import llm_extractor
 from schema import Change
 
 DATA = Path(__file__).resolve().parent.parent / "data"
@@ -79,9 +81,12 @@ def key_files(split="tuning"):
     return chosen
 
 
-def report(split="tuning", verbose=True):
+def report(split="tuning", verbose=True, ai=False):
     lines = []
-    for name, fn in (("rules", extract), ("naive baseline", naive_extract)):
+    readers = [("rules", extract), ("naive baseline", naive_extract)]
+    if ai:
+        readers.insert(1, (f"AI reader ({llm_extractor.MODEL})", llm_extractor.extract))
+    for name, fn in readers:
         lines.append(f"\n## {name}")
         lines.append("| chat | changes | found | status right | price right | fully right | false changes | RM ready (expected) |")
         lines.append("|---|---|---|---|---|---|---|---|")
@@ -89,7 +94,7 @@ def report(split="tuning", verbose=True):
             s = score_chat(kf, fn)
             lines.append(f"| {s['chat']} | {s['key_changes']} | {s['found']} | {s['status_ok']} | {s['price_ok']} | "
                          f"{s['fully_ok']} | {s['false_changes']} | {s['ready_total']:,.0f} ({s['expected_ready_total']:,.0f}) |")
-            if verbose and fn is extract:
+            if verbose and fn is not naive_extract:
                 for k, p, kc in s["rows"]:
                     got = "MISSED" if p is None else f"{p.status} {p.price_delta}"
                     mark = "ok " if p and p.status == kc["status"] and _same_price(p.price_delta, kc["price_delta"]) else "XX "
@@ -100,4 +105,4 @@ def report(split="tuning", verbose=True):
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
     chosen = "blind" if "--blind" in sys.argv else "held_out" if "--held-out" in sys.argv else "tuning"
-    print(report(chosen))
+    print(report(chosen, ai="--ai" in sys.argv))
