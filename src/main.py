@@ -131,7 +131,7 @@ def home():
 
 def render_workspace():
     role = current_role()
-    records = list(store.JOBS.values())
+    records = [record for record in store.JOBS.values() if not record.live]
     if role == "client":
         records = [record for record in records if record.id == selected_client_job()]
     export_snapshots = session.get("bill_exports", {})
@@ -148,7 +148,7 @@ def render_workspace():
         "workspace.html", workspace=workspace, allowed=allowed_actions, live=live,
         live_bill=build_bill(live.catalogue, live.job) if live else None,
         selected_client_job=selected_client_job(),
-        client_options=[(r.id, r.catalogue.quote["client"], r.title) for r in store.JOBS.values()],
+        client_options=[(r.id, r.catalogue.quote["client"], r.title) for r in store.JOBS.values() if not r.live],
     )
 
 

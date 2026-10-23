@@ -166,3 +166,11 @@ def test_director_queue_focuses_on_exceptions_not_unreviewed_pm_work(client):
         for row in director["queue"]
     )
     assert not any(row["item"].change.item == "Wireless mic" for row in director["queue"])
+
+
+def test_workspace_projects_list_has_no_duplicate_titles(client):
+    context = workspace(client, "project-manager", view="projects")
+    titles = [row["title"] for row in context["workspace"]["jobs"]]
+    assert titles.count("Annual Dinner 2026") == 1
+    assert len(titles) == len(set(titles))
+
