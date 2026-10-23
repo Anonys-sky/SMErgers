@@ -11,7 +11,7 @@
 <header class="top">
   <div>
     <a class="brand" href="{{ url_for('home') }}">SMErgers</a>
-    <span class="badge" title="Every chat, quote and company here is invented">Demo · synthetic data</span>
+  <span class="badge" title="Sample people, jobs, chats and quotes are invented">Demo · synthetic data</span>
   </div>
   <form class="role-form" method="post" action="{{ url_for('set_role') }}">
     <label for="role">Seeing the app as</label>
@@ -29,8 +29,9 @@
   {% block content %}{% endblock %}
 </main>
 <footer>
-  Prototype for the SDC Hackathon 2026, Domain 2. Sign-in is simulated: switch people with the menu at the top.
-  The bill is a draft for accounting software; nothing is invoiced or paid here. The chat record is not legal advice.
+  <strong>Prototype · in-memory demo.</strong> Jobs and decisions live only in this running app and may reset; this is not durable storage.
+  All sample people, chats and quotes are synthetic. Sign-in is simulated: switch roles with the menu above.
+  Bills are drafts for accounting software; nothing is invoiced or paid here. Chat records are not legal advice.
 </footer>
 </body>
 </html>

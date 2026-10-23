@@ -10,11 +10,13 @@
   {% if bill.outstanding %}{{ bill.outstanding|length }} more change{{ '' if bill.outstanding|length == 1 else 's' }}
   ({{ bill.outstanding_priced_total | rm }}{% if bill.outstanding_unpriced %} plus {{ bill.outstanding_unpriced }} without a price{% endif %}) {{ 'is' if bill.outstanding|length == 1 else 'are' }} not on the bill yet.{% endif %}
 </p>
+<p class="bill-help">Only confirmed changes are included. Use “see source” to trace a bill line back to the change and its chat evidence. Exported CSV is a draft for your accounting workflow, not an invoice.</p>
 {% include "_guide.html" %}
 {% include "_job_nav.html" %}
 
 <div class="panel">
   <h2 class="section-title" style="margin-top:0">Quoted items</h2>
+  <p class="hint">The original quote is retained as the baseline. Where a quote item changed, the note links to the related source change.</p>
   <div class="table-wrap">
   <table>
     <thead><tr><th>Item</th><th class="r">Qty</th><th>Unit</th><th class="r">Unit price</th><th class="r">Amount</th></tr></thead>
@@ -32,7 +34,7 @@
   </table>
   </div>
 
-  <h2 class="section-title">Agreed changes</h2>
+  <h2 class="section-title">Confirmed changes</h2>
   {% if bill.change_lines %}
   <div class="table-wrap">
   <table>
@@ -40,7 +42,7 @@
     <tbody>
     {% for l in bill.change_lines %}
       <tr><td>{{ l.label }}</td>
-        <td>{% for k in l.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">see source</a>{% endfor %}</td>
+        <td>{% for k in l.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">see source: {{ r.job.items[k].change.item }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
         <td class="r num">{{ l.amount | rm }}</td></tr>
     {% endfor %}
     </tbody>

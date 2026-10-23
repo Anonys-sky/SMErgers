@@ -5,29 +5,40 @@
 {% set others = rows | rejectattr('0.live') | list %}
 
 <section class="home-intro">
-  <h1>Finish the job without losing the extras.</h1>
-  <p class="lede">SMErgers reads your event’s WhatsApp group, turns what was agreed into changes the right people approve,
-    and keeps everyone on the same version of the quote.</p>
+  <p class="eyebrow">For small event teams · Malaysia</p>
+  <h1>Turn chat agreements into changes everyone can trace.</h1>
+  <p class="lede">SMErgers helps busy event PMs check what changed, route approvals to the right people, and keep the draft bill aligned with what the client confirmed.</p>
+  <div class="start-actions" aria-label="Get started">
+    <a class="btn btn-primary" href="#import-chat">Import a chat</a>
+    {% if live %}<a class="btn" href="{{ url_for('job_page', job_id=live[0][0].id) }}">Try a demo</a>{% endif %}
+    <a class="text-action" href="#how-it-works">See how it works <span aria-hidden="true">↓</span></a>
+  </div>
 </section>
 
 {% if live %}{% set r, bill = live[0] %}
 <a class="hero-job" href="{{ url_for('job_page', job_id=r.id) }}">
-  <span class="hero-tag"><span class="live-dot" aria-hidden="true"></span> Live demo</span>
+  <span class="hero-tag"><span class="live-dot" aria-hidden="true"></span> Guided live demo · synthetic messages</span>
   <span class="hero-title">{{ r.title }}</span>
-  <span class="hero-text">{{ r.catalogue.quote.client }} · quote {{ bill.quote_total | rm }} · messages arrive from the WhatsApp group as you watch</span>
-  <span class="btn btn-primary hero-cta">Start the demo →</span>
+  <span class="hero-text">{{ r.catalogue.quote.client }} · starting quote {{ bill.quote_total | rm }} · advance the conversation one message at a time with the demo controls</span>
+  <span class="btn btn-primary hero-cta">Try the live demo <span aria-hidden="true">→</span></span>
 </a>
 {% endif %}
 
-<ol class="steps" aria-label="How SMErgers works">
-  <li><strong>Catch it.</strong> Reads the job’s WhatsApp group as people talk and finds each change, with its price.</li>
-  <li><strong>Confirm it.</strong> The PM checks, the owner signs off on big items, the client confirms from a link.</li>
-  <li><strong>Sync it.</strong> Each confirmation becomes the new quote version, posted back to the group.</li>
+<section id="how-it-works" class="how-section">
+  <div class="section-heading">
+    <p class="eyebrow">A clear trail from chat to bill</p>
+    <h2>Three checks. One shared version.</h2>
+  </div>
+  <ol class="steps" aria-label="How SMErgers works">
+    <li><strong>Bring in the conversation.</strong> Upload a WhatsApp text export and match it to the job’s existing quote. Media is not needed.</li>
+    <li><strong>Review with the source in view.</strong> Check each suggested change against the highlighted messages, then price and route it for sign-off.</li>
+    <li><strong>Confirm, then reconcile.</strong> The client confirms or disputes from their page. Confirmed changes update the draft bill and quote history.</li>
 </ol>
+</section>
 
 {% if others %}
 <details class="panel examples">
-  <summary><strong>More examples</strong> ({{ others|length }} finished chats, including a renovation job)</summary>
+  <summary><strong>Browse finished examples</strong> <span class="summary-detail">({{ others|length }} sample jobs)</span></summary>
   <div class="table-wrap">
   <table>
     <thead><tr><th>Job</th><th>Client</th><th class="r">Quote</th><th class="r">Agreed in chat on top</th></tr></thead>
@@ -46,23 +57,50 @@
 </details>
 {% endif %}
 
-<details class="panel tools">
-  <summary><strong>Tools</strong>: import a chat file, connect WhatsApp for testing, reset the demo</summary>
-  <div class="tools-grid">
-    <form class="import-form" method="post" action="{{ url_for('import_chat') }}" enctype="multipart/form-data">
-      <h3>Import a chat file</h3>
-      <p class="hint">In WhatsApp: open the group → More → Export chat → Without media. Synthetic chats only in this prototype.</p>
-      <label>Chat export (.txt) <input type="file" name="chat" accept=".txt,text/plain" required></label>
-      <label>Quote for this job
-        <select name="quote" required><option value="" disabled selected>Choose a quote</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }}</option>{% endfor %}</select>
-      </label>
-      <button class="primary">Find changes</button>
-    </form>
+<section class="import-section" id="import-chat" aria-labelledby="import-title">
+  <div class="import-heading">
     <div>
-      <h3>Connect WhatsApp (team testing)</h3>
-      <p class="hint">Reads an existing group through a local, unofficial connector. For testing only; the product uses Meta’s official API.</p>
-      <a class="btn" href="{{ url_for('whatsapp_page') }}">Open the connector</a>
-      <h3 style="margin-top:18px">Reset the demo</h3>
+      <p class="eyebrow">Start with an export</p>
+      <h2 id="import-title">Import a WhatsApp chat</h2>
+      <p class="lede">A practical way to start: export the job group as text, choose its existing quote, and let SMErgers find possible changes.</p>
+    </div>
+    <span class="import-index" aria-hidden="true">01</span>
+  </div>
+  <div class="import-layout">
+    <form class="import-form" method="post" action="{{ url_for('import_chat') }}" enctype="multipart/form-data">
+      <div class="form-title"><span class="form-step">A</span><h3>Choose the source files</h3></div>
+      <label for="chat-upload">WhatsApp text export <span class="label-detail">.txt only · export without media</span>
+        <input id="chat-upload" type="file" name="chat" accept=".txt,text/plain" required>
+      </label>
+      <label for="quote-select">Matching existing quote
+        <select id="quote-select" name="quote" required><option value="" disabled selected>Choose a quote</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }}</option>{% endfor %}</select>
+      </label>
+      <button class="primary">Find changes <span aria-hidden="true">→</span></button>
+      <p class="hint form-hint">You’ll be taken to a review page where each finding can be checked against its source messages.</p>
+    </form>
+    <aside class="import-aside">
+      <h3>Export from WhatsApp</h3>
+      <ol class="export-steps">
+        <li><span>1</span>Open the event’s group chat.</li>
+        <li><span>2</span>Choose <strong>More → Export chat</strong>.</li>
+        <li><span>3</span>Select <strong>Without media</strong>, then choose the .txt file here.</li>
+      </ol>
+      <p class="synthetic-warning"><strong>Prototype boundary</strong> This demo uses synthetic sample data only. Don’t upload real client chats or personal information.</p>
+    </aside>
+  </div>
+</section>
+
+<details class="panel tools">
+  <summary><strong>Optional team-testing tools</strong> <span class="summary-detail">WhatsApp bridge and reset</span></summary>
+  <div class="tools-grid">
+    <div>
+      <h3>WhatsApp bridge</h3>
+      <p class="hint">An optional local, unofficial connector for development testing. It may be offline and is not a live paired chat here. The guided live demo advances synthetic messages with its own controls; it does not read a WhatsApp account. A production connection would use Meta’s official API.</p>
+      <a class="btn" href="{{ url_for('whatsapp_page') }}">Check bridge status</a>
+    </div>
+    <div class="reset-tool">
+      <h3>Reset sample jobs</h3>
+      <p class="hint">Return the in-memory demo jobs to their starting state.</p>
       <form method="post" action="{{ url_for('reset') }}" onsubmit="return confirm('Reset all demo jobs to the start?');"><button>Reset demo data</button></form>
     </div>
   </div>

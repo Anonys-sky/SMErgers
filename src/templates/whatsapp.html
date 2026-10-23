@@ -14,7 +14,7 @@
 } %}
 {% set label, tone = labels.get(status.status, (status.status, 't-info')) %}
 <h1>Read a group from WhatsApp</h1>
-<p class="lede">Optional shortcut: when the separate WhatsApp bridge is running and linked, read a group without exporting a file. The export-and-upload method on the jobs page works without this bridge.</p>
+<p class="lede">Optional local development connector. It is separate from the guided live-message demo and may be unavailable; the standard .txt export on the home page does not need it.</p>
 
 <div class="panel" id="wa-status" style="margin-bottom: 20px;">
   <p><span class="tag {{ tone }}" id="status-badge">{{ label }}</span>
@@ -24,7 +24,7 @@
   {% if status.error %}<p class="hint" style="color: var(--bad);">{{ status.error }}</p>{% endif %}
 
   {% if status.status == 'offline' %}
-    <p><strong>The live connection is not available right now.</strong> No WhatsApp account or groups are connected to this page. Use a synthetic .txt export from the jobs page, or start the bridge in the development environment:</p>
+    <p><strong>The bridge is offline.</strong> No WhatsApp account or groups are connected to this page. Nothing is paired or being read. Use the synthetic .txt import on the home page, or start the optional local bridge in the development environment:</p>
     <pre><code>npm run whatsapp</code></pre>
   {% elif status.status != 'ready' %}
     {% if status.pairing_code %}
@@ -80,14 +80,14 @@
       </select>
     </label>
     <label>Quote
-      <select name="quote" id="wa-quote">{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
+      <select name="quote" id="wa-quote" required><option value="" disabled selected>Choose the matching quote</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
     </label>
     <label>Latest messages to read
       <input type="number" name="limit" id="wa-limit" value="{{ default_limit }}" min="1" max="{{ max_limit }}" step="1" class="price">
     </label>
     <button class="primary" id="wa-submit">Read group and find changes</button>
   </form>
-  <p class="hint">Only messages synced on WhatsApp can be read. A long history can take a few moments. Use synthetic chats only in this prototype.</p>
+  <p class="hint">This optional connector reads only messages synced on WhatsApp. The prototype is for synthetic sample data only; do not import real client conversations or personal information.</p>
   {% elif not error %}
   <p class="panel">This number is not in any group yet.</p>
   {% endif %}
