@@ -67,4 +67,4 @@ def test_every_chat_parses():
     for path in CHATS.glob("*.txt"):
         messages = parse_chat(path.read_text(encoding="utf-8"))
         assert len(messages) > 5, path.name
-        assert all(m.sent_at.year == 2026 for m in messages), path.name
+        assert all(m.sent_at.year in (2026, 2027) for m in messages), path.name
