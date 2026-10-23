@@ -96,7 +96,6 @@ The product uses Meta's official WhatsApp Business (Cloud) API. The business num
 
 - `POST /webhooks/whatsapp` accepts Meta's payload format and checks the `X-Hub-Signature-256` signature when `WHATSAPP_APP_SECRET` is set.
 - `GET /webhooks/whatsapp` answers Meta's verification handshake using `WHATSAPP_VERIFY_TOKEN`.
-- The live demo job sends synthetic messages through the same code ("Next message", "Play the rest").
 
 Known limits of the official Groups API: at most 8 participants per group, and an Official Business Account is required. Chat export (.txt) remains as a fallback.
 
@@ -209,7 +208,7 @@ npm run whatsapp                 # then link a test number from /whatsapp
 
 The guide bar at the top of each job always says what happens next and who does it, and hands over to the next person with one button.
 
-1. In the Project manager overview, click **Open live demo**. Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then press **Play the rest**.
+1. In the Project manager overview, open **Annual Dinner 2026** from **Projects in progress**. The full WhatsApp chat is on the left and the changes found in it are on the right.
 2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
 3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the owner must now approve it, because staff entered the price), then **Check all**.
 4. Use the guide's hand-over button to continue as the **Project director**. Read **Next time, quote it upfront**, then approve.
@@ -275,8 +274,6 @@ Baseline: every message with an RM amount counts as a change.
 | AI reader | 28 of 29 | 18 | 1 |
 
 That is 29 changes in synthetic chats, so it is a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong (for example, calling an unconfirmed change "ready"), which is why a person checks every change.
-
-Fed one message at a time through the webhook, the live demo job ends with exactly the same 10 changes as reading the whole chat at once (tested).
 
 ## Business model
 
