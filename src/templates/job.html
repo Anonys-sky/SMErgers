@@ -36,7 +36,7 @@
 <div class="grid">
   <section class="panel chat" aria-label="Chat">
     <h2 class="section-title" style="margin-top:0">Chat ({{ r.messages|length }} messages)</h2>
-    <p class="hint">Highlighted terms show possible deal evidence. Select a linked message or use “Show in chat” on a change to compare both sides. A highlighted message is evidence to review, not proof of approval.</p>
+    <p class="hint">Highlighted words carry the deal. Click a message to see its change.</p>
     {% for m in r.messages %}
       <div class="msg {{ 'system' if m.sender is none }} {{ 'media' if m.is_media }} {{ 'hl' if m.id in highlighted }} {{ 'linked' if m.id in linked }}"
            id="m-{{ m.id }}" {% if m.id in linked %}data-changes="{{ linked[m.id]|join(' ') }}" tabindex="0" role="button"{% endif %}>
@@ -83,7 +83,7 @@
         {{ action_forms(r, key, item, allowed(item, role), url_for('job_page', job_id=r.id, show=key)) }}
       </article>
     {% else %}
-      {% if total_items %}<p class="panel empty-state">Nothing needs you right now. <a href="{{ url_for('job_page', job_id=r.id) }}">Show all changes</a></p>{% else %}<p class="panel empty-state">No changes yet. For this guided sample, use “Next message” above to advance the synthetic conversation. Uploaded chats are analysed when you import them.</p>{% endif %}
+      {% if total_items %}<p class="panel empty-state">Nothing needs you right now. <a href="{{ url_for('job_page', job_id=r.id) }}">Show all changes</a></p>{% else %}<p class="panel empty-state">No changes yet. They appear here as messages arrive.</p>{% endif %}
     {% endfor %}
   </section>
 </div>

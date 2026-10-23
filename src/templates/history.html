@@ -3,7 +3,7 @@
 {% block content %}
 {% set tab = 'history' %}
 <h1>{{ r.title }}</h1>
-<p class="lede">One place to trace quote versions, messages SMErgers prepared, and recorded actions. Use a change link to return to its review and chat evidence.</p>
+<p class="lede">Every version of the quote, every message SMErgers sent, and every action, in order.</p>
 {% include "_guide.html" %}
 <p class="headline">Quote {{ r.catalogue.quote.quote_id }} is at <strong>version {{ versions[-1].number }}</strong>:
   <span class="num">{{ versions[-1].total | rm }}</span>.</p>
@@ -27,7 +27,7 @@
 
   <section class="panel" aria-label="Messages sent">
     <h2 class="section-title" style="margin-top:0">Messages SMErgers sent ({{ outbox|length }})</h2>
-    <p class="hint">These are messages recorded in this prototype’s outbox. They are not delivered to a paired WhatsApp chat; production delivery would require the official WhatsApp API.</p>
+    <p class="hint">Shown here in the prototype; with the official WhatsApp API they would be delivered to the group or the person.</p>
     {% for out in outbox %}
       <div class="msg outgoing">
         <span class="who">To {{ out.to }}</span><span class="when">{{ out.at.strftime('%d %b, %H:%M') }}</span>
@@ -40,7 +40,7 @@
 
   <section class="panel" id="log" aria-label="Activity log">
     <h2 class="section-title" style="margin-top:0">Activity log</h2>
-    <p class="hint">{% if intact %}Integrity check passed: each entry is chained to the one before, so a later edit would show. This is an integrity check in the in-memory prototype, not durable audit storage.
+    <p class="hint">{% if intact %}Integrity check passed: each entry is chained to the one before, so a later edit would show.
       {% else %}<strong>Warning:</strong> an entry no longer matches the chain. Someone changed the record.{% endif %}</p>
     <div class="table-wrap"><table>
       <thead><tr><th>#</th><th>When</th><th>Who</th><th>Action</th><th>Change</th><th>Detail</th></tr></thead>

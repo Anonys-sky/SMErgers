@@ -3,14 +3,14 @@
 {% block title %}Confirm changes · {{ r.title }}{% endblock %}
 {% block body_class %}client-view{% endblock %}
 {% block content %}
-<p class="demo-note">Sample client confirmation page. In a real workflow, the client opens a link sent in WhatsApp.
-  {% if role != 'client' %}To try the client action, switch to “Client (WhatsApp link)” using the role menu above.{% endif %}</p>
+<p class="demo-note">Demo: this is the page the client sees after tapping the link SMErgers sent in WhatsApp.
+  {% if role != 'client' %}Switch to “Client (WhatsApp link)” at the top to confirm or dispute.{% endif %}</p>
 {% include "_guide.html" %}
 
 <div class="phone">
   <p class="phone-from">{{ r.catalogue.quote.company }}</p>
   <h1>Please confirm the changes to {{ r.title }}</h1>
-  <p class="lede">Review the quoted source messages for each change. Confirm only what matches your understanding, or dispute it so the team can follow up. Confirmation updates the draft bill; it is not a payment.</p>
+  <p class="lede">Each one below was agreed in your WhatsApp group. Check the messages, then confirm, or tell us what is wrong.</p>
 
   {% if bulk %}{% set action, label, keys, total = bulk %}
     <form class="bulk" method="post" action="{{ url_for('bulk', job_id=r.id) }}">
@@ -25,14 +25,13 @@
       <div class="change-head"><h3>{{ c.item }}{% if c.qty_delta %} ({{ '%+g' % c.qty_delta }}){% endif %}</h3>
         <span class="amount num">{{ item.price | rm }}</span></div>
       <div class="tags">{{ state_tag(item.state) }}</div>
-      <p class="evidence-label">Source messages from the group</p>
       {% for mid in c.evidence_ids %}{% set m = by_id[mid] %}
         <div class="quote"><strong>{{ m.sender }}</strong>, {{ m.sent_at.strftime('%d %b, %H:%M') }}<br><span class="text">{{ m.text | marked }}</span></div>
       {% endfor %}
       {{ action_forms(r, key, item, allowed(item, role), url_for('client_page', job_id=r.id)) }}
     </article>
   {% else %}
-    <p class="reason">Nothing is ready for your confirmation. The event team will send changes here after review and approval.</p>
+    <p class="reason">Nothing to confirm yet. Changes appear here after the event company approves them.</p>
   {% endfor %}
 </div>
 {% endblock %}

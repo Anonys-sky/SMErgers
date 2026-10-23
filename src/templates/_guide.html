@@ -9,7 +9,7 @@
   </ol>
   <div class="guide-next">
     <p>{{ guide.text }}
-      {% if r.live and r.live.script %}<br><small class="t-muted">Demo only: {{ r.live.script|length }} synthetic message{{ '' if r.live.script|length == 1 else 's' }} left. Use the demo controls to advance them; no WhatsApp account is paired or read. The simulation follows the webhook message path.</small>{% endif %}</p>
+      {% if r.live and r.live.script %}<br><small class="t-muted">Simulated: {{ r.live.script|length }} synthetic message{{ '' if r.live.script|length == 1 else 's' }} left, sent in the official WhatsApp API’s webhook format.</small>{% endif %}</p>
     {% if r.live and r.live.script and role != 'client' %}
       <form method="post" action="{{ url_for('live_next', job_id=r.id) }}">
         <button class="primary" name="all" value="0">Next message</button>
