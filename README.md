@@ -9,6 +9,16 @@
 | GitHub repository | https://github.com/Anonys-sky/SMErgers |
 | Pitch deck | https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx |
 
+## Team information
+
+| Field | Details |
+| --- | --- |
+| Team name | VBall |
+| Team domain | Domain 2: Orbyte Smart SME Challenge |
+| SDG track | SDG 8, targets 8.2 and 8.3 |
+| Team leader | Vincent Chew Wen Jie |
+| Number of members | 3 |
+
 All data in this repository is synthetic. No real chat, person, client or company is used.
 
 ---
@@ -267,9 +277,26 @@ Usage pricing through Orbyte credits is the alternative. Break-even: Confirm cos
 | --- | --- |
 | Replit | Development and running the app; `.replit` defines the run workflow. Replit Agent assisted with configuration and styling. |
 | GitHub | This repository: Apache 2.0, small commits through the hackathon |
-| RunPod | Not used. The optional AI reader was scored once on a local laptop GPU (RTX 2050, partly on the GPU); see docs/results.md and handbook section 9.4 |
+| RunPod | GPU for the AI reader's model, through a serverless vLLM endpoint (see [runpod/README.md](runpod/README.md)). The one scoring run so far (Run 3) used a local laptop GPU; the RunPod run is logged separately in docs/results.md |
 | Claude and Replit Agent | AI coding assistants; declared in the Technical Tools Declaration |
 | whatsapp-web.js | Optional local bridge for team testing only |
+
+## How we use Replit
+
+- **Development and hosting:** the Flask app runs on Replit; `.replit` starts `python src/main.py` on port 5000 and `requirements.txt` pins the dependencies.
+- **Secrets:** `SECRET_KEY` and the optional AI-reader keys are set in Replit Secrets, never committed (`.env.example` lists them).
+- **Assistance:** Replit Agent helped with configuration and styling, declared in the Technical Tools Declaration.
+- **Proof of use:** `submission/SDC2026_VBall_Replit_POU.pdf`.
+
+## How we use RunPod
+
+The AI reader sends the chat text to a RunPod serverless vLLM endpoint running Llama 3.1 8B Instruct; plain code then checks every price and status (`src/llm_extractor.py`). Setup, the test request and the proof screenshot are in [runpod/README.md](runpod/README.md). If the endpoint is unreachable the app falls back to the rules reader. Proof of use: `submission/SDC2026_VBall_Runpod_POU.pdf`.
+
+## Challenges and learnings
+
+- **Our first accuracy scores were contaminated.** One author wrote the chats, the keys and the rules, so 20 of 20 meant nothing. On chats written blind, the rules fully got 13 of 29 right; the AI reader got 18 ([docs/results.md](docs/results.md)).
+- **WhatsApp limits shape the design.** The official Groups API allows 8 participants and needs a verified business, so the prototype uses the official webhook format with a simulated feed and keeps chat export as a fallback.
+- **A model should read, not decide.** The AI reader only reports what it found; code rejects invented prices and a person approves every change.
 
 ## Team VBall
 

@@ -109,3 +109,19 @@ def test_a_reduction_is_priced_from_the_quote_and_a_missing_line_is_looked_up(se
         raw(change(item="banners", line_id=None, kind="extra", qty_delta=3, messages=[messages[3].seq])),
         messages, catalogue)
     assert lookup[0].line_id == "L03" and lookup[0].price_delta == 270
+
+
+def test_runpod_settings_build_the_endpoint_url(monkeypatch):
+    import importlib
+    monkeypatch.setenv("RUNPOD_ENDPOINT_ID", "abc123")
+    monkeypatch.setenv("RUNPOD_API_KEY", "test-key")
+    for name in ("SMERGERS_LLM_URL", "SMERGERS_LLM_MODEL", "SMERGERS_LLM_KEY"):
+        monkeypatch.delenv(name, raising=False)
+    try:
+        fresh = importlib.reload(llm_extractor)
+        assert fresh.URL == "https://api.runpod.ai/v2/abc123/openai/v1/chat/completions"
+        assert fresh.KEY == "test-key" and "Llama" in fresh.MODEL
+    finally:
+        monkeypatch.delenv("RUNPOD_ENDPOINT_ID")
+        monkeypatch.delenv("RUNPOD_API_KEY")
+        importlib.reload(llm_extractor)

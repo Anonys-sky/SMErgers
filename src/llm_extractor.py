@@ -15,6 +15,8 @@ needs no API key and no internet:
     ollama pull llama3.1:8b
     SMERGERS_READER=llm python src/main.py
 
+On RunPod instead (a GPU endpoint, see runpod/README.md), set RUNPOD_ENDPOINT_ID and RUNPOD_API_KEY.
+
 Settings (all optional): SMERGERS_LLM_URL, SMERGERS_LLM_MODEL, SMERGERS_LLM_KEY, SMERGERS_LLM_TIMEOUT.
 """
 import json
@@ -24,9 +26,17 @@ import urllib.request
 
 from schema import Change
 
-URL = os.environ.get("SMERGERS_LLM_URL", "http://localhost:11434/v1/chat/completions")
-MODEL = os.environ.get("SMERGERS_LLM_MODEL", "llama3.1:8b")
-KEY = os.environ.get("SMERGERS_LLM_KEY", "")
+# Where the model runs. With RUNPOD_ENDPOINT_ID and RUNPOD_API_KEY set, the reader calls that RunPod
+# serverless endpoint (vLLM worker, OpenAI-compatible); otherwise a local Ollama server.
+_RUNPOD = bool(os.environ.get("RUNPOD_ENDPOINT_ID") and os.environ.get("RUNPOD_API_KEY"))
+if _RUNPOD:
+    _URL = f"https://api.runpod.ai/v2/{os.environ['RUNPOD_ENDPOINT_ID']}/openai/v1/chat/completions"
+    _MODEL, _KEY = "meta-llama/Llama-3.1-8B-Instruct", os.environ["RUNPOD_API_KEY"]
+else:
+    _URL, _MODEL, _KEY = "http://localhost:11434/v1/chat/completions", "llama3.1:8b", ""
+URL = os.environ.get("SMERGERS_LLM_URL", _URL)
+MODEL = os.environ.get("SMERGERS_LLM_MODEL", _MODEL)
+KEY = os.environ.get("SMERGERS_LLM_KEY", _KEY)
 TIMEOUT = float(os.environ.get("SMERGERS_LLM_TIMEOUT", "300"))
 
 KINDS = {"quantity_change", "upgrade", "replacement", "extra", "discount", "non_billable"}
