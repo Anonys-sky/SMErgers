@@ -97,3 +97,15 @@ def test_reader_defaults_to_rules(setup, monkeypatch):
     messages, catalogue = setup
     monkeypatch.delenv("SMERGERS_READER", raising=False)
     assert all(c.source == "rules" for c in reader.read(messages, catalogue))
+
+
+def test_a_reduction_is_priced_from_the_quote_and_a_missing_line_is_looked_up(setup):
+    messages, catalogue = setup
+    cut = llm_extractor.build_changes(
+        raw(change(item="registration desk staff", line_id="L10", kind="replacement", qty_delta=-2,
+                   messages=[messages[3].seq])), messages, catalogue)
+    assert cut[0].price_delta == -2 * catalogue.line("L10").unit_price
+    lookup = llm_extractor.build_changes(
+        raw(change(item="banners", line_id=None, kind="extra", qty_delta=3, messages=[messages[3].seq])),
+        messages, catalogue)
+    assert lookup[0].line_id == "L03" and lookup[0].price_delta == 270

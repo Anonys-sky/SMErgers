@@ -46,7 +46,8 @@ Rules:
   Never calculate or guess a price.
 - "qty_delta" is how many more (negative for fewer); 0 if not a quantity change.
 - Times, dates and sizes are not quantities.
-- "line_id" is the quote line it changes (like L03), or null if it is not on the quote.
+- "line_id" is the quote line it changes (like L03), or null if it is not on the quote. Match on
+  the words people use: for example "pax" or "people" mean the guest line.
 - "messages" lists the message numbers that prove it.
 
 Quote lines:
@@ -81,7 +82,8 @@ def _call(prompt):
 
 
 def _prompt(messages, catalogue):
-    lines = "\n".join(f"{l.line_id}: {l.item} (qty {l.qty:g}, RM{l.unit_price:g} each)" for l in catalogue.lines)
+    lines = "\n".join(f"{l.line_id}: {l.item} (qty {l.qty:g}, RM{l.unit_price:g} each; people also say: {', '.join(l.aliases)})"
+                      for l in catalogue.lines)
     chat = "\n".join(f"[{m.seq}] {m.sender}: {m.text}" for m in messages if m.sender)
     return PROMPT.format(lines=lines, chat=chat)
 
@@ -120,6 +122,8 @@ def build_changes(raw, messages, catalogue, note=""):
         if not cited or outcome not in OUTCOMES:
             continue                                  # no real evidence, or an outcome we cannot map
         line = catalogue.line(item.get("line_id")) if item.get("line_id") else None
+        if line is None:                              # no valid line from the model: look the item up by its name
+            line = next((e for e in catalogue.mentions(str(item.get("item", ""))) if e.line_id), None)
         kind = item.get("kind") if item.get("kind") in KINDS else "extra"
         qty = _number(item.get("qty_delta")) or 0.0
         name = (item.get("item") or (line.item if line else "Change")).strip()[:80]
@@ -142,7 +146,7 @@ def build_changes(raw, messages, catalogue, note=""):
             how = "price stated in chat"
             if price is not None and abs(price) not in _amounts(m.text for m in cited):
                 price = None                          # the model quoted a number nobody wrote
-            if price is None and line is not None and qty > 0 and kind == "quantity_change":
+            if price is None and line is not None and qty != 0 and kind in ("quantity_change", "extra", "replacement"):
                 price, how = qty * line.unit_price, "the quote's unit price"
             if outcome == "asked":
                 changes.append(make("unconfirmed", price, qty, "medium", why or "Raised, but nobody confirmed it."))
