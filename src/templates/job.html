@@ -3,9 +3,17 @@
 {% block title %}{{ r.title }}{% endblock %}
 {% block content %}
 {% set tab = 'changes' %}
-<h1>{{ r.title }}</h1>
-<p class="lede">{{ r.catalogue.quote.client }} · quote {{ r.catalogue.quote.quote_id }} · chat {{ r.chat_name }} ·
-  owner sign-off needed at {{ owner_limit | rm }} or more</p>
+<section class="profile-summary">
+  <div class="profile-main"><span class="avatar">{{ profile.initials }}</span><div>
+    <p class="eyebrow">{{ r.catalogue.quote.client }} · {{ r.catalogue.quote.quote_id }}</p>
+    <h1>{{ r.title }}</h1><p class="description">WhatsApp source · {{ r.chat_name }} · project director sign-off needed at {{ owner_limit | rm }} or more</p>
+  </div></div><span class="summary-status">{{ 'Live demo' if r.live else 'Change review' }}</span>
+</section>
+{% if role == 'pm' %}
+  <p class="hint role-guidance"><strong>Your next step as project manager:</strong> check each extracted change against the highlighted chat evidence. Add a price or note when prompted, then mark it checked. Unclear or unpriced items need individual attention.</p>
+{% elif role == 'owner' %}
+  <p class="hint role-guidance"><strong>Your next step as project director:</strong> review the PM-checked items that need your approval. Approve individually or use the bulk action for ready items; items needing a price or decision stay separate.</p>
+{% endif %}
 {% include "_guide.html" %}
 {% if bill.agreed_beyond_quote or waiting %}
 <p class="headline">
@@ -33,7 +41,7 @@
 </details>
 {% endif %}
 
-<div class="grid">
+<div class="grid job-grid">
   <section class="panel chat" aria-label="Chat">
     <h2 class="section-title" style="margin-top:0">Chat ({{ r.messages|length }} messages)</h2>
     <p class="hint">Highlighted terms show possible deal evidence. Select a linked message or use “Show in chat” on a change to compare both sides. A highlighted message is evidence to review, not proof of approval.</p>

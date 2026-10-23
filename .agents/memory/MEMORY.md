@@ -1,0 +1,1 @@
+- [Role workspace design](role-workspaces.md) — role-focused workspaces and the user's reference direction for the whole interface.

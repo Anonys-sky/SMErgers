@@ -2,7 +2,12 @@
 {% block title %}History · {{ r.title }}{% endblock %}
 {% block content %}
 {% set tab = 'history' %}
-<h1>{{ r.title }}</h1>
+<section class="profile-summary">
+  <div class="profile-main"><span class="avatar">{{ profile.initials }}</span><div>
+    <p class="eyebrow">{{ r.title }} · record history</p><h1>History</h1>
+    <p class="description">Who recorded a decision, what changed, and when. Entries stay connected to the project's source evidence.</p>
+  </div></div><span class="summary-status">Traceable record</span>
+</section>
 <p class="lede">One place to trace quote versions, messages SMErgers prepared, and recorded actions. Use a change link to return to its review and chat evidence.</p>
 {% include "_guide.html" %}
 <p class="headline">Quote {{ r.catalogue.quote.quote_id }} is at <strong>version {{ versions[-1].number }}</strong>:
@@ -18,7 +23,7 @@
       {% for v in versions|reverse %}
         <tr><td class="num">v{{ v.number }}<br><small class="t-muted">{{ v.at.strftime('%d %b, %H:%M') }}</small></td>
           <td>{{ v.by }}</td>
-          <td>{% if v.change_keys %}{% for k in v.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">{{ r.job.items[k].change.item }}</a>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}{{ v.note }}{% endif %}</td>
+          <td>{% if v.change_keys %}{% for k in v.change_keys %}<a href="{{ (url_for('evidence_page', job_id=r.id, key=k) if role == 'finance' else url_for('job_page', job_id=r.id, show=k)) }}">{{ r.job.items[k].change.item }}</a>{% if not loop.last %}, {% endif %}{% endfor %}{% else %}{{ v.note }}{% endif %}</td>
           <td class="r num">{{ v.total | rm }}</td></tr>
       {% endfor %}
       </tbody>
@@ -47,8 +52,8 @@
       <tbody>
       {% for e in entries %}
         <tr><td class="num">{{ e.seq }}</td><td class="num">{{ e.at.replace('T', ' ') }}</td>
-          <td>{{ e.actor }}</td><td>{{ e.action.replace('_', ' ') }}</td>
-          <td>{% if e.change_key in r.job.items %}<a href="{{ url_for('job_page', job_id=r.id, show=e.change_key) }}">{{ r.job.items[e.change_key].change.item }}</a>{% else %}-{% endif %}</td>
+          <td>{{ e.actor }}{% if e.role in roles and roles[e.role] != e.actor %}<br><small class="t-muted">{{ roles[e.role] }}</small>{% endif %}</td><td>{{ e.action.replace('_', ' ') }}</td>
+          <td>{% if e.change_key in r.job.items %}<a href="{{ (url_for('evidence_page', job_id=r.id, key=e.change_key) if role == 'finance' else url_for('job_page', job_id=r.id, show=e.change_key)) }}">{{ r.job.items[e.change_key].change.item }}</a>{% else %}-{% endif %}</td>
           <td>{{ e.detail }}</td></tr>
       {% endfor %}
       </tbody>

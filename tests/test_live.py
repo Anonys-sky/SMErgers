@@ -86,7 +86,7 @@ def test_guide_walks_through_the_journey(client):
     assert "Aisyah checks each change" in client.get("/job/annual-dinner-live").data.decode()   # still the PM's turn
     client.post("/job/annual-dinner-live/bulk")
     page = client.get("/job/annual-dinner-live").data.decode()
-    assert "Continue as Daniel (Owner)" in page
+    assert "Continue as Daniel (Project director)" in page
     assert client.post("/job/annual-dinner-live/as/owner").location.endswith("/job/annual-dinner-live")
     assert client.post("/job/annual-dinner-live/as/client").location.endswith("/job/annual-dinner-live/client")
 

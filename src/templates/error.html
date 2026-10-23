@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}{{ heading }}{% endblock %}
+{% block content %}
+<section class="profile-summary">
+  <div class="profile-main"><span class="avatar">{{ code }}</span><div>
+    <p class="eyebrow">{{ profile.title }} workspace</p><h1>{{ heading }}</h1>
+    <p class="description">{{ explanation }}</p>
+  </div></div>
+</section>
+<a class="btn btn-primary" href="{{ workspace_url }}">Return to your workspace</a>
+{% endblock %}

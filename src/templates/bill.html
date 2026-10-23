@@ -2,7 +2,12 @@
 {% block title %}Draft bill · {{ r.title }}{% endblock %}
 {% block content %}
 {% set tab = 'bill' %}
-<h1>Draft final bill</h1>
+<section class="profile-summary">
+  <div class="profile-main"><span class="avatar">{{ profile.initials }}</span><div>
+    <p class="eyebrow">{{ r.catalogue.quote.client }} · {{ bill.quote_id }}</p>
+    <h1>Draft final bill</h1><p class="description">{{ r.title }} · Only client-confirmed changes are included in this accounting draft.</p>
+  </div></div><span class="summary-status">Draft · not an invoice</span>
+</section>
 <p class="lede">{{ r.title }} · {{ r.catalogue.quote.client }} · based on quote {{ bill.quote_id }}.
   Only client-confirmed changes appear in the draft total. This is not an invoice and no payment is made.</p>
 <p class="headline">Draft total <strong class="num">{{ bill.draft_total | rm }}</strong>:
@@ -25,7 +30,7 @@
       <tr>
         <td>{{ l.label }}
           {% if l.note %}<br><small class="t-wait">{{ l.note }}, changed in chat:
-            {% for k in l.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">see source</a>{% if not loop.last %}, {% endif %}{% endfor %}</small>{% endif %}</td>
+            {% for k in l.change_keys %}<a href="{{ url_for('evidence_page', job_id=r.id, key=k) }}">see source</a>{% if not loop.last %}, {% endif %}{% endfor %}</small>{% endif %}</td>
         <td class="r num">{{ '%g' % l.qty }}</td><td>{{ l.unit }}</td>
         <td class="r num">{{ l.unit_price | rm }}</td><td class="r num">{{ l.amount | rm }}</td>
       </tr>
@@ -42,7 +47,7 @@
     <tbody>
     {% for l in bill.change_lines %}
       <tr><td>{{ l.label }}</td>
-        <td>{% for k in l.change_keys %}<a href="{{ url_for('job_page', job_id=r.id, show=k) }}">see source: {{ r.job.items[k].change.item }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
+        <td>{% for k in l.change_keys %}<a href="{{ url_for('evidence_page', job_id=r.id, key=k) }}">see source: {{ r.job.items[k].change.item }}</a>{% if not loop.last %}<br>{% endif %}{% endfor %}</td>
         <td class="r num">{{ l.amount | rm }}</td></tr>
     {% endfor %}
     </tbody>
@@ -66,7 +71,7 @@
     <thead><tr><th>Change</th><th>Waiting for</th><th class="r">Amount</th></tr></thead>
     <tbody>
     {% for item, why in bill.outstanding %}
-      <tr><td><a href="{{ url_for('job_page', job_id=r.id, show=item.change.key) }}">{{ item.change.item }}</a></td>
+      <tr><td><a href="{{ url_for('evidence_page', job_id=r.id, key=item.change.key) }}">{{ item.change.item }}</a></td>
         <td>{{ why }}</td><td class="r num">{{ item.price | rm }}</td></tr>
     {% endfor %}
     </tbody>

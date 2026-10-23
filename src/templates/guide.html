@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% block title %}Workflow guide{% endblock %}
+{% block content %}
+<div class="page-heading"><div><p class="eyebrow">Reference · traceable event changes</p><h1>From group chat to draft bill</h1>
+<p class="lede">A working record for event teams: keep the agreement, review, exception sign-off and client confirmation connected.</p></div></div>
+<section class="profile-summary">
+  <div class="profile-main"><span class="avatar">{{ profile.initials }}</span><div><p class="eyebrow">{{ profile.subtitle }}</p><h1 style="font-size:22px">{{ profile.headline }}</h1><p class="description">{{ profile.description }}</p></div></div>
+  <span class="summary-status">Role guide</span>
+</section>
+<div class="grid">
+ <div class="grid-main">
+  <section class="panel"><h2 class="section-title">Your workflow</h2>
+   <ol class="steps">{% for step in profile.steps %}<li><strong>Step {{ loop.index }}</strong>{{ step }}</li>{% endfor %}</ol>
+  </section>
+  <section class="panel"><h2 class="section-title">A few important boundaries</h2>
+   <div class="checklist">
+    <div class="check-row"><span class="checkmark">i</span><div><strong>People make the decisions</strong><p>Extracted items are candidates for review, not automatic commitments.</p></div></div>
+    <div class="check-row"><span class="checkmark">i</span><div><strong>Evidence stays linked</strong><p>Open the original message context before deciding whether a change was agreed.</p></div></div>
+    <div class="check-row"><span class="checkmark">i</span><div><strong>Draft bills are not invoices</strong><p>Confirmed changes can be exported for accounting review; the prototype does not send bills or take payment.</p></div></div>
+   </div>
+  </section>
+ </div>
+ <aside class="grid-aside">
+  <section class="panel"><h2 class="section-title">This demo view</h2><p class="reason">{{ profile.description }}</p>
+   <p class="hint">Role switching is simulated, not authentication. The same sample records are presented differently for each role.</p>
+  </section>
+  <section class="panel"><h2 class="section-title">Need the next action?</h2><p class="reason">Return to your workspace for the current role's projects, decisions or confirmation tasks.</p><a class="btn btn-primary" href="{{ workspace_url }}">Open workspace</a></section>
+ </aside>
+</div>
+{% endblock %}

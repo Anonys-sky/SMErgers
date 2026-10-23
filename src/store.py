@@ -18,8 +18,8 @@ DEMO_JOBS = [  # (job id, chat file, quote file)
     ("cafe-fit-out", "cafe_client.txt", "q_cafe.json"),
 ]
 
-# People who use the web app. The client only opens a link from WhatsApp; finance downloads the CSV.
-ROLE_LABELS = {"pm": "Project manager", "owner": "Owner", "client": "Client (WhatsApp link)"}
+# Demo workspaces. The client opens a link from WhatsApp; finance reads bills and exports the CSV.
+ROLE_LABELS = {"pm": "Project manager", "owner": "Project director", "client": "Client", "finance": "Finance"}
 
 
 @dataclass
@@ -43,7 +43,7 @@ class JobRecord:
         """Named people for each role, from the company directory (Orbyte's Directory, simulated)."""
         q = self.catalogue.quote
         people = team_directory().get(q["company"], {})
-        return {"pm": people.get("pm", "Project manager"), "owner": people.get("owner", "Owner"),
+        return {"pm": people.get("pm", "Project manager"), "owner": people.get("owner", "Project director"),
                 "finance": people.get("finance", "Finance"), "client": q["client"]}
 
     def actor(self, role):

@@ -13,8 +13,13 @@
   'ready': ('Connected', 't-ok'),
 } %}
 {% set label, tone = labels.get(status.status, (status.status, 't-info')) %}
-<h1>Read a group from WhatsApp</h1>
-<p class="lede">Optional local development connector. It is separate from the guided live-message demo and may be unavailable; the standard .txt export on the home page does not need it.</p>
+<section class="profile-summary">
+  <div class="profile-main"><span class="avatar">{{ profile.initials }}</span><div>
+    <p class="eyebrow">Optional intake connection</p><h1>Read a group from WhatsApp</h1>
+    <p class="description">A shortcut when the separate bridge is running and linked. Text export and upload remain available from Import chat.</p>
+  </div></div><span class="summary-status">Bridge status · {{ label }}</span>
+</section>
+<p class="lede">Optional local development connector. It is separate from the guided live-message demo and may be unavailable; the standard .txt export on the Import chat page does not need it.</p>
 
 <div class="panel" id="wa-status" style="margin-bottom: 20px;">
   <p><span class="tag {{ tone }}" id="status-badge">{{ label }}</span>
@@ -24,7 +29,7 @@
   {% if status.error %}<p class="hint" style="color: var(--bad);">{{ status.error }}</p>{% endif %}
 
   {% if status.status == 'offline' %}
-    <p><strong>The bridge is offline.</strong> No WhatsApp account or groups are connected to this page. Nothing is paired or being read. Use the synthetic .txt import on the home page, or start the optional local bridge in the development environment:</p>
+    <p><strong>The bridge is offline.</strong> No WhatsApp account or groups are connected to this page. Nothing is paired or being read. Use the synthetic .txt import on the Import chat page, or start the optional local bridge in the development environment:</p>
     <pre><code>npm run whatsapp</code></pre>
   {% elif status.status != 'ready' %}
     {% if status.pairing_code %}
@@ -93,7 +98,7 @@
   {% endif %}
 {% endif %}
 
-<p><a href="{{ url_for('home') }}">Back to jobs</a></p>
+<p><a href="{{ url_for('imports_page') }}">Back to Import chat</a></p>
 
 {% if status.status != 'ready' %}
 <script>

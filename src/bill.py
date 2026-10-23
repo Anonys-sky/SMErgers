@@ -83,9 +83,9 @@ def _waiting_for(item):
     if item.state == "disputed":
         return "Client disputed it. PM to fix and review again."
     if item.price is None:
-        return "Needs a price from the PM." if item.change.kind != "discount" else "Needs the owner's decision."
+        return "Needs a price from the PM." if item.change.kind != "discount" else "Needs the project director's decision."
     if item.state == "detected":
         return "Waiting for the PM to check it."
     if item.state == "reviewed":
-        return f"Waiting for the owner: {item.needs_owner_reason}."
+        return f"Waiting for the project director: {item.needs_owner_reason}."
     return "Waiting for the client to confirm."

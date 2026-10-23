@@ -4,34 +4,66 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SMErgers{% endblock %} · SMErgers</title>
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
-<header class="top">
-  <div>
-    <a class="brand" href="{{ url_for('home') }}">SMErgers</a>
-  <span class="badge" title="Sample people, jobs, chats and quotes are invented">Demo · synthetic data</span>
+<a class="skip-link" href="#main-content">Skip to content</a>
+<div class="app-shell">
+  <aside class="sidebar" aria-label="Main navigation">
+    <a class="brand" href="{{ workspace_url }}"><span class="brand-mark">S</span> SMErgers</a>
+    <div class="profile-chip">
+      <span class="avatar">{{ profile.initials if profile else 'SM' }}</span>
+      <span><strong>{{ profile.title if profile else roles.get(role, 'Demo workspace') }}</strong><small>Demo workspace · Malaysia</small></span>
+    </div>
+    <p class="side-label">Workspace</p>
+    <nav class="side-nav">
+       {% set active_view = request.args.get('view', 'overview') if request.endpoint in ('home','workspace_page') else '' %}
+       <a href="{{ workspace_url }}" class="{{ 'on' if active_view == 'overview' }}"><span class="nav-symbol" aria-hidden="true">⌂</span>Overview</a>
+      {% if role == 'pm' %}
+         <a href="{{ url_for('workspace_page', persona=profile.slug, view='projects') }}" class="{{ 'on' if active_view == 'projects' }}"><span class="nav-symbol" aria-hidden="true">▤</span>Projects</a>
+         <a href="{{ url_for('workspace_page', persona=profile.slug, view='tasks') }}" class="{{ 'on' if active_view == 'tasks' }}"><span class="nav-symbol" aria-hidden="true">◷</span>Review queue</a>
+        <a href="{{ url_for('imports_page') }}" class="{{ 'on' if request.endpoint == 'imports_page' }}"><span class="nav-symbol">⇧</span>Import chat</a>
+        <a href="{{ url_for('whatsapp_page') }}" class="{{ 'on' if request.endpoint == 'whatsapp_page' }}"><span class="nav-symbol">◌</span>WhatsApp bridge</a>
+      {% elif role == 'owner' %}
+         <a href="{{ url_for('workspace_page', persona='project-director', view='tasks') }}" class="{{ 'on' if active_view == 'tasks' }}"><span class="nav-symbol">◷</span>Decision queue</a>
+         <a href="{{ url_for('workspace_page', persona='project-director', view='projects') }}" class="{{ 'on' if active_view == 'projects' }}"><span class="nav-symbol">▤</span>Projects</a>
+         <a href="{{ url_for('imports_page') }}" class="{{ 'on' if request.endpoint == 'imports_page' }}"><span class="nav-symbol">⇧</span>Import chat</a>
+         <a href="{{ url_for('whatsapp_page') }}" class="{{ 'on' if request.endpoint == 'whatsapp_page' }}"><span class="nav-symbol">◌</span>WhatsApp bridge</a>
+      {% elif role == 'client' %}
+         <a href="{{ url_for('workspace_page', persona='client', view='tasks') }}" class="{{ 'on' if active_view == 'tasks' }}"><span class="nav-symbol">✓</span>Confirm changes</a>
+      {% else %}
+         <a href="{{ url_for('workspace_page', persona='finance', view='projects') }}" class="{{ 'on' if active_view == 'projects' }}"><span class="nav-symbol">▤</span>Draft bills</a>
+         <a href="{{ url_for('workspace_page', persona='finance', view='activity') }}" class="{{ 'on' if active_view == 'activity' }}"><span class="nav-symbol">◷</span>Reconciliation</a>
+      {% endif %}
+      <a href="{{ url_for('guide_page') }}" class="{{ 'on' if request.endpoint == 'guide_page' }}"><span class="nav-symbol">▧</span>Workflow guide</a>
+    </nav>
+    <div class="sidebar-bottom">
+      <form class="role-form" method="post" action="{{ url_for('set_role') }}">
+        <label for="role">Demo view<small>Role switching is simulated, not authentication.</small></label>
+        <select id="role" name="role" onchange="this.form.submit()">
+          {% for key, label in roles.items() %}<option value="{{ key }}" {% if key == role %}selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+        <input type="hidden" name="next" value="{{ request.full_path }}">
+        <noscript><button>Switch demo view</button></noscript>
+      </form>
+      <div class="demo-note"><strong>Prototype · in-memory demo</strong><br>All sample people, chats and quotes are synthetic. Records reset when the app restarts or you choose Reset demo data.</div>
+    </div>
+  </aside>
+  <div class="workspace">
+    <header class="topbar">
+      <div class="crumb">Event operations <span aria-hidden="true">/</span> {{ profile.title if profile else roles.get(role, 'Workspace') }}</div>
+      <div class="topbar-right"><span class="badge" title="Sample people, jobs, chats and quotes are invented">Demo · synthetic data</span></div>
+    </header>
+    <main id="main-content" tabindex="-1">
+      {% for category, message in get_flashed_messages(with_categories=true) %}
+        <div class="flash {{ 'flash-ok' if category == 'ok' }}" role="{{ 'status' if category == 'ok' else 'alert' }}">{{ message }}</div>
+      {% endfor %}
+      {% block content %}{% endblock %}
+    </main>
   </div>
-  <form class="role-form" method="post" action="{{ url_for('set_role') }}">
-    <label for="role">Seeing the app as</label>
-    <select id="role" name="role" onchange="this.form.submit()">
-      {% for key, label in roles.items() %}<option value="{{ key }}" {% if key == role %}selected{% endif %}>{{ label }}</option>{% endfor %}
-    </select>
-    <input type="hidden" name="next" value="{{ request.full_path }}">
-    <noscript><button>Switch</button></noscript>
-  </form>
-</header>
-<main>
-  {% for category, message in get_flashed_messages(with_categories=true) %}
-    <div class="flash {{ 'flash-ok' if category == 'ok' }}" role="{{ 'status' if category == 'ok' else 'alert' }}">{{ message }}</div>
-  {% endfor %}
-  {% block content %}{% endblock %}
-</main>
-<footer>
-  <strong>Prototype · in-memory demo.</strong> Jobs and decisions live only in this running app and may reset; this is not durable storage.
-  All sample people, chats and quotes are synthetic. Sign-in is simulated: switch roles with the menu above.
-  Bills are drafts for accounting software; nothing is invoiced or paid here. Chat records are not legal advice.
-</footer>
+  <footer>SMErgers · Bills are drafts for accounting software and do not send invoices or take payment. Chat evidence supports traceability; it is not legal advice.</footer>
+</div>
 </body>
 </html>

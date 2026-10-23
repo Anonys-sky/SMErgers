@@ -3,8 +3,10 @@
 {% block title %}Confirm changes · {{ r.title }}{% endblock %}
 {% block body_class %}client-view{% endblock %}
 {% block content %}
-<p class="demo-note">Sample client confirmation page. In a real workflow, the client opens a link sent in WhatsApp.
-  {% if role != 'client' %}To try the client action, switch to “Client (WhatsApp link)” using the role menu above.{% endif %}</p>
+{% set tab = 'client' %}
+{% include "_job_nav.html" %}
+<p class="client-note">Sample client confirmation page. In a real workflow, the client opens a link sent in WhatsApp.
+  {% if role != 'client' %}To try the client action, switch the demo view to Client. Role switching is simulated, not authentication.{% endif %}</p>
 {% include "_guide.html" %}
 
 <div class="phone">
@@ -21,7 +23,7 @@
 
   {% for key, item in items %}
     {% set c = item.change %}
-    <article class="change">
+    <article class="change" id="c-{{ key }}">
       <div class="change-head"><h3>{{ c.item }}{% if c.qty_delta %} ({{ '%+g' % c.qty_delta }}){% endif %}</h3>
         <span class="amount num">{{ item.price | rm }}</span></div>
       <div class="tags">{{ state_tag(item.state) }}</div>

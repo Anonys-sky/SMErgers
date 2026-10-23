@@ -18,7 +18,7 @@ DEFAULT_POLICY = {
 
 STATE_LABELS = {
     "detected": "Needs the PM's check",
-    "reviewed": "Waiting for the owner",
+    "reviewed": "Waiting for the project director",
     "approved": "Waiting for the client",
     "confirmed": "On the bill",
     "disputed": "Disputed by the client",

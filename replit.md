@@ -14,6 +14,22 @@
 
 Run `python -m pytest` for the Python tests and `python src/evaluate.py` for
 the extraction accuracy report. The bridge conversion tests use `npm test`.
+The role-workspace table filters are tested with
+`node --test tests/workspace_filter.test.cjs`.
+
+## Role workspaces
+
+- `/workspace/project-manager`: chat imports, evidence review and pricing.
+- `/workspace/project-director`: the existing owner-approval role, now labeled
+  Project director; approval rules and thresholds are unchanged.
+- `/workspace/client`: confirmation/dispute for one synthetic client's event. The
+  sample-event selector, or opening a job's client link, changes that context.
+- `/workspace/finance`: read-only billing, source evidence, CSV exports and history.
+- `/imports` is the dedicated chat-import page; `/guide` explains the current role.
+- Selecting a workspace changes a simulated role in the browser session. This is
+  not authentication or a production authorization boundary.
+- Finance export checklist state is session-based and applies only to the current
+  version of each bill; later approval changes make a previous export out of date.
 
 ## AI reader
 

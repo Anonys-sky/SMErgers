@@ -1,0 +1,168 @@
+{% extends "base.html" %}
+{% block title %}{{ profile.title }}{% endblock %}
+{% block head %}<script src="{{ url_for('static', filename='workspace.js') }}" defer></script>{% endblock %}
+{% block content %}
+{% set views = [('overview','Overview'),('projects','Projects'),('tasks','My queue')] %}
+{% if role == 'finance' %}{% set views = [('overview','Overview'),('projects','Draft bills')] %}{% endif %}
+{% if role != 'client' %}{% set views = views + [('activity','Activity')] %}{% endif %}
+<section class="profile-summary">
+  <div class="profile-main">
+    <span class="avatar">{{ profile.initials }}</span>
+    <div>
+      <p class="eyebrow">{{ profile.subtitle }}</p>
+      <h1>{{ profile.headline }}</h1>
+      <p class="description">{{ profile.description }}</p>
+    </div>
+  </div>
+  <span class="summary-status">{{ roles[role] }} · demo</span>
+</section>
+
+{% if role == 'client' and client_options %}
+<form class="panel sample-client-form" method="get" action="{{ url_for('workspace_page', persona='client') }}">
+  <label for="client-job">Choose a sample event
+    <select id="client-job" name="job_id">
+      {% for option_id, option_client, job_title in client_options %}
+      <option value="{{ option_id }}" {% if option_id == selected_client_job %}selected{% endif %}>{{ job_title }} · {{ option_client }}</option>
+      {% endfor %}
+    </select>
+  </label>
+  <button class="primary">View changes</button>
+</form>
+{% endif %}
+
+<nav class="tabs" aria-label="Workspace sections">
+  {% for value, label in views %}
+  <a href="{{ url_for('workspace_page', persona=profile.slug, view=value) }}" class="{{ 'on' if workspace.view == value }}">{{ label }}</a>
+  {% endfor %}
+</nav>
+
+{% if workspace.metrics %}
+<section class="metric-row" aria-label="Workspace summary">
+  {% for metric in workspace.metrics %}
+  <article class="metric">
+    <div class="metric-label">{{ metric.label }}</div>
+    <div class="metric-value">{% if metric.kind == 'money' %}{{ metric.value | rm }}{% else %}{{ metric.value }}{% endif %}</div>
+    {% if metric.hint %}<div class="metric-hint">{{ metric.hint }}</div>{% endif %}
+  </article>
+  {% endfor %}
+</section>
+{% endif %}
+
+<div class="grid">
+  <div class="grid-main">
+    {% if role == 'pm' %}
+      <div class="list-head"><div><p class="section-title">Project manager · next steps</p><h2 style="margin:0 0 5px">Bring the agreement into view</h2><p class="hint">Import a WhatsApp export, then check evidence and pricing before the director reviews exceptions.</p></div><a class="btn btn-primary" href="{{ url_for('imports_page') }}">Import a chat</a></div>
+    {% elif role == 'owner' %}
+      <div class="list-head"><div><p class="section-title">Project director · decisions</p><h2 style="margin:0 0 5px">Exceptions needing sign-off</h2><p class="hint">Review items escalated beyond the project approval threshold. Pricing gaps remain separate from ready decisions.</p></div><a class="btn btn-primary" href="{{ url_for('workspace_page', persona='project-director', view='tasks') }}">Open decision queue</a></div>
+    {% elif role == 'client' %}
+      <div class="list-head"><div><p class="section-title">Client confirmation</p><h2 style="margin:0 0 5px">Check what changed</h2><p class="hint">Compare each approved change against the linked WhatsApp evidence. Confirm or explain a dispute on the event page.</p></div></div>
+    {% else %}
+      <div class="list-head"><div><p class="section-title">Finance · draft billing</p><h2 style="margin:0 0 5px">Reconciled draft totals</h2><p class="hint">Only client-confirmed changes are included. Open a draft bill or export a CSV for accounting review.</p></div></div>
+    {% endif %}
+
+    {% if live and workspace.view == 'overview' %}
+    <a class="live-callout" href="{{ url_for('job_page', job_id=live.id) }}">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="live-callout-text"><strong>Guided live demo · {{ live.title }}</strong>
+        <small>{{ live.catalogue.quote.client }} · starting quote {{ live_bill.quote_total | rm }} · advance the synthetic WhatsApp conversation one message at a time and follow each hand-over.</small></span>
+      <span class="btn btn-primary">Open live demo</span>
+    </a>
+    {% endif %}
+
+    {% if role == 'client' and workspace.jobs %}
+      {% for row in workspace.jobs %}
+      <article class="panel">
+        <div class="change-head"><div><p class="eyebrow">{{ row.client }}</p><h3 style="margin:0">{{ row.title }}</h3></div><a class="btn btn-primary" href="{{ row.primary_url }}">Review changes</a></div>
+        <p class="reason">{{ row.waiting }} change{{ '' if row.waiting == 1 else 's' }} awaiting your response · {{ row.confirmed }} confirmed{% if row.disputed %} · {{ row.disputed }} disputed{% endif %}</p>
+        {% if not row.waiting and not row.confirmed %}<p class="hint">The event team is still reviewing the changes. There is nothing for you to confirm yet.</p>{% endif %}
+      </article>
+      {% endfor %}
+    {% else %}
+      {% if workspace.queue and workspace.view in ('overview','tasks') %}
+      <section>
+        <div class="list-head"><div><h2 class="section-title">{{ 'Your next actions' if role == 'pm' else ('Decision queue' if role == 'owner' else 'Items to reconcile') }}</h2></div>
+          {% if workspace.view == 'overview' %}<a href="{{ url_for('workspace_page', persona=profile.slug, view='tasks') }}">View all {{ workspace.queue|length }}</a>{% endif %}
+        </div>
+        <div class="panel table-wrap" data-filter-region>
+          <div class="table-toolbar">
+            <label><span class="sr-only">Search changes</span><input type="search" data-search placeholder="Search project or change"></label>
+            <label><span class="sr-only">Filter changes by state</span><select data-state-filter><option value="">All states</option>{% for state in ('detected','reviewed','approved','disputed') %}<option value="{{ state }}">{{ state_labels[state] }}</option>{% endfor %}</select></label>
+          </div>
+          <table>
+            <thead><tr><th>Project</th><th>Change</th><th>Current state</th><th>Next step</th></tr></thead>
+            <tbody>{% for row in (workspace.queue[:5] if workspace.view == 'overview' else workspace.queue) %}
+              <tr data-search-row data-state="{{ row.item.state }}"><td><a href="{{ row.url }}"><strong>{{ row.record.title }}</strong></a></td><td>{{ row.item.change.item }}</td><td>{{ state_labels.get(row.item.state, row.item.state) }}</td><td><a href="{{ row.url }}">Open review</a></td></tr>
+            {% endfor %}</tbody>
+          </table>
+          <p class="hint" data-filter-empty hidden>No changes match your search. Clear the search or choose another state.</p>
+        </div>
+      </section>
+      {% elif role == 'owner' and workspace.view in ('overview','tasks') %}
+      <div class="empty-state">No director decisions are waiting. Items requiring a price or PM review remain with the project team.</div>
+      {% elif role == 'pm' and workspace.view in ('overview','tasks') %}
+      <div class="empty-state">Your review queue is clear. Import another conversation or check the projects below to follow approvals.</div>
+      {% endif %}
+
+      {% if workspace.view in ('overview','projects') %}
+      <section>
+        <div class="list-head"><div><h2 class="section-title">{{ 'Projects and draft bills' if role == 'finance' else 'Projects in progress' }}</h2><p class="hint">Open a project to follow its recorded changes{% if role == 'finance' %} or view the draft bill{% endif %}.</p></div>
+        {% if role == 'pm' %}<a class="btn" href="{{ url_for('imports_page') }}">Import chat</a>{% endif %}</div>
+        {% if workspace.jobs %}
+        <div class="panel table-wrap" data-filter-region>
+          <div class="table-toolbar">
+            <label><span class="sr-only">Search projects</span><input type="search" data-search placeholder="Search project or client"></label>
+            <label><span class="sr-only">Filter projects by status</span><select data-state-filter><option value="">All statuses</option>{% for status in ('Disputed','Needs a price','Needs your review','Awaiting confirmation','In review','Up to date') %}<option value="{{ status }}">{{ status }}</option>{% endfor %}</select></label>
+          </div>
+          <table>
+          <thead><tr><th>Event / project</th><th>Client</th>{% if role == 'finance' %}<th class="r">Draft total</th><th>Confirmed changes</th>{% else %}<th>Status</th><th>Open changes</th>{% endif %}<th>Open</th></tr></thead>
+          <tbody>{% for row in workspace.jobs %}
+            <tr data-search-row data-state="{{ row.status }}">
+              <td><strong>{{ row.title }}</strong></td><td>{{ row.client }}</td>
+              {% if role == 'finance' %}<td class="r num">{{ row.bill.draft_total | rm }}</td><td>{{ row.confirmed }}</td>
+              {% else %}<td>{{ row.status }}</td><td>{{ row.pending }}</td>{% endif %}
+              <td><a href="{{ row.primary_url }}">{{ 'Open draft bill' if role == 'finance' else 'Open project' }}</a>{% if role == 'finance' %}<br><a href="{{ url_for('bill_csv', job_id=row.record.id) }}">Export CSV</a>{% if row.exported %}<br><small class="t-ok">Latest draft exported</small>{% endif %}{% endif %}</td>
+            </tr>
+          {% endfor %}</tbody>
+        </table><p class="hint" data-filter-empty hidden>No projects match your search. Clear the search or choose another status.</p></div>
+        {% else %}<div class="empty-state">No projects are available in this demo view yet.</div>{% endif %}
+      </section>
+      {% endif %}
+
+      {% if workspace.view == 'activity' and role != 'client' %}
+      <section><h2 class="section-title">Recent recorded activity</h2>
+        {% if workspace.activity %}
+        <div class="panel table-wrap"><table><thead><tr><th>Time</th><th>Project</th><th>Action</th><th>Detail</th></tr></thead><tbody>
+        {% for row in workspace.activity %}<tr><td class="num">{{ row.entry.at.replace('T',' ') }}</td><td><a href="{{ row.url }}">{{ row.project }}</a></td><td>{{ row.entry.action.replace('_',' ') }}</td><td>{{ row.entry.detail }}</td></tr>{% endfor %}
+        </tbody></table></div>
+        {% else %}<div class="empty-state">Recorded reviews and confirmations will appear here as the team works.</div>{% endif %}
+      </section>
+      {% endif %}
+    {% endif %}
+  </div>
+
+  <aside class="grid-aside">
+    <section class="panel">
+      <h2 class="section-title">Checklist</h2>
+      <div class="checklist">
+        {% for item in workspace.checklist %}
+        <div class="check-row"><span class="checkmark {{ '' if item.complete else 'pending' }}" aria-hidden="true">{{ '✓' if item.complete else '·' }}</span><div>
+          {% if item.url %}<a href="{{ item.url }}"><strong>{{ item.title }}</strong></a>{% else %}<strong>{{ item.title }}</strong>{% endif %}
+          <p>{{ item.description }}</p>
+        </div></div>
+        {% else %}<p class="hint">Your role checklist will appear here.</p>{% endfor %}
+      </div>
+      {% if workspace.completion is not none %}<p class="hint" style="margin-top:10px">Checklist complete · {{ workspace.completion }}%</p><div role="progressbar" aria-label="Workspace checklist" aria-valuenow="{{ workspace.completion }}" aria-valuemin="0" aria-valuemax="100" style="height:5px;background:#edf0f4;border-radius:9px"><span style="display:block;width:{{ workspace.completion }}%;height:5px;background:var(--accent);border-radius:9px"></span></div>{% endif %}
+    </section>
+    {% if role != 'client' %}
+    <section class="panel">
+      <h2 class="section-title">History</h2>
+      <div class="history">
+        {% for row in workspace.activity[:5] %}
+        <div class="history-item">{{ row.entry.action.replace('_',' ') }}{% if row.entry.detail %} · {{ row.entry.detail }}{% endif %}<small>{{ row.project }} · {{ row.entry.at.replace('T',' ') }}</small></div>
+        {% else %}<p class="hint">Nothing recorded for this view yet.</p>{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+  </aside>
+</div>
+{% endblock %}

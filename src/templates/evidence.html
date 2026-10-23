@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% from "_tags.html" import state_tag with context %}
+{% block title %}Source evidence · {{ item.change.item }}{% endblock %}
+{% block content %}
+<section class="profile-summary">
+  <div class="profile-main">
+    <span class="avatar">{{ profile.initials }}</span>
+    <div><p class="eyebrow">{{ r.title }} · source evidence</p><h1>{{ item.change.item }}</h1>
+      <p class="description">Read-only messages supporting this recorded change.</p></div>
+  </div>
+  <span class="summary-status">{{ item.price | rm }}</span>
+</section>
+<div class="actions" style="margin-bottom:18px">
+  <a class="btn" href="{{ url_for('bill_page', job_id=r.id) }}">Back to draft bill</a>
+  {% if role in ('pm','owner') %}<a class="btn btn-primary" href="{{ url_for('job_page', job_id=r.id, show=item.change.key) }}">Review this change</a>{% endif %}
+</div>
+<div class="grid">
+  <section class="panel">
+    <h2 class="section-title">Supporting WhatsApp messages</h2>
+    {% for message in messages %}
+      <div class="quote"><strong>{{ message.sender }}</strong> <time>{{ message.sent_at.strftime('%d %b, %H:%M') }}</time>
+        <div class="text">{{ message.text | marked }}</div></div>
+    {% else %}<p class="hint">No source messages are attached to this change.</p>{% endfor %}
+  </section>
+  <aside class="panel">
+    <h2 class="section-title">Change record</h2>
+    {{ state_tag(item.state) }}
+    <p class="reason">{{ item.change.reason }}</p>
+    <p class="hint">Source file: {{ r.chat_name }}<br>Quote: {{ r.catalogue.quote.quote_id }}</p>
+    <p class="hint">Only client-confirmed changes are included in draft billing. Finance can inspect evidence, but cannot edit or approve a change.</p>
+  </aside>
+</div>
+{% endblock %}

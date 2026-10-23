@@ -5,7 +5,8 @@ import os
 import re
 import secrets
 
-from flask import Flask, Response, abort, flash, jsonify, redirect, render_template, request, session, url_for
+from flask import (Flask, Response, abort, flash, jsonify, redirect, render_template, request, send_from_directory,
+                   session, url_for)
 from markupsafe import Markup, escape
 
 import store
@@ -16,12 +17,18 @@ import whatsapp_bridge
 from bill import build_bill
 from schema import STATUSES
 from workflow import ACTIONS, STATE_LABELS, NotAllowed
+from workspaces import PERSONAS, build_workspace
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY") or os.environ.get("SESSION_SECRET") or secrets.token_hex(16)
 app.config["MAX_CONTENT_LENGTH"] = 1_000_000  # chat exports are small text files
 
 store.reset_demo()
+
+
+@app.get("/favicon.ico")
+def favicon():
+    return send_from_directory(app.static_folder, "favicon.svg", mimetype="image/svg+xml")
 
 
 def current_role():
@@ -36,11 +43,50 @@ def get_record(job_id):
     return record
 
 
+def selected_client_job():
+    """The sample event the client workspace shows: the last client link opened, else the first
+    finished sample job. A client reaches a job through its WhatsApp link, so this is a demo
+    context, not an authenticated account."""
+    chosen = session.get("client_job_id")
+    if chosen in store.JOBS:
+        return chosen
+    return next((job_id for job_id, r in store.JOBS.items() if not r.live), next(iter(store.JOBS), None))
+
+
+def managers_only():
+    if current_role() not in ("pm", "owner"):
+        abort(403)
+
+
 def staff_only(job_id):
     """Clients only ever see their confirmation page, never the team's internal views."""
     if current_role() == "client":
         return redirect(url_for("client_page", job_id=job_id))
     return None
+
+
+@app.errorhandler(403)
+def forbidden(error):
+    return render_template(
+        "error.html", code=403, heading="Not available in this workspace",
+        explanation="Use your role's available actions or switch demo workspaces. This page belongs to another role or sample client.",
+    ), 403
+
+
+@app.errorhandler(404)
+def not_found(error):
+    return render_template(
+        "error.html", code=404, heading="Page not found",
+        explanation="This project, change or workspace does not exist. Return to your workspace to choose an available project.",
+    ), 404
+
+
+@app.errorhandler(413)
+def too_large(error):
+    return render_template(
+        "error.html", code=413, heading="Chat export is too large",
+        explanation="Choose a WhatsApp text export under 1 MB without media.",
+    ), 413
 
 
 @app.template_filter("rm")
@@ -68,35 +114,86 @@ def marked(text):
 
 @app.context_processor
 def shared():
-    return {"role": current_role(), "roles": store.ROLE_LABELS, "state_labels": STATE_LABELS,
-            "status_labels": STATUSES}
+    role = current_role()
+    profile = PERSONAS[role]
+    return {"role": role, "roles": store.ROLE_LABELS, "state_labels": STATE_LABELS,
+            "status_labels": STATUSES, "personas": PERSONAS, "profile": profile,
+            "workspace_url": url_for("workspace_page", persona=profile["slug"])}
 
 
 @app.get("/")
 def home():
-    rows = [(r, build_bill(r.catalogue, r.job)) for r in store.JOBS.values()]
-    return render_template("home.html", rows=rows, quotes=[(q, store.quote_title(q)) for q in store.quote_files()])
+    return render_workspace()
+
+
+def render_workspace():
+    role = current_role()
+    records = list(store.JOBS.values())
+    if role == "client":
+        records = [record for record in records if record.id == selected_client_job()]
+    export_snapshots = session.get("bill_exports", {})
+    exported_jobs = {
+        record.id for record in records
+        if export_snapshots.get(record.id) == record.job.log.entries[-1].hash
+    }
+    workspace = build_workspace(role, records, needs, exported_jobs=exported_jobs)
+    view = request.args.get("view", "overview")
+    allowed_views = {"overview", "projects", "tasks", "activity"} - ({"activity"} if role == "client" else set())
+    workspace["view"] = view if view in allowed_views else "overview"
+    live = next((r for r in store.JOBS.values() if r.live), None) if role in ("pm", "owner") else None
+    return render_template(
+        "workspace.html", workspace=workspace, allowed=allowed_actions, live=live,
+        live_bill=build_bill(live.catalogue, live.job) if live else None,
+        selected_client_job=selected_client_job(),
+        client_options=[(r.id, r.catalogue.quote["client"], r.title) for r in store.JOBS.values()],
+    )
+
+
+@app.get("/workspace/<persona>")
+def workspace_page(persona):
+    """Dedicated demo workspaces; selecting one is explicitly not authentication."""
+    role = next((key for key, profile in PERSONAS.items() if profile["slug"] == persona), None)
+    if role is None:
+        abort(404)
+    if role == "client" and "job_id" in request.args:
+        if request.args["job_id"] not in store.JOBS:
+            abort(404)
+        session["client_job_id"] = request.args["job_id"]
+    session["role"] = role
+    return render_workspace()
+
+
+@app.get("/imports")
+def imports_page():
+    managers_only()
+    return render_template("home.html", quotes=[(q, store.quote_title(q)) for q in store.quote_files()])
+
+
+@app.get("/guide")
+def guide_page():
+    return render_template("guide.html")
 
 
 @app.post("/role")
 def set_role():
     role = request.form.get("role", "pm")
     session["role"] = role if role in store.ROLE_LABELS else "pm"
-    return redirect(request.form.get("next") or url_for("home"))
+    return redirect(url_for("workspace_page", persona=PERSONAS[session["role"]]["slug"]))
 
 
 @app.post("/import")
 def import_chat():
+    managers_only()
     upload = request.files.get("chat")
     quote = request.form.get("quote", "")
     if not upload or not upload.filename.lower().endswith(".txt") or quote not in store.quote_files():
         flash("Choose a WhatsApp export (.txt) and the quote it belongs to.")
-        return redirect(url_for("home"))
+        return redirect(url_for("imports_page"))
     try:
         text = upload.read().decode("utf-8-sig")
     except UnicodeDecodeError:
         flash("That file is not a WhatsApp text export.")
-        return redirect(url_for("home"))
+        return redirect(url_for("imports_page"))
     record = store.build(store.new_job_id(store.quote_title(quote)), text, upload.filename, quote)
     if not record.messages:
         flash("No WhatsApp messages were found in that file.")
@@ -105,6 +202,7 @@ def import_chat():
 
 @app.post("/reset")
 def reset():
+    managers_only()
     store.reset_demo()
     flash("Demo data reset.")
     return redirect(url_for("home"))
@@ -113,8 +211,7 @@ def reset():
 @app.get("/whatsapp")
 def whatsapp_page():
     """Connect the WhatsApp Business number and pick a group to read directly, instead of exporting it."""
-    if current_role() == "client":
-        abort(403)  # the group list belongs to the business, not to one client
+    managers_only()  # the group list belongs to the business, not to one client or finance
     status = whatsapp_bridge.status()
     qr = status.get("qr") if str(status.get("qr") or "").startswith("data:image/png;base64,") else None
     groups, error = [], None
@@ -130,8 +227,7 @@ def whatsapp_page():
 
 @app.post("/whatsapp/pair")
 def whatsapp_pair():
-    if current_role() == "client":
-        abort(403)
+    managers_only()
     phone = request.form.get("phone", "").strip()
     try:
         code = whatsapp_bridge.request_pairing_code(phone)
@@ -143,8 +239,7 @@ def whatsapp_pair():
 
 @app.post("/whatsapp/import")
 def whatsapp_import():
-    if current_role() == "client":
-        abort(403)
+    managers_only()
     group_id = request.form.get("group", "")
     quote = request.form.get("quote", "")
     if not group_id or quote not in store.quote_files():
@@ -195,6 +290,7 @@ def live_next(job_id):
     record = get_record(job_id)
     if redirect_client := staff_only(job_id):
         return redirect_client
+    managers_only()
     count = 1 if request.form.get("all") != "1" else len(record.live.script if record.live else [])
     before = set(record.job.items)
     for _ in range(count):
@@ -223,14 +319,18 @@ def updates_page(job_id):
 @app.post("/job/<job_id>/as/<role>")
 def continue_as(job_id, role):
     """Demo: hand the job to the next person and open the page they would see."""
-    get_record(job_id)
+    if job_id not in store.JOBS:
+        abort(404)
     session["role"] = role if role in store.ROLE_LABELS else "pm"
     if session["role"] == "client":
+        session["client_job_id"] = job_id  # the client opens the link for this job
         return redirect(url_for("client_page", job_id=job_id))
+    if session["role"] == "finance":
+        return redirect(url_for("bill_page", job_id=job_id))
     return redirect(url_for("job_page", job_id=job_id))
 
 
-GUIDE_STEPS = ["Messages arrive", "PM checks", "Owner approves", "Client confirms", "Everyone in sync"]
+GUIDE_STEPS = ["Messages arrive", "PM checks", "Director approves", "Client confirms", "Everyone in sync"]
 
 
 def guide(record):
@@ -267,6 +367,8 @@ def job_page(job_id):
     record = get_record(job_id)
     if redirect_client := staff_only(job_id):
         return redirect_client
+    if current_role() == "finance":
+        return redirect(url_for("bill_page", job_id=job_id))
     bill = build_bill(record.catalogue, record.job)
     show = request.args.get("show")
     highlighted = set(record.job.items[show].change.evidence_ids) if show in record.job.items else set()
@@ -307,7 +409,7 @@ def progress(job):
     counts = {}
     for item in job.items.values():
         counts[item.state] = counts.get(item.state, 0) + 1
-    stages = [("detected", "Found in chat"), ("reviewed", "Owner to approve"), ("approved", "Client to confirm"),
+    stages = [("detected", "Found in chat"), ("reviewed", "Director to approve"), ("approved", "Client to confirm"),
               ("confirmed", "On the bill")]
     out = [(state, label, counts.get(state, 0)) for state, label in stages]
     if counts.get("disputed"):
@@ -319,6 +421,8 @@ def progress(job):
 def bulk(job_id):
     record = get_record(job_id)
     role = current_role()
+    if role == "finance":
+        abort(403)
     candidates = bulk_candidates(record.job, role)
     if candidates is None:
         flash("Nothing is ready for that.")
@@ -340,6 +444,8 @@ def bulk(job_id):
 @app.post("/job/<job_id>/act/<key>")
 def act(job_id, key):
     record = get_record(job_id)
+    if current_role() == "finance":
+        abort(403)
     if key not in record.job.items:
         abort(404)
     price = request.form.get("price", "").replace(",", "").replace("RM", "").strip()
@@ -380,6 +486,10 @@ def bill_csv(job_id):
     for l in bill.change_lines:
         writer.writerow(["agreed change", l.label, f"{l.qty:g}", "", "", l.amount, " ".join(l.change_keys)])
     writer.writerow(["total", "Draft total", "", "", "", bill.draft_total, ""])
+    snapshots = dict(session.get("bill_exports", {}))
+    snapshots.pop(record.id, None)
+    snapshots[record.id] = record.job.log.entries[-1].hash  # export is current until the next recorded action
+    session["bill_exports"] = dict(list(snapshots.items())[-20:])
     return Response(out.getvalue(), mimetype="text/csv",
                     headers={"Content-Disposition": f"attachment; filename={job_id}-draft-bill.csv"})
 
@@ -387,6 +497,8 @@ def bill_csv(job_id):
 @app.get("/job/<job_id>/client")
 def client_page(job_id):
     record = get_record(job_id)
+    if current_role() == "client":
+        session["client_job_id"] = job_id
     shown = [(k, i) for k, i in record.job.items.items() if i.state in ("approved", "confirmed", "disputed")]
     by_id = {m.id: m for m in record.messages}
     return render_template("client.html", r=record, items=shown, by_id=by_id, allowed=allowed_actions,
@@ -402,9 +514,27 @@ def log_page(job_id):
     return redirect(url_for("history_page", job_id=job_id) + "#log")
 
 
+@app.get("/job/<job_id>/evidence/<key>")
+def evidence_page(job_id, key):
+    """Read-only source evidence, including for finance; never offers editing controls."""
+    record = get_record(job_id)
+    if current_role() == "client":
+        return redirect(url_for("client_page", job_id=job_id, _anchor=f"c-{key}"))
+    item = record.job.items.get(key)
+    if item is None:
+        abort(404)
+    evidence_ids = set(item.change.evidence_ids)
+    return render_template(
+        "evidence.html", r=record, item=item, key=key,
+        messages=[message for message in record.messages if message.id in evidence_ids],
+    )
+
+
 @app.get("/api/jobs/<job_id>")
 def job_api(job_id):
     """Read-only job summary in the shape we assume Orbyte's hub would consume (docs/orbyte-integration.md)."""
+    if current_role() == "client":
+        abort(403)
     record = get_record(job_id)
     bill = build_bill(record.catalogue, record.job)
     return jsonify({

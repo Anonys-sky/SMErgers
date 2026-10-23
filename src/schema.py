@@ -7,7 +7,7 @@ from datetime import datetime
 STATUSES = {
     "ready": "Ready for approval",
     "needs_price": "Needs a price",
-    "needs_decision": "Owner decides the amount",
+    "needs_decision": "Project director decides the amount",
     "unconfirmed": "Not agreed in the chat yet",
     "withdrawn": "Withdrawn",
     "log_only": "No cost change",
