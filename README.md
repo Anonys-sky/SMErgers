@@ -108,7 +108,8 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 ├── data/                      Synthetic data only (see data/README.md)
 │   ├── quotes/                Signed quote and rate card per job
 │   ├── chats/                 WhatsApp-style chats
-│   ├── answer_keys/           Hand-written expected changes, for scoring
+│   ├── answer_keys/           Expected changes, for scoring (tuning, same-author and blind sets)
+│   ├── blind/                 Kit for teammates to write blind test chats
 │   ├── history/               Past jobs, for "quote it upfront" suggestions
 │   ├── vendor_invoices/       Vendor invoice for a future vendor check
 │   └── team.json              Company directory (stands in for Orbyte's Directory)
@@ -120,7 +121,9 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 │   ├── webhook.py             WhatsApp Cloud API webhook format and live ingestion
 │   ├── chat_import.py         Chat parsing (exports and live messages)
 │   ├── catalogue.py           Quote lines, rate card and the words that name them
-│   ├── rules_extractor.py     Finds the changes agreed in a chat
+│   ├── reader.py              Chooses the rules reader (default) or the AI reader, with fallback
+│   ├── rules_extractor.py     Rules reader: finds the changes agreed in a chat
+│   ├── llm_extractor.py       AI reader: local Llama via Ollama, every price and status checked by code
 │   ├── workflow.py            Approval flow, permissions, activity log
 │   ├── sync.py                Quote versions and messages to the group and approvers
 │   ├── bill.py                Matches confirmed changes to the quote, builds the draft bill
@@ -264,7 +267,7 @@ Usage pricing through Orbyte credits is the alternative. Break-even: Confirm cos
 | --- | --- |
 | Replit | Development and running the app; `.replit` defines the run workflow. Replit Agent assisted with configuration and styling. |
 | GitHub | This repository: Apache 2.0, small commits through the hackathon |
-| RunPod | Not used: no GPU work (handbook section 9.4) |
+| RunPod | Not used. The optional AI reader was scored once on a local laptop GPU (RTX 2050, partly on the GPU); see docs/results.md and handbook section 9.4 |
 | Claude and Replit Agent | AI coding assistants; declared in the Technical Tools Declaration |
 | whatsapp-web.js | Optional local bridge for team testing only |
 

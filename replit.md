@@ -15,6 +15,10 @@
 Run `python -m pytest` for the Python tests and `python src/evaluate.py` for
 the extraction accuracy report. The bridge conversion tests use `npm test`.
 
+## AI reader
+
+The rules reader runs by default and needs nothing else. The optional AI reader (`SMERGERS_READER=llm`) needs a local Ollama server and is not part of the Replit deployment; if it is unreachable the app falls back to the rules.
+
 ## Prototype limitations
 
 - Demo jobs load at startup. Jobs, imports, and approvals are in memory and

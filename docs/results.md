@@ -35,7 +35,7 @@ Scored once with `python src/evaluate.py --blind`, after the chats and answer ke
 
 ## Run 3: 23 Oct 2026, AI reader (llama3.1:8b, local Ollama) on the same blind chats, commit f4fca5e
 
-Scored once with `python src/evaluate.py --blind --ai`, on the same three blind chats as Run 2. The prompt and checks in `src/llm_extractor.py` were tuned on the tuning chat only (dinner_client) before this run, and not changed afterwards. Same caveat as Run 2: the chats were written by independent AI agents, they are synthetic, and 29 changes is a small sample.
+Scored once with `python src/evaluate.py --blind --ai`, on the same three blind chats as Run 2. The prompt and checks in `src/llm_extractor.py` were tuned on the tuning chat only (dinner_client) before this run, and not changed afterwards. Run on a laptop with an NVIDIA RTX 2050 (4 GB), through a local Ollama server, which put part of the model on the GPU (about 2.3 of 5.6 GB). Handbook section 9.4 requires RunPod for work that needs a GPU, including inference; the AI reader does not require a GPU to run, but this run used one. See submission/README.md. Same caveat as Run 2: the chats were written by independent AI agents, they are synthetic, and 29 changes is a small sample.
 
 | Reader | Found | Fully right (status and price) | False changes |
 |---|---|---|---|

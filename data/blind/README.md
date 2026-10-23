@@ -55,4 +55,4 @@ It checks that every evidence phrase appears in your chat, that line ids exist i
 
 ## What happens next
 
-Vincent runs `python src/evaluate.py --blind` once and records the result in `docs/results.md` as Run 2, next to the baseline. We then use that number, honestly, in the proposal and the pitch.
+Run 2 and Run 3 in `docs/results.md` already score three chats written by independent AI agents. Teammates' chats added here would be scored as a further run, reported whatever it is, next to the baseline. We then use that number, honestly, in the proposal and the pitch.
