@@ -8,7 +8,7 @@ from datetime import datetime
 import sync
 from catalogue import DATA, Catalogue
 from chat_import import parse_chat
-from rules_extractor import extract
+from reader import read as extract
 from workflow import Actor, Job
 
 DEMO_JOBS = [  # (job id, chat file, quote file)

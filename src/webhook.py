@@ -13,7 +13,7 @@ from datetime import datetime
 from zoneinfo import ZoneInfo
 
 from chat_import import messages_from_whatsapp
-from rules_extractor import extract
+from reader import read as extract
 
 KL = ZoneInfo("Asia/Kuala_Lumpur")
 
