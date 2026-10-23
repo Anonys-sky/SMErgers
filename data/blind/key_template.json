@@ -1,0 +1,23 @@
+{
+  "label": "SIMULATED answer key written by a teammate who has not seen the rules",
+  "chat": "blind_yourname.txt",
+  "quote": "q_blind_yourname.json",
+  "split": "blind",
+  "notes": "Write what a careful person would find. Delete this note's example text.",
+  "changes": [
+    {"key": "extra_banners", "kind": "quantity_change", "line_id": "L03", "qty_delta": 3, "price_delta": 270.0,
+     "status": "ready", "evidence": ["exact phrase from a message", "another exact phrase", "the agreeing reply"]},
+    {"key": "extra_mic_no_price", "kind": "extra", "line_id": null, "qty_delta": 2, "price_delta": null,
+     "status": "needs_price", "evidence": ["exact phrase", "exact phrase"]},
+    {"key": "cheaper_option", "kind": "replacement", "line_id": "L04", "qty_delta": 0, "price_delta": -500.0,
+     "status": "ready", "evidence": ["exact phrase", "exact phrase"]},
+    {"key": "same_price_swap", "kind": "non_billable", "line_id": null, "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["exact phrase"]},
+    {"key": "asked_never_agreed", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 800.0,
+     "status": "unconfirmed", "evidence": ["exact phrase", "exact phrase"]},
+    {"key": "taken_back", "kind": "quantity_change", "line_id": "L02", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["exact phrase", "exact phrase"]}
+  ],
+  "expected_known_delta": -230.0,
+  "expected_needs_price": 1
+}

@@ -1,0 +1,22 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-900",
+  "company": "Fiesta Demo Events Sdn Bhd",
+  "client": "Invented Client Sdn Bhd",
+  "event_type": "dinner",
+  "job": "Name of the job",
+  "event_date": "2026-11-20",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Main item people mention a lot", "unit": "pax", "qty": 100, "unit_price": 120.0,
+     "aliases": ["other word for it", "short word", "slang word"]},
+    {"id": "L02", "item": "Second quoted item", "unit": "set", "qty": 1, "unit_price": 2500.0,
+     "aliases": ["other word for it"]},
+    {"id": "L03", "item": "Third quoted item", "unit": "pc", "qty": 4, "unit_price": 90.0,
+     "aliases": ["other word for it"]}
+  ],
+  "rate_card": [
+    {"item": "An extra the company usually charges for", "unit": "hour", "unit_price": 300.0,
+     "aliases": ["other word for it"]}
+  ]
+}
