@@ -15,6 +15,7 @@ import sync
 import webhook
 import whatsapp_bridge
 from project_intake import InvalidProject, prepare
+from chat_import import InvalidChatTimestamp
 from bill import build_bill
 from schema import STATUSES
 from workflow import ACTIONS, STATE_LABELS, NotAllowed
@@ -213,7 +214,11 @@ def import_chat():
     except UnicodeDecodeError:
         flash("That file is not a WhatsApp text export.")
         return redirect(url_for("imports_page"))
-    record = store.build(store.new_job_id(store.quote_title(quote)), text, upload.filename, quote)
+    try:
+        record = store.build(store.new_job_id(store.quote_title(quote)), text, upload.filename, quote)
+    except InvalidChatTimestamp as exc:
+        flash(str(exc))
+        return redirect(url_for("imports_page"))
     if not record.messages:
         flash("No WhatsApp messages were found in that file.")
     return redirect(url_for("job_page", job_id=record.id))

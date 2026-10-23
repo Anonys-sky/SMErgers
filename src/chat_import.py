@@ -24,6 +24,10 @@ _IOS = re.compile(
 _MEDIA = re.compile(r"^<Media omitted>$|^(image|video|audio|sticker|document) omitted$|^<attached: ", re.I)
 
 
+class InvalidChatTimestamp(ValueError):
+    """An export contains a message header with an impossible date or time."""
+
+
 def _parse_timestamp(date_text, time_text, ampm):
     day, month, year = (int(p) for p in date_text.split("/"))
     if year < 100:
@@ -32,6 +36,8 @@ def _parse_timestamp(date_text, time_text, ampm):
     hour, minute = parts[0], parts[1]
     second = parts[2] if len(parts) > 2 else 0
     if ampm:
+        if not 1 <= hour <= 12:
+            raise ValueError("AM/PM hours must be between 1 and 12")
         pm = ampm.lower().startswith("p")
         hour = hour % 12 + (12 if pm else 0)
     return datetime(year, month, day, hour, minute, second)
@@ -49,10 +55,16 @@ def parse_chat(raw_text):
     """Return the chat as a list of Messages. Lines that do not start a new message
     are continuation lines of a multi-line message."""
     starts = []  # (sent_at, sender, [text lines])
-    for line in raw_text.translate(_INVISIBLE).splitlines():
+    for line_number, line in enumerate(raw_text.translate(_INVISIBLE).splitlines(), start=1):
         match = _ANDROID.match(line) or _IOS.match(line)
         if match:
-            sent_at = _parse_timestamp(match["date"], match["time"], match["ampm"])
+            try:
+                sent_at = _parse_timestamp(match["date"], match["time"], match["ampm"])
+            except ValueError as exc:
+                raise InvalidChatTimestamp(
+                    f"Invalid chat date or time on line {line_number}. "
+                    "Use a valid day/month/year date and time in the WhatsApp export."
+                ) from exc
             sender, text = _split_sender(match["rest"])
             starts.append((sent_at, sender, [text]))
         elif starts:

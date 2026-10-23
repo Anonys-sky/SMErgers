@@ -3,7 +3,7 @@ from datetime import date
 from decimal import Decimal, InvalidOperation
 
 from catalogue import Catalogue
-from chat_import import parse_chat
+from chat_import import InvalidChatTimestamp, parse_chat
 
 
 class InvalidProject(ValueError):
@@ -75,10 +75,10 @@ def prepare(form, upload=None):
     quote["rate_card"] = rows(extra=True)
     if not quote["lines"]:
         errors.append("Add at least one original quote line.")
-    chat = form.get("chat_text", "").strip()
+    chat = form.get("chat_text", "")
     filename = "Pasted WhatsApp export"
     if upload and upload.filename:
-        if chat:
+        if chat.strip():
             errors.append("Use either a pasted chat or a file, not both.")
         if not upload.filename.lower().endswith(".txt"):
             errors.append("Choose a WhatsApp .txt export.")
@@ -87,9 +87,13 @@ def prepare(form, upload=None):
         except UnicodeDecodeError:
             errors.append("The chat file must be UTF-8 text.")
         filename = upload.filename.replace("\\", "/").split("/")[-1][:200]
-    messages = parse_chat(chat)
-    if not any(m.sender for m in messages):
-        errors.append("Provide a WhatsApp export with dated messages and sender names.")
+    try:
+        messages = parse_chat(chat)
+    except InvalidChatTimestamp as exc:
+        errors.append(str(exc))
+    else:
+        if not any(m.sender for m in messages):
+            errors.append("Provide a WhatsApp export with dated messages and sender names.")
     if errors:
         raise InvalidProject(errors)
     return Catalogue(quote), messages, filename

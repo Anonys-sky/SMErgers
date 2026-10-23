@@ -107,3 +107,51 @@ def test_missing_row_values_and_large_request(client):
     fields.add("item", "Incomplete")
     assert client.post("/projects/new", data=fields).status_code == 400
     assert client.post("/projects/new", data=data(chat_text="x" * 1_000_001)).status_code == 413
+
+
+@pytest.mark.parametrize("header", [
+    "31/02/2026, 09:12 - ",
+    "[29/02/2025, 09:12:00] ",
+    "01/13/2026, 09:12 - ",
+    "01/01/2026, 24:00 - ",
+    "[01/01/2026, 09:60:00] ",
+    "[01/01/2026, 09:12:60] ",
+    "01/01/2026, 13:00 pm - ",
+    "[01/01/2026, 00:00 AM] ",
+])
+@pytest.mark.parametrize("uploaded", [False, True])
+def test_invalid_chat_timestamp_is_validation_error(client, header, uploaded):
+    # A good message followed by a bad one must not leave a partial project.
+    chat = "\n02/09/2026, 09:12 - PM: Hello\n" + header + "Client: Add 10 guests"
+    fields = data(chat_text=chat)
+    if uploaded:
+        fields["chat_text"] = ""
+        fields["chat"] = (io.BytesIO(chat.encode()), "chat.txt")
+    before = set(store.JOBS)
+    response = client.post("/projects/new", data=fields)
+    assert response.status_code == 400
+    assert b"Invalid chat date or time on line 3" in response.data
+    assert b"Test client" in response.data
+    if not uploaded:
+        assert chat.encode() in response.data
+    assert set(store.JOBS) == before
+
+
+def test_legacy_import_handles_bad_timestamp(client):
+    before = set(store.JOBS)
+    response = client.post("/import", data={
+        "quote": "q_dinner.json",
+        "chat": (io.BytesIO(b"31/02/2026, 09:12 - Client: Hello"), "chat.txt"),
+    }, follow_redirects=True)
+    assert response.status_code == 200
+    assert b"Invalid chat date or time on line 1" in response.data
+    assert set(store.JOBS) == before
+
+
+@pytest.mark.parametrize("header", [
+    "29/02/2024, 23:59 - ", "[29/02/2024, 12:00:00 AM] ",
+    "01/01/26, 12:00 pm - ",
+])
+def test_valid_timestamp_boundaries_still_create_project(client, header):
+    response = client.post("/projects/new", data=data(chat_text=header + "Client: Hello"))
+    assert response.status_code == 302
