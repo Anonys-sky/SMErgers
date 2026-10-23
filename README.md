@@ -43,6 +43,10 @@ When something is unclear, SMErgers does not guess. A change with no price anywh
 
 | Feature | What it does |
 | --- | --- |
+| Role workspaces | Blue sidebar interface with separate Project manager, Project director, Client and Finance workspaces. Project lists, review queues, search, status filters, checklists and activity are tailored to each role. |
+| Add project | Project managers and directors can create a project with its own event details, team, quote items, optional extra-item rates and a pasted or uploaded WhatsApp export. It appears in Projects in progress and uses the existing review, approval, confirmation and billing workflow. |
+| Validated chat imports | Both intake flows reject conversations with no sender messages. Invalid chat dates and times produce a line-numbered error instead of a server crash. A valid conversation can be imported even if no changes are detected. |
+| Price and navigation safeguards | Price entry and director discount decisions reject NaN, infinity and overflow-to-infinity values. Invalid prices cannot progress through review, approval or confirmation. Action forms accept only local return paths, not external redirects. |
 | Live from WhatsApp | Receives messages in Meta's official Cloud API webhook format, with signature checking and the verification handshake. The demo feeds a synthetic chat one message at a time. |
 | Change finder | Rules that handle follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals. |
 | Show in chat | Every change and bill line highlights the exact messages it came from. Clicking a message jumps to its change. |
@@ -108,7 +112,7 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 | Logic | Rules engine, approval workflow, quote versioning, suggestions (all Python) |
 | Data | In-memory store for the prototype; synthetic JSON data |
 | WhatsApp | Meta Cloud API webhook format; optional Node.js bridge for testing |
-| Tests | pytest (113 tests); Node test runner for the bridge |
+| Tests | pytest for parsing, intake, permissions, approvals, billing and redirect validation; Node test runner for bridge conversion and workspace filters |
 | Hosting and development | Replit |
 
 ## Project structure
@@ -128,6 +132,9 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 │   └── orbyte-integration.md  Interface assumptions and the WhatsApp design
 ├── src/
 │   ├── main.py                Web app entry point (routes only)
+│   ├── project_intake.py      New-project validation and quote/chat preparation
+│   ├── workspaces.py          Role-specific dashboard, queue and checklist data
+│   ├── navigation.py          Safe local return paths for action forms
 │   ├── webhook.py             WhatsApp Cloud API webhook format and live ingestion
 │   ├── chat_import.py         Chat parsing (exports and live messages)
 │   ├── catalogue.py           Quote lines, rate card and the words that name them
@@ -188,6 +195,7 @@ python src/main.py               # then open http://localhost:5000
 python -m pytest
 python src/evaluate.py
 npm test                         # bridge conversion tests (needs Node.js)
+node --test tests/workspace_filter.test.cjs  # workspace search and status filters
 ```
 
 ### Optional local WhatsApp bridge (team testing only)
@@ -201,12 +209,43 @@ npm run whatsapp                 # then link a test number from /whatsapp
 
 The guide bar at the top of each job always says what happens next and who does it, and hands over to the next person with one button.
 
-1. On the home page, click **Start the demo**. Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then press **Play the rest**.
+1. In the Project manager overview, click **Open live demo**. Press **Next message** a few times: messages arrive from the WhatsApp group and changes appear as people talk. Then press **Play the rest**.
 2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
 3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the owner must now approve it, because staff entered the price), then **Check all**.
-4. Press **Continue as Daniel (Owner)**. Read **Next time, quote it upfront**, then approve.
+4. Use the guide's hand-over button to continue as the **Project director**. Read **Next time, quote it upfront**, then approve.
 5. Press **Open the client's link**: the phone-sized page the client sees from WhatsApp. Dispute the banners ("we asked for 2") and confirm the rest.
-6. Press **Back to Aisyah**. In the chat, SMErgers has posted "quote version 2" to the group. Click **Show in chat** on the disputed banners: the client's own "2 more" and "and 1 at the lift lobby" settle it. Then open **Bill** and **History**.
+6. Press **Back to Aisyah**. In the chat, SMErgers has posted "quote version 2" to the group. Click **Show in chat** on the disputed banners: the client's own "2 more" and "and 1 at the lift lobby" settle it. Then open **Draft bill** and **History**.
+
+## Add your own test project
+
+Use synthetic data only; this prototype is not intended for private client records.
+
+1. Switch to **Project manager** or **Project director**. In Overview or Projects, find **Projects in progress** and select **Add project** (also available from Import chat). The form is at `/projects/new`.
+2. Enter the project title, client, company, quote reference, event date and event type. Supply names for the project manager, project director and finance contact.
+3. Add at least one original quote item: item name, positive quantity, unit and non-negative unit price in **RM**. Add or remove rows as needed. Optional comma-separated aliases help match chat wording; the item name is automatically included.
+4. Optionally add a rate card for extras outside the original quote. These rates are not included in the starting quote total.
+5. Either paste a WhatsApp text export **or** upload a UTF-8 `.txt` export without media—not both. The total request limit is **1,000,000 bytes**, including all form fields and upload overhead. Keep timestamps and sender names intact.
+6. Select **Create project**. The project appears in **Projects in progress** and opens for review. Check detected changes against the chat, add missing prices, obtain director approval when required, and hand over to the client for confirmation. Finance can then view the draft bill and export CSV.
+
+Android and iOS WhatsApp export formats are supported, with dates read **day/month/year**. For example:
+
+```text
+02/09/2026, 09:12 - Demo Client: Add 10 more guests
+02/09/2026, 09:13 - Demo PM: OK noted
+```
+
+Use aliases such as `guests` on the corresponding quote item so the reader can match it.
+
+### Validation and error handling
+
+- Required fields and quote rows are checked on the server before creation. Quantities must be positive; original quote and rate-card prices must be non-negative. Numeric inputs in this form are capped at 1,000,000,000.
+- Invalid dates or times in chat headers (including impossible dates and invalid AM/PM hours) show the offending line number. A failed submission creates no partial project and retains entered text; uploaded files must be selected again.
+- Empty files, unrelated plain text and exports containing only system notices are rejected. A conversation with sender messages but no detected changes is still valid.
+- The older **Import chat** flow at `/imports` continues to use an existing sample quote. It now rejects empty conversations before creating a record and handles malformed timestamps without crashing. Use **Add project** to enter a new quote; quote-document upload is not supported.
+- Subsequent change-price entry and director discount decisions reject non-finite amounts such as `NaN`, `Infinity` and `1e309`, without changing the record or audit log. Zero amounts and negative credits remain valid.
+- Single-item and bulk action forms reject external return URLs, including protocol-relative and encoded bypasses. Safe local paths retain their query parameters and anchors; unsafe targets fall back to the project page.
+
+**Storage limitation:** New and imported projects, approvals and quote versions are held in memory. Restarting the app or choosing **Reset demo data** removes them and restores the sample projects. Switching roles is a demo mechanism, not authentication.
 
 ---
 
