@@ -1,0 +1,31 @@
+{
+  "label": "SIMULATED answer key written by an independent AI agent that never saw the extractor, not model output of the system under test",
+  "chat": "blind_agent_b.txt",
+  "quote": "q_blind_agent_b.json",
+  "split": "blind",
+  "notes": "Traps: LED upgrade priced then withdrawn; recap repeats earlier changes; time numbers (11pm, 6am, 10pm) are not quantities; two promoters said in words; two items in one message (promoters + tote colour); discount with no amount; counter priced but never agreed; drone has no price.",
+  "changes": [
+    {"key": "tote_bags", "kind": "quantity_change", "line_id": "L04", "qty_delta": 50, "price_delta": 600.0,
+     "status": "ready", "evidence": ["need to follow 350", "tote bags up to 350"]},
+    {"key": "led_upgrade", "kind": "upgrade", "line_id": "L02", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["upgrade to 6m x 3m", "RM 2,400 more", "Cancel the LED upgrade"]},
+    {"key": "promoters", "kind": "quantity_change", "line_id": "L03", "qty_delta": 2, "price_delta": 440.0,
+     "status": "ready", "evidence": ["add two more promoters", "RM 440 for two", "Confirm 2 promoters"]},
+    {"key": "tote_colour", "kind": "non_billable", "line_id": null, "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["swap the tote bag colour from navy to teal", "Teal same price"]},
+    {"key": "discount_request", "kind": "discount", "line_id": null, "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["got any discount ah", "he decides discount"]},
+    {"key": "videographer_swap", "kind": "replacement", "line_id": "L05", "qty_delta": 0, "price_delta": 350.0,
+     "status": "ready", "evidence": ["one of them i want videographer instead", "+RM 350 for the swap", "ok proceed"]},
+    {"key": "venue_extension", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 1200.0,
+     "status": "ready", "evidence": ["extend until 11pm", "RM 1,200 for 1 extra hour", "ok boleh, please arrange"]},
+    {"key": "extra_reg_counter", "kind": "quantity_change", "line_id": "L06", "qty_delta": 1, "price_delta": 450.0,
+     "status": "unconfirmed", "evidence": ["one more registration counter", "One more counter RM 450"]},
+    {"key": "load_in_time", "kind": "non_billable", "line_id": null, "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["load-in start 6am instead of 7am", "ok no extra charge"]},
+    {"key": "drone_operator", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": null,
+     "status": "needs_price", "evidence": ["drone shot for the launch", "one drone operator"]}
+  ],
+  "expected_known_delta": 2590.0,
+  "expected_needs_price": 1
+}

@@ -1,0 +1,31 @@
+{
+  "label": "SIMULATED answer key written by an independent AI agent that never saw the extractor, not model output of the system under test",
+  "chat": "blind_agent_a.txt",
+  "quote": "q_blind_agent_a.json",
+  "split": "blind",
+  "notes": "Traps: quantity in words (eight more pax); price quoted by vendor and agreed a day later; two items in one message (mic agreed, centrepiece never confirmed); photo booth hour priced then withdrawn; times 6:30pm/6pm/7:30 are not quantities; recap repeats earlier changes; discount with no amount; confetti cannon agreed with no price.",
+  "changes": [
+    {"key": "pax", "kind": "quantity_change", "line_id": "L01", "qty_delta": 8, "price_delta": 1344.0,
+     "status": "ready", "evidence": ["eight more pax confirm joining", "128 pax total ya Farah", "yes 128"]},
+    {"key": "led_upgrade", "kind": "upgrade", "line_id": "L02", "qty_delta": 0, "price_delta": 1500.0,
+     "status": "ready", "evidence": ["Can upgrade to the curved LED wall", "Curved LED wall is RM 1,500 extra", "ok go ahead with the LED upgrade"]},
+    {"key": "hampers", "kind": "quantity_change", "line_id": "L05", "qty_delta": 5, "price_delta": 750.0,
+     "status": "ready", "evidence": ["we want 5 more hamper", "5 more hamper noted"]},
+    {"key": "mics", "kind": "quantity_change", "line_id": "L07", "qty_delta": 2, "price_delta": 240.0,
+     "status": "ready", "evidence": ["Also need 2 more mic", "2 mic no problem, I add"]},
+    {"key": "centrepieces", "kind": "quantity_change", "line_id": "L06", "qty_delta": 6, "price_delta": 510.0,
+     "status": "unconfirmed", "evidence": ["6 more centrepiece for the extra tables", "so 6 is RM 510", "let me ask boss first for the flowers"]},
+    {"key": "discount", "kind": "discount", "line_id": null, "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["can give us some discount or not", "will see what we can do", "goodwill discount on the final bill"]},
+    {"key": "backdrop_colour", "kind": "non_billable", "line_id": null, "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["backdrop colour burgundy instead of navy", "decor team say same price"]},
+    {"key": "arrival_time", "kind": "non_billable", "line_id": null, "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["Guests arrive 6:30pm instead of 6pm", "will inform the hotel"]},
+    {"key": "photo_booth_hour", "kind": "extra", "line_id": "L08", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["photo booth can extend 1 more hour", "Extra hour RM 400", "no need the extra hour for photo booth"]},
+    {"key": "confetti_cannon", "kind": "extra", "line_id": null, "qty_delta": 2, "price_delta": null,
+     "status": "needs_price", "evidence": ["2 confetti cannon when CEO come on stage", "can arrange with Jason's team"]}
+  ],
+  "expected_known_delta": 3834.0,
+  "expected_needs_price": 1
+}

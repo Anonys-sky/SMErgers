@@ -1,0 +1,29 @@
+{
+  "label": "SIMULATED answer key written by an independent AI agent that never saw the extractor, not model output of the system under test",
+  "chat": "blind_agent_c.txt",
+  "quote": "q_blind_agent_c.json",
+  "split": "blind",
+  "notes": "Table count goes 40 -> 42 -> 45 -> 44 final; only the final 44 (+4) counts. Cake price argument leads to an unquantified discount. Peony priced then withdrawn. Times (8pm, 7pm) and 2 hours are not quantities. Recap repeats earlier changes.",
+  "changes": [
+    {"key": "tables_44", "kind": "quantity_change", "line_id": "L01", "qty_delta": 4, "price_delta": 5120.0,
+     "status": "ready", "evidence": ["44 tables final", "Extra 4 tables is RM 5,120", "ok boleh, 44 tables"]},
+    {"key": "cake_discount", "kind": "discount", "line_id": "L04", "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["why quote RM 900?", "give you some discount for the cake"]},
+    {"key": "peony_upgrade", "kind": "upgrade", "line_id": "L03", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["Peony centrepiece RM 30 more per table", "cancel the peony"]},
+    {"key": "ushers_plus2", "kind": "quantity_change", "line_id": "L05", "qty_delta": 2, "price_delta": 300.0,
+     "status": "ready", "evidence": ["tambah dua usher", "2 usher added at RM 150 each", "ok noted"]},
+    {"key": "photo_booth_cancel", "kind": "quantity_change", "line_id": "L08", "qty_delta": -1, "price_delta": -1800.0,
+     "status": "ready", "evidence": ["cancel photo booth", "Photo booth cancelled, that is RM 1,800 off"]},
+    {"key": "cake_mocha", "kind": "non_billable", "line_id": "L04", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["kek tukar jadi mocha flavour", "Mocha same price"]},
+    {"key": "band_start_8pm", "kind": "non_billable", "line_id": "L06", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["Band can start at 8pm", "band start 8pm, same 2 hours"]},
+    {"key": "second_lion_dance", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": null,
+     "status": "needs_price", "evidence": ["one more team boleh", "Can arrange Madam", "price we discuss after"]},
+    {"key": "band_extra_hour", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 800.0,
+     "status": "unconfirmed", "evidence": ["band extra 1 hour how much", "Extra hour RM 800", "let me ask my husband first"]}
+  ],
+  "expected_known_delta": 3620.0,
+  "expected_needs_price": 1
+}
