@@ -16,6 +16,7 @@ import webhook
 import whatsapp_bridge
 from project_intake import InvalidProject, prepare
 from chat_import import InvalidChatTimestamp, parse_chat
+from navigation import local_return_path
 from bill import build_bill
 from schema import STATUSES
 from workflow import ACTIONS, STATE_LABELS, NotAllowed
@@ -454,7 +455,7 @@ def bulk(job_id):
     candidates = bulk_candidates(record.job, role)
     if candidates is None:
         flash("Nothing is ready for that.")
-        return redirect(request.form.get("next") or url_for("job_page", job_id=job_id))
+        return redirect(local_return_path(request.form.get("next"), url_for("job_page", job_id=job_id)))
     action, label, keys, total = candidates
     actor = record.actor(role)
     done = []
@@ -466,7 +467,7 @@ def bulk(job_id):
             pass
     sync.after_actions(record, action, done, actor)
     flash(f"{DONE[action]} {len(done)} change{'' if len(done) == 1 else 's'} ({rm(total)}).", "ok")
-    return redirect(request.form.get("next") or url_for("job_page", job_id=job_id))
+    return redirect(local_return_path(request.form.get("next"), url_for("job_page", job_id=job_id)))
 
 
 @app.post("/job/<job_id>/act/<key>")
@@ -487,7 +488,7 @@ def act(job_id, key):
         flash(str(err))
     except (KeyError, ValueError):
         flash("That action could not be done. Check the price is a number.")
-    return redirect(request.form.get("next") or url_for("job_page", job_id=job_id, show=key))
+    return redirect(local_return_path(request.form.get("next"), url_for("job_page", job_id=job_id, show=key)))
 
 
 @app.get("/job/<job_id>/bill")
