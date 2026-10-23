@@ -8,7 +8,7 @@ from bill import build_bill
 
 PERSONAS = {
     "pm": {
-        "slug": "project-manager", "title": "Project manager", "initials": "PM",
+        "slug": "project-manager", "title": "Project Manager", "initials": "PM",
         "subtitle": "Project delivery",
         "headline": "Every change, under control.",
         "description": "Bring in conversations, verify the evidence and prepare changes for approval.",
@@ -20,7 +20,7 @@ PERSONAS = {
         ],
     },
     "owner": {
-        "slug": "project-director", "title": "Project director", "initials": "PD",
+        "slug": "project-director", "title": "Project Director", "initials": "PD",
         "subtitle": "Approvals & oversight",
         "headline": "Make the decisions that move work forward.",
         "description": "Review high-value changes, resolve exceptions and keep project approvals moving.",

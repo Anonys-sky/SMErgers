@@ -19,7 +19,7 @@ DEMO_JOBS = [  # (job id, chat file, quote file)
 ]
 
 # Demo workspaces. The client opens a link from WhatsApp; finance reads bills and exports the CSV.
-ROLE_LABELS = {"pm": "Project manager", "owner": "Project director", "client": "Client", "finance": "Finance"}
+ROLE_LABELS = {"pm": "Project Manager", "owner": "Project Director", "client": "Client", "finance": "Finance"}
 
 
 @dataclass
