@@ -56,7 +56,17 @@ When something is unclear, SMErgers does not guess. A change with no price anywh
 
 ## Where AI fits, and where it does not
 
-SMErgers uses **no AI model** at run time. Every decision is made by rules, because an owner and a client need a reason they can read, not a score. A model is added only where it beats the rules on chats they were not written for.
+The chat-reading step has two readers behind one interface (`src/reader.py`):
+
+- **Rules reader** (default): fixed, explainable rules. Fast, offline, and the fallback.
+- **AI reader** (`SMERGERS_READER=llm`): a pre-trained language model, by default Llama 3.1 8B running locally through [Ollama](https://ollama.com). No API key, no internet, no training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price that is not written in the cited messages or in the quote, sets every status itself, and falls back to the rules if the model is offline or answers badly. Approval and billing never use the model.
+
+```bash
+ollama pull llama3.1:8b
+SMERGERS_READER=llm python src/main.py
+```
+
+Other OpenAI-compatible endpoints work through `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL` and `SMERGERS_LLM_KEY`. On a laptop GPU the model takes about 2 minutes per chat, so the demo uses the rules by default.
 
 The product creates its own training data: every approval, rejection and dispute is a human-checked label on real chat messages. After a pilot with real companies, that data can train a model to read messages and to make the "quote it upfront" suggestions. We do not train on made-up chats.
 
@@ -88,7 +98,7 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 | Logic | Rules engine, approval workflow, quote versioning, suggestions (all Python) |
 | Data | In-memory store for the prototype; synthetic JSON data |
 | WhatsApp | Meta Cloud API webhook format; optional Node.js bridge for testing |
-| Tests | pytest (92 tests); Node test runner for the bridge |
+| Tests | pytest (113 tests); Node test runner for the bridge |
 | Hosting and development | Replit |
 
 ## Project structure
@@ -129,7 +139,7 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 ## Architecture
 
 ```
-WhatsApp group ──webhook──► webhook.py ──► rules_extractor ──► workflow ──► sync.py ──► group update, quote v2
+WhatsApp group ──webhook──► webhook.py ──► reader (rules or AI) ──► workflow ──► sync.py ──► group update, quote v2
    (.txt export ──► chat_import)              ▲                (PM ► owner ► client)        approval and confirm requests
                                  quote, rate card, directory                    │
                                                                                 ▼
@@ -198,7 +208,17 @@ Scored with `python src/evaluate.py` against hand-written answer keys. A change 
 
 Baseline: every message with an RM amount counts as a change.
 
-**These are not accuracy figures.** The same person wrote the chats, the answer keys and the rules. An honest score needs chats written by someone who has not seen the rules, scored once and reported as it comes out. The full log is in [docs/results.md](docs/results.md).
+**The first two rows are not accuracy figures.** The same person wrote the chats, the answer keys and the rules.
+
+**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring. Each reader was scored once ([Runs 2 and 3](docs/results.md)):
+
+| Reader | Found | Fully right (status and price) | False changes |
+| --- | --- | --- | --- |
+| Baseline | 15 of 29 | 3 | 5 |
+| Rules | 22 of 29 | 13 | 3 |
+| AI reader | 28 of 29 | 18 | 1 |
+
+That is 29 changes in synthetic chats, so it is a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong (for example, calling an unconfirmed change "ready"), which is why a person checks every change.
 
 Fed one message at a time through the webhook, the live demo job ends with exactly the same 10 changes as reading the whole chat at once (tested).
 
