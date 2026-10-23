@@ -8,6 +8,7 @@ its own change. Every action is written to a hash-chained log, so later edits sh
 """
 import hashlib
 import json
+import math
 from dataclasses import dataclass, field
 from datetime import datetime
 
@@ -156,6 +157,17 @@ class Job:
             raise NotAllowed(f"A {actor.role} cannot {action.replace('_', ' ')}.")
         if item.state not in from_states:
             raise NotAllowed(f"Cannot {action.replace('_', ' ')} a change that is '{STATE_LABELS[item.state]}'.")
+
+        # Validate before changing prices, states, notes or the audit log.
+        # Also stop an invalid price already on a record from progressing to billing.
+        candidate = price if action in ("set_price", "decide") else item.price
+        if candidate is not None and action in ("set_price", "decide", "review", "approve", "confirm"):
+            try:
+                valid_price = math.isfinite(float(candidate))
+            except (TypeError, ValueError, OverflowError):
+                valid_price = False
+            if not valid_price:
+                raise NotAllowed("Enter a finite price. NaN and infinity are not valid amounts.")
 
         if action == "set_price":
             if price is None:
