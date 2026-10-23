@@ -114,7 +114,6 @@ def receive(payload):
 def reset_demo():
     JOBS.clear()
     GROUPS.clear()
-    build_live("annual-dinner-live", "dinner_client.txt", "q_dinner.json")
     for job_id, chat, quote in DEMO_JOBS:
         build(job_id, (DATA / "chats" / chat).read_text(encoding="utf-8"), chat, quote)
 
