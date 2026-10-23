@@ -1,1 +1,2 @@
 - [Role workspace design](role-workspaces.md) — role-focused workspaces and the user's reference direction for the whole interface.
+- [Financial safeguards](financial-safeguards.md) — rationale for signed discounts, confirmed-only cancellation quantities and bounded change amounts.

@@ -81,6 +81,8 @@ def build_bill(catalogue, job):
 
 def _waiting_for(item):
     if item.state == "disputed":
+        if item.change.kind == "discount":
+            return "Client disputed the discount. Project director to review the basis and decide again."
         return "Client disputed it. PM to fix and review again."
     if item.price is None:
         return "Needs a price from the PM." if item.change.kind != "discount" else "Needs the project director's decision."

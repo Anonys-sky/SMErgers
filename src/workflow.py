@@ -11,6 +11,9 @@ import json
 import math
 from dataclasses import dataclass, field
 from datetime import datetime
+from decimal import Decimal
+
+from pricing import MAX_CHANGE_AMOUNT, usable_change_price
 
 DEFAULT_POLICY = {
     "owner_approval_at": 500.0,   # changes worth this much or more (either direction) need the owner
@@ -101,13 +104,14 @@ SYSTEM = Actor("SMErgers", "system")
 class Job:
     """The approval state for one job's changes."""
 
-    def __init__(self, changes, policy=None, now=None):
+    def __init__(self, changes, policy=None, now=None, catalogue=None):
         self.policy = {**DEFAULT_POLICY, **(policy or {})}
+        self.quote_quantities = {line.line_id: line.qty for line in catalogue.lines} if catalogue else {}
         self.log = ActivityLog()
         self.items = {}
         now = now or datetime.now()
         for c in changes:
-            item = Item(c, price=c.price_delta)
+            item = Item(c, price=usable_change_price(c.price_delta))
             if c.status in ("withdrawn", "log_only"):
                 item.state = "record_only"
             self.items[c.key] = item
@@ -122,7 +126,7 @@ class Job:
         for c in changes:
             item = self.items.get(c.key)
             if item is None:
-                item = Item(c, price=c.price_delta)
+                item = Item(c, price=usable_change_price(c.price_delta))
                 if c.status in ("withdrawn", "log_only"):
                     item.state = "record_only"
                 self.items[c.key] = item
@@ -130,7 +134,7 @@ class Job:
                 self.log.add(now, SYSTEM, "detect", c.key, f"found in chat: {c.item}")
             elif item.state in ("detected", "record_only") and not item.notes:
                 changed = item.change.status != c.status or item.change.price_delta != c.price_delta
-                item.change, item.price = c, c.price_delta
+                item.change, item.price = c, usable_change_price(c.price_delta)
                 item.state = "record_only" if c.status in ("withdrawn", "log_only") else "detected"
                 if changed:
                     self.log.add(now, SYSTEM, "update", c.key, f"updated from chat: {STATE_LABELS[item.state].lower()}")
@@ -151,6 +155,7 @@ class Job:
 
     def act(self, key, action, actor, now=None, price=None, note=""):
         now = now or datetime.now()
+        note = note.strip()
         item = self.items[key]
         roles, from_states = ACTIONS[action]
         if actor.role not in roles:
@@ -168,6 +173,20 @@ class Job:
                 valid_price = False
             if not valid_price:
                 raise NotAllowed("Enter a finite price. NaN and infinity are not valid amounts.")
+            if abs(float(candidate)) > MAX_CHANGE_AMOUNT:
+                raise NotAllowed("A change amount must be between -RM1,000,000,000 and RM1,000,000,000.")
+
+        if action in ("review", "approve", "confirm"):
+            self._check_quantity(key)
+        if action in ("approve", "confirm") and item.price is None:
+            raise NotAllowed("Add a valid price and review the change before approval or confirmation.")
+        if action == "set_price" and item.change.kind == "discount":
+            raise NotAllowed("Only the project director can decide a discount with its basis.")
+        if action in ("decide", "approve", "confirm") and item.change.kind == "discount":
+            if candidate is not None and float(candidate) > 0:
+                raise NotAllowed("A discount must be zero or negative. Enter -100 for RM100 off.")
+            if action == "decide" and not note:
+                raise NotAllowed("Explain the discount basis, such as 5% of the original quote.")
 
         if action == "set_price":
             if price is None:
@@ -214,3 +233,22 @@ class Job:
 
     def _after_approval(self):
         return "approved" if self.policy["client_confirmation"] else "confirmed"
+
+    def _check_quantity(self, key):
+        """Only confirmed additions can fund a removal; recheck at every approval stage."""
+        item = self.items[key]
+        change = item.change
+        if change.kind != "quantity_change" or change.line_id not in self.quote_quantities:
+            return
+        quantities = [self.quote_quantities[change.line_id], change.qty_delta]
+        quantities.extend(
+            other.change.qty_delta for other_key, other in self.items.items()
+            if other_key != key and other.state == "confirmed"
+            and other.change.kind == "quantity_change" and other.change.line_id == change.line_id
+        )
+        amounts = [Decimal(str(quantity)) for quantity in quantities]
+        if not all(amount.is_finite() for amount in amounts) or sum(amounts) < 0:
+            raise NotAllowed(
+                f"This change would leave a negative or invalid quantity for {change.item}. "
+                "Reject it and correct the source quantity; changing the price does not fix the quantity."
+            )

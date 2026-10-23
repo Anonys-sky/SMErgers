@@ -57,6 +57,17 @@ def after_actions(record, action, keys, actor, now=None):
     quote_id = record.catalogue.quote["quote_id"]
     team = record.team
 
+    if action == "dispute":
+        for key in keys:
+            item = items[key]
+            if item.state != "disputed":
+                continue
+            recipient = team["owner"] if item.change.kind == "discount" else team["pm"]
+            reason = item.notes[-1][2]
+            _send(record, now, recipient, "dispute_request",
+                  f"{actor.name} disputed {_describe(item)}.\nReason: {reason}\n"
+                  "Review the evidence and resolve the dispute before requesting confirmation again.", [key])
+
     if action == "confirm":
         confirmed = [k for k in keys if items[k].state == "confirmed"]
         if not confirmed:

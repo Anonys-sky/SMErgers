@@ -21,12 +21,22 @@
     <input type="hidden" name="action" value="{{ a }}">
     <input type="hidden" name="next" value="{{ next_url }}">
     {% if a in ('set_price', 'decide') %}
-      <input class="price" name="price" inputmode="decimal" placeholder="Amount in RM" aria-label="Price in Malaysian ringgit for {{ item.change.item }}" required>
+      {% if a == 'decide' %}
+        <p class="hint">Discounts are reductions: enter zero or a negative amount. For example, -100 means RM100 off.</p>
+        <input class="price" type="number" name="price" inputmode="decimal" step="0.01" max="0" placeholder="Amount in RM" aria-label="Discount amount in Malaysian ringgit for {{ item.change.item }} (zero or negative)" required>
+      {% else %}
+        <input class="price" name="price" inputmode="decimal" placeholder="Amount in RM" aria-label="Price in Malaysian ringgit for {{ item.change.item }}" required>
+      {% endif %}
     {% endif %}
-    {% if a == 'dispute' or (a == 'review' and item.change.status == 'unconfirmed') or a == 'set_price' %}
+    {% if a == 'decide' or a == 'dispute' or (a == 'review' and item.change.status == 'unconfirmed') or a == 'set_price' %}
+      {% if a == 'decide' %}
+        <input class="note" name="note" placeholder="Basis for discount (e.g. 5% of original quote)"
+               aria-label="Basis for discount for {{ item.change.item }}" required>
+      {% else %}
       <input class="note" name="note" placeholder="{{ 'What is wrong?' if a == 'dispute' else ('How was it agreed?' if a == 'review' else 'Where the price came from') }}"
               aria-label="{{ 'Reason for disputing ' ~ item.change.item if a == 'dispute' else ('Agreement detail for ' ~ item.change.item if a == 'review' else 'Price source for ' ~ item.change.item) }}"
               {{ 'required' if a != 'set_price' }}>
+      {% endif %}
     {% endif %}
     <button class="{{ 'primary' if a in ('review', 'approve', 'confirm', 'decide') else ('danger' if a in ('reject', 'dispute') else '') }}">{{ labels[a] }}</button>
   </form>

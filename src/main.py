@@ -463,10 +463,12 @@ def bulk(job_id):
         try:
             record.job.act(key, action, actor)
             done.append(key)
-        except NotAllowed:
-            pass
+        except NotAllowed as err:
+            flash(f"{record.job.items[key].change.item}: {err}")
     sync.after_actions(record, action, done, actor)
-    flash(f"{DONE[action]} {len(done)} change{'' if len(done) == 1 else 's'} ({rm(total)}).", "ok")
+    done_total = sum(record.job.items[key].price or 0 for key in done)
+    if done:
+        flash(f"{DONE[action]} {len(done)} change{'' if len(done) == 1 else 's'} ({rm(done_total)}).", "ok")
     return redirect(local_return_path(request.form.get("next"), url_for("job_page", job_id=job_id)))
 
 

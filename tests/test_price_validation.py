@@ -60,9 +60,11 @@ def test_existing_bad_price_cannot_progress(action, state, role, price):
     assert len(record.job.log.entries) == before
 
 
-@pytest.mark.parametrize("action,role", [("set_price", "pm"), ("decide", "owner")])
-@pytest.mark.parametrize("price", [0, 125.50, -125.50])
+@pytest.mark.parametrize("action,role,price", [
+    ("set_price", "pm", 0), ("set_price", "pm", 125.50), ("set_price", "pm", -125.50),
+    ("decide", "owner", 0), ("decide", "owner", -125.50),
+])
 def test_finite_prices_including_credits_remain_valid(action, role, price):
     record, key = target(action)
-    record.job.act(key, action, record.actor(role), price=price)
+    record.job.act(key, action, record.actor(role), price=price, note="Documented basis")
     assert record.job.items[key].price == price
