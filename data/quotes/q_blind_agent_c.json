@@ -1,0 +1,34 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2027-310",
+  "company": "Rezeki Majlis Sdn Bhd",
+  "client": "Chan Family",
+  "event_type": "wedding dinner",
+  "job": "Chan-Lee Wedding Dinner, 400 pax",
+  "event_date": "2027-02-06",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Banquet table (10 pax)", "unit": "table", "qty": 40, "unit_price": 1280.0,
+     "aliases": ["table", "tables", "meja", "桌"]},
+    {"id": "L02", "item": "Stage and pelamin backdrop", "unit": "set", "qty": 1, "unit_price": 6800.0,
+     "aliases": ["stage", "pelamin", "backdrop"]},
+    {"id": "L03", "item": "Table floral centrepiece", "unit": "pc", "qty": 40, "unit_price": 85.0,
+     "aliases": ["centrepiece", "flowers", "bunga"]},
+    {"id": "L04", "item": "Three-tier wedding cake", "unit": "pc", "qty": 1, "unit_price": 900.0,
+     "aliases": ["cake", "kek"]},
+    {"id": "L05", "item": "Usher / seating crew", "unit": "pax", "qty": 6, "unit_price": 150.0,
+     "aliases": ["usher", "ushers", "seating crew"]},
+    {"id": "L06", "item": "Live band, 2 hours", "unit": "set", "qty": 1, "unit_price": 3200.0,
+     "aliases": ["band", "live band"]},
+    {"id": "L07", "item": "Lion dance troupe", "unit": "team", "qty": 1, "unit_price": 1200.0,
+     "aliases": ["lion dance", "舞狮", "troupe"]},
+    {"id": "L08", "item": "Photo booth", "unit": "set", "qty": 1, "unit_price": 1800.0,
+     "aliases": ["photo booth", "photobooth"]},
+    {"id": "L09", "item": "Bilingual emcee", "unit": "event", "qty": 1, "unit_price": 1500.0,
+     "aliases": ["emcee", "MC"]}
+  ],
+  "rate_card": [
+    {"item": "Live band extra hour", "unit": "hour", "unit_price": 800.0, "aliases": ["extra hour", "band overtime"]},
+    {"item": "Extra usher", "unit": "pax", "unit_price": 150.0, "aliases": ["usher"]}
+  ]
+}

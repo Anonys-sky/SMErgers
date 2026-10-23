@@ -1,0 +1,34 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-512",
+  "company": "Kembara Events Sdn Bhd",
+  "client": "Harbourline Logistics Sdn Bhd",
+  "event_type": "dinner",
+  "job": "Harbourline Year-End Dinner",
+  "event_date": "2026-11-27",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Ballroom banquet, 8-course", "unit": "pax", "qty": 120, "unit_price": 168.0,
+     "aliases": ["banquet", "pax", "guests", "headcount"]},
+    {"id": "L02", "item": "AV package with LED screen and sound", "unit": "set", "qty": 1, "unit_price": 6500.0,
+     "aliases": ["AV", "screen", "LED wall", "LED", "projector"]},
+    {"id": "L03", "item": "Stage backdrop and floral decor", "unit": "set", "qty": 1, "unit_price": 4200.0,
+     "aliases": ["backdrop", "decor", "stage deco", "stage"]},
+    {"id": "L04", "item": "Bilingual emcee", "unit": "session", "qty": 1, "unit_price": 1800.0,
+     "aliases": ["emcee", "MC", "host"]},
+    {"id": "L05", "item": "Lucky draw hampers", "unit": "pc", "qty": 10, "unit_price": 150.0,
+     "aliases": ["hamper", "prize", "lucky draw"]},
+    {"id": "L06", "item": "Table centrepieces", "unit": "pc", "qty": 12, "unit_price": 85.0,
+     "aliases": ["centrepiece", "table flower", "flowers"]},
+    {"id": "L07", "item": "Wireless microphone", "unit": "pc", "qty": 4, "unit_price": 120.0,
+     "aliases": ["mic", "microphone", "wireless mic"]},
+    {"id": "L08", "item": "Photo booth, 3 hours", "unit": "set", "qty": 1, "unit_price": 1200.0,
+     "aliases": ["photo booth", "photobooth", "booth"]}
+  ],
+  "rate_card": [
+    {"item": "Photo booth extra hour", "unit": "hour", "unit_price": 400.0,
+     "aliases": ["extra hour", "booth extend"]},
+    {"item": "Emcee overtime", "unit": "hour", "unit_price": 350.0,
+     "aliases": ["emcee OT", "MC overtime"]}
+  ]
+}

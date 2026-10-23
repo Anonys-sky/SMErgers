@@ -1,0 +1,34 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-912",
+  "company": "Lumen Events Sdn Bhd",
+  "client": "Nexo Apps Sdn Bhd",
+  "event_type": "roadshow",
+  "job": "UniTech Alumni Homecoming and Nexo App Launch Roadshow",
+  "event_date": "2026-12-19",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Modular exhibition booth", "unit": "booth", "qty": 6, "unit_price": 1800.0,
+     "aliases": ["booth", "exhibition stand", "booth stand"]},
+    {"id": "L02", "item": "LED video screen 4m x 2m", "unit": "set", "qty": 1, "unit_price": 6500.0,
+     "aliases": ["LED screen", "LED", "video wall"]},
+    {"id": "L03", "item": "Roadshow promoter (full day)", "unit": "person", "qty": 8, "unit_price": 220.0,
+     "aliases": ["promoter", "promoters", "promo girl", "usher"]},
+    {"id": "L04", "item": "Branded tote bag giveaway", "unit": "pc", "qty": 300, "unit_price": 12.0,
+     "aliases": ["tote bag", "tote bags", "bag", "giveaway bag"]},
+    {"id": "L05", "item": "Event photographer", "unit": "person", "qty": 2, "unit_price": 600.0,
+     "aliases": ["photographer", "photog", "photo"]},
+    {"id": "L06", "item": "Registration counter", "unit": "counter", "qty": 2, "unit_price": 450.0,
+     "aliases": ["registration counter", "reg counter", "counter", "check-in desk"]},
+    {"id": "L07", "item": "Sound system and emcee", "unit": "set", "qty": 1, "unit_price": 3200.0,
+     "aliases": ["sound", "emcee", "PA system", "MC"]},
+    {"id": "L08", "item": "Stage backdrop printing", "unit": "set", "qty": 1, "unit_price": 1500.0,
+     "aliases": ["backdrop", "stage backdrop", "photo wall"]}
+  ],
+  "rate_card": [
+    {"item": "Venue extension", "unit": "hour", "unit_price": 1200.0,
+     "aliases": ["hall extension", "extend hall", "venue overtime"]},
+    {"item": "Videographer", "unit": "person", "unit_price": 950.0,
+     "aliases": ["video crew", "videographer"]}
+  ]
+}
