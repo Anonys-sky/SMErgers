@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% block title %}Add project{% endblock %}
+{% block head %}<script src="{{ url_for('static', filename='new_project.js') }}" defer></script>{% endblock %}
+{% block content %}
+<div class="page-heading">
+  <div><p class="eyebrow">Project operations · new record</p><h1>Add a project</h1>
+  <p class="lede">Start with the event, its agreed quote and a synthetic WhatsApp conversation. All prices are in Malaysian ringgit (RM).</p></div>
+  <a class="btn" href="{{ workspace_url }}">Cancel</a>
+</div>
+<p class="bill-help project-intake-note"><strong>Synthetic test data only.</strong> Do not enter real client details or private conversations. All records are stored in memory and are lost when the app restarts or demo data is reset.</p>
+{% if errors %}
+<section class="flash project-error" role="alert" aria-labelledby="project-errors-title" tabindex="-1" id="project-errors">
+  <h2 id="project-errors-title">The project could not be created</h2>
+  <ul>{% for error in errors %}<li>{{ error }}</li>{% endfor %}</ul>
+  <p>Please check the fields below. If you selected a file, select it again before submitting.</p>
+</section>
+{% endif %}
+<form class="project-form" method="post" action="{{ url_for('new_project') }}" enctype="multipart/form-data" id="new-project-form">
+  <fieldset class="panel">
+    <legend>01 · Event details</legend>
+    <p class="project-section-note">All event and team fields are required.</p>
+    <div class="project-fields">
+      <label class="project-field-wide" for="project-title">Project title<input id="project-title" name="title" value="{{ values.get('title', '') }}" required placeholder="e.g. Meridian launch evening"></label>
+      <label for="project-client">Client name<input id="project-client" name="client" value="{{ values.get('client', '') }}" required></label>
+      <label for="project-company">Company<input id="project-company" name="company" value="{{ values.get('company', '') }}" required></label>
+      <label for="project-quote-id">Quote reference<input id="project-quote-id" name="quote_id" value="{{ values.get('quote_id', '') }}" required placeholder="e.g. Q-DEMO-024"></label>
+      <label for="project-event-date">Event date<input id="project-event-date" type="date" name="event_date" value="{{ values.get('event_date', '') }}" required></label>
+      <label class="project-field-wide" for="project-event-type">Event type<input id="project-event-type" name="event_type" value="{{ values.get('event_type', '') }}" required placeholder="e.g. Product launch"></label>
+    </div>
+  </fieldset>
+  <fieldset class="panel">
+    <legend>02 · Project team</legend>
+    <p class="project-section-note">Use invented names for the people responsible for review and billing.</p>
+    <div class="project-fields">
+      <label for="project-pm">Project manager<input id="project-pm" name="pm" value="{{ values.get('pm', '') }}" required></label>
+      <label for="project-owner">Project director / owner<input id="project-owner" name="owner" value="{{ values.get('owner', '') }}" required></label>
+      <label for="project-finance">Finance contact<input id="project-finance" name="finance" value="{{ values.get('finance', '') }}" required></label>
+    </div>
+  </fieldset>
+  <fieldset class="panel">
+    <legend>03 · Agreed quote</legend>
+    <p class="project-section-note" id="quote-help">Add at least one item from the starting quote. Prices are per unit in RM. Aliases help match items to chat messages: enter alternative names separated by commas. The item name is always included automatically.</p>
+    {% set items = values.getlist('item') %}
+    {% set quantities = values.getlist('qty') %}
+    {% set units = values.getlist('unit') %}
+    {% set prices = values.getlist('unit_price') %}
+    {% set aliases = values.getlist('aliases') %}
+    <div class="project-lines" id="quote-lines" data-lines="quote" aria-describedby="quote-help">
+      {% for index in range([items|length, 1]|max) %}
+      <div class="project-line">
+        <div class="project-line-head"><strong data-line-title>Quote item {{ index + 1 }}</strong><button type="button" data-remove-line aria-label="Remove quote item {{ index + 1 }}" {% if items|length <= 1 %}disabled{% endif %}>Remove</button></div>
+        <div class="project-line-fields">
+          <label>Item name<input name="item" value="{{ items[index] if index < items|length else '' }}" required></label>
+          <label>Quantity<input type="number" name="qty" value="{{ quantities[index] if index < quantities|length else '1' }}" step="any" min="0.000001" required></label>
+          <label>Unit<input name="unit" value="{{ units[index] if index < units|length else '' }}" required placeholder="e.g. piece"></label>
+          <label>Unit price (RM)<input type="number" name="unit_price" value="{{ prices[index] if index < prices|length else '' }}" min="0" step="0.01" required></label>
+          <label class="aliases-field">Chat aliases <span class="field-help">Optional · comma separated, e.g. cocktail table, high table</span><input name="aliases" value="{{ aliases[index] if index < aliases|length else '' }}"></label>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <button class="project-add-row" type="button" data-add-line="quote">Add quote item</button>
+  </fieldset>
+  <fieldset class="panel">
+    <legend>04 · Extra-item rate card <span class="field-help">Optional</span></legend>
+    <p class="project-section-note">Rates for items outside the starting quote. These do not form part of the agreed quote. Add chat aliases so the engine can recognise alternative names.</p>
+    {% set extra_items = values.getlist('extra_item') %}
+    {% set extra_units = values.getlist('extra_unit') %}
+    {% set extra_prices = values.getlist('extra_price') %}
+    {% set extra_aliases = values.getlist('extra_aliases') %}
+    <div class="project-lines" id="extra-lines" data-lines="extra">
+      {% for item in extra_items %}
+      <div class="project-line">
+        <div class="project-line-head"><strong data-line-title>Rate-card item {{ loop.index }}</strong><button type="button" data-remove-line aria-label="Remove rate-card item {{ loop.index }}">Remove</button></div>
+        <div class="project-line-fields">
+          <label>Item name<input name="extra_item" value="{{ item }}" required></label>
+          <label>Unit<input name="extra_unit" value="{{ extra_units[loop.index0] if loop.index0 < extra_units|length else '' }}" required></label>
+          <label>Unit price (RM)<input type="number" name="extra_price" value="{{ extra_prices[loop.index0] if loop.index0 < extra_prices|length else '' }}" min="0" step="0.01" required></label>
+          <label class="aliases-field">Chat aliases <span class="field-help">Optional · comma separated; item name included automatically</span><input name="extra_aliases" value="{{ extra_aliases[loop.index0] if loop.index0 < extra_aliases|length else '' }}"></label>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+    <p class="hint" id="extra-empty" {% if extra_items %}hidden{% endif %}>No extra-item rates added. You can leave this section empty.</p>
+    <button class="project-add-row" type="button" data-add-line="extra">Add rate-card item</button>
+  </fieldset>
+  <fieldset class="panel">
+    <legend>05 · WhatsApp conversation</legend>
+    <p class="project-section-note" id="chat-help"><strong>Required: use one input only.</strong> Paste the export below OR upload a .txt file, not both. Use a UTF-8 WhatsApp export without media, under 1 MB total. Keep timestamps and sender names intact.</p>
+    <div class="project-chat-options" aria-describedby="chat-help">
+      <label for="chat-text">Paste chat text<textarea id="chat-text" name="chat_text" rows="8" placeholder="Paste the synthetic WhatsApp text export here">{{ values.get('chat_text', '') }}</textarea></label>
+      <label class="project-chat-file" for="chat-file">Or upload a text export (.txt)<input id="chat-file" type="file" name="chat" accept=".txt,text/plain"><span class="field-help">Files cannot be retained after a validation error; select the file again.</span></label>
+    </div>
+  </fieldset>
+  <div class="panel project-form-actions">
+    <p class="hint">Create the record, then review detected changes against their chat evidence before approving any pricing.</p>
+    <div class="actions"><a class="btn" href="{{ workspace_url }}">Cancel</a><button class="primary" type="submit">Create project</button></div>
+  </div>
+  <p class="sr-only" role="status" aria-live="polite" id="project-row-status"></p>
+</form>
+{% endblock %}

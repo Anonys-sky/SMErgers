@@ -5,6 +5,7 @@
                             the rules reader runs instead and the reason is kept in LAST_NOTE
 """
 import os
+import json
 
 import llm_extractor
 import rules_extractor
@@ -18,7 +19,7 @@ def read(messages, catalogue):
     global LAST_NOTE
     if os.environ.get("SMERGERS_READER", "rules") != "llm":
         return rules_extractor.extract(messages, catalogue)
-    key = (tuple(m.id for m in messages), catalogue.quote.get("quote_id"))
+    key = (tuple(m.id for m in messages), json.dumps(catalogue.quote, sort_keys=True))
     if key not in _cache:
         try:
             _cache[key] = llm_extractor.extract(messages, catalogue)

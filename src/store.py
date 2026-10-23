@@ -42,7 +42,7 @@ class JobRecord:
     def team(self):
         """Named people for each role, from the company directory (Orbyte's Directory, simulated)."""
         q = self.catalogue.quote
-        people = team_directory().get(q["company"], {})
+        people = q.get("team") or team_directory().get(q["company"], {})
         return {"pm": people.get("pm", "Project manager"), "owner": people.get("owner", "Project director"),
                 "finance": people.get("finance", "Finance"), "client": q["client"]}
 
@@ -64,6 +64,11 @@ def build(job_id, chat_text, chat_name, quote_file):
 def build_from_messages(job_id, messages, chat_name, quote_file):
     """Same as build(), for messages already read, e.g. live from a WhatsApp group."""
     catalogue = Catalogue.load(quote_file)
+    return build_with_catalogue(job_id, messages, chat_name, catalogue)
+
+
+def build_with_catalogue(job_id, messages, chat_name, catalogue):
+    """Publish a complete record only after extraction and version initialization succeed."""
     now = datetime.now()
     record = JobRecord(job_id, chat_name, messages, catalogue, Job(extract(messages, catalogue), now=now), now)
     sync.start(record)

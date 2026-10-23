@@ -35,7 +35,8 @@
         </label>
         <div><button class="primary">Find changes</button></div>
       </form>
-      <p class="hint" style="margin-top:12px">Only text exports are accepted. There is no quote upload: choose an existing quote. Use synthetic chats only in this prototype; do not upload private client conversations.</p>
+      <p class="hint" style="margin-top:12px">Only text exports are accepted. Choose an existing quote here, or create a new project with its own quote lines. Use synthetic chats only in this prototype; do not upload private client conversations.</p>
+      {% if role in ('pm', 'owner') %}<a class="btn" href="{{ url_for('new_project') }}">Add project with a new quote</a>{% endif %}
     </section>
     <section class="panel">
       <p class="section-title">Optional connection</p><h2 style="margin:0 0 6px">Read a group directly</h2>

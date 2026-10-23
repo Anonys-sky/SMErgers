@@ -14,6 +14,7 @@ import suggest
 import sync
 import webhook
 import whatsapp_bridge
+from project_intake import InvalidProject, prepare
 from bill import build_bill
 from schema import STATUSES
 from workflow import ACTIONS, STATE_LABELS, NotAllowed
@@ -167,6 +168,24 @@ def workspace_page(persona):
 def imports_page():
     managers_only()
     return render_template("home.html", quotes=[(q, store.quote_title(q)) for q in store.quote_files()])
+
+
+@app.route("/projects/new", methods=["GET", "POST"])
+def new_project():
+    managers_only()
+    errors = []
+    if request.method == "POST":
+        try:
+            catalogue, messages, filename = prepare(request.form, request.files.get("chat"))
+        except InvalidProject as exc:
+            errors = exc.errors
+        else:
+            record = store.build_with_catalogue(
+                store.new_job_id(catalogue.quote["job"]), messages, filename, catalogue,
+            )
+            flash(f"{record.title} added to Projects in progress. Review the detected changes.", "ok")
+            return redirect(url_for("job_page", job_id=record.id))
+    return render_template("new_project.html", values=request.form, errors=errors), 400 if errors else 200
 
 
 @app.get("/guide")

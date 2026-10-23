@@ -106,7 +106,7 @@
       {% if workspace.view in ('overview','projects') %}
       <section>
         <div class="list-head"><div><h2 class="section-title">{{ 'Projects and draft bills' if role == 'finance' else 'Projects in progress' }}</h2><p class="hint">Open a project to follow its recorded changes{% if role == 'finance' %} or view the draft bill{% endif %}.</p></div>
-        {% if role == 'pm' %}<a class="btn" href="{{ url_for('imports_page') }}">Import chat</a>{% endif %}</div>
+         {% if role in ('pm', 'owner') %}<div class="project-create-link"><a class="btn btn-primary" href="{{ url_for('new_project') }}">Add project</a>{% if role == 'pm' %}<a class="btn" href="{{ url_for('imports_page') }}">Import chat</a>{% endif %}</div>{% endif %}</div>
         {% if workspace.jobs %}
         <div class="panel table-wrap" data-filter-region>
           <div class="table-toolbar">
