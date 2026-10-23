@@ -119,3 +119,46 @@ def test_import_rejects_non_text_files(client):
     page = client.post("/import", data={"quote": "q_dinner.json", "chat": (io.BytesIO(b"x"), "x.pdf")},
                        content_type="multipart/form-data", follow_redirects=True)
     assert "Choose a WhatsApp export" in page.data.decode()
+
+
+@pytest.mark.parametrize("raw", [
+    b"", b" \n\t", b"This is not a WhatsApp export.",
+    b"01/10/2026, 09:00 - Messages and calls are end-to-end encrypted.",
+    b"[01/10/2026, 09:00:00] Messages and calls are end-to-end encrypted.",
+    b"01/10/2026, 09:00 - : Message without a sender",
+])
+def test_import_rejects_empty_conversation_without_creating_record(client, raw, monkeypatch):
+    before = dict(store.JOBS)
+
+    def unexpected_build(*args, **kwargs):
+        pytest.fail("Invalid conversations must be rejected before building a project")
+
+    monkeypatch.setattr(store, "build_from_messages", unexpected_build)
+    response = client.post("/import", data={
+        "quote": "q_dinner.json", "chat": (io.BytesIO(raw), "chat.txt"),
+    })
+    assert response.status_code == 302
+    assert response.location.endswith("/imports")
+    assert b"No WhatsApp messages with sender names were found" in client.get(response.location).data
+    assert store.JOBS == before
+
+
+@pytest.mark.parametrize("raw", [
+    "01/10/2026, 09:00 - Client: Hello team",
+    "[01/10/2026, 09:00:00] Client: Hello team",
+    "01/10/2026, 09:00 - Messages and calls are end-to-end encrypted.\n"
+    "01/10/2026, 09:01 - Client: Hello team",
+])
+def test_import_accepts_real_messages_even_without_detected_changes(client, raw):
+    before = set(store.JOBS)
+    response = client.post("/import", data={
+        "quote": "q_dinner.json", "chat": (io.BytesIO(raw.encode()), "chat.txt"),
+    })
+    added = set(store.JOBS) - before
+    assert response.status_code == 302
+    assert len(added) == 1
+    record = store.JOBS[added.pop()]
+    assert response.location.endswith(f"/job/{record.id}")
+    assert any(message.sender for message in record.messages)
+    assert not record.job.items
+    assert client.get(response.location).status_code == 200
