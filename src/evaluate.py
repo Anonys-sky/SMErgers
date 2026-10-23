@@ -1,7 +1,8 @@
 """Scores an extractor against the hand-written answer keys.
 
     python src/evaluate.py            # tuning chats only
-    python src/evaluate.py --held-out # the held-out chats (score once, report as is)
+    python src/evaluate.py --held-out # same-author chats (not an independent test)
+    python src/evaluate.py --blind    # chats written blind by teammates: score once, report as is
 
 A predicted change matches a key change when they share chat messages as evidence.
 """
@@ -66,23 +67,25 @@ def _same_price(a, b):
     return abs(a - b) < 0.5
 
 
-def key_files(held_out):
-    """Answer keys for client chats (the vendor key has a different shape), tuning or held-out."""
+def key_files(split="tuning"):
+    """Answer keys for client chats (the vendor key has a different shape) in one split:
+    "tuning" (used to build the rules), "held_out" (same author, so not independent) or
+    "blind" (written by teammates who never saw the rules: the only honest accuracy test)."""
     chosen = []
     for path in sorted((DATA / "answer_keys").glob("*.json")):
         key = json.loads(path.read_text(encoding="utf-8"))
-        if "changes" in key and (key.get("split") == "held_out") == held_out:
+        if "changes" in key and key.get("split", "tuning") == split:
             chosen.append(path.name)
     return chosen
 
 
-def report(held_out=False, verbose=True):
+def report(split="tuning", verbose=True):
     lines = []
     for name, fn in (("rules", extract), ("naive baseline", naive_extract)):
         lines.append(f"\n## {name}")
         lines.append("| chat | changes | found | status right | price right | fully right | false changes | RM ready (expected) |")
         lines.append("|---|---|---|---|---|---|---|---|")
-        for kf in key_files(held_out):
+        for kf in key_files(split):
             s = score_chat(kf, fn)
             lines.append(f"| {s['chat']} | {s['key_changes']} | {s['found']} | {s['status_ok']} | {s['price_ok']} | "
                          f"{s['fully_ok']} | {s['false_changes']} | {s['ready_total']:,.0f} ({s['expected_ready_total']:,.0f}) |")
@@ -96,4 +99,5 @@ def report(held_out=False, verbose=True):
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    print(report(held_out="--held-out" in sys.argv))
+    chosen = "blind" if "--blind" in sys.argv else "held_out" if "--held-out" in sys.argv else "tuning"
+    print(report(chosen))
