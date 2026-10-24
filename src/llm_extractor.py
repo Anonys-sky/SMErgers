@@ -42,6 +42,15 @@ TIMEOUT = float(os.environ.get("SMERGERS_LLM_TIMEOUT", "300"))
 KINDS = {"quantity_change", "upgrade", "replacement", "extra", "discount", "non_billable"}
 OUTCOMES = {"agreed", "asked", "withdrawn", "discount", "no_cost"}
 MONEY = re.compile(r"RM\s?([\d,]+(?:\.\d+)?)", re.I)
+# Wording that says the price is not settled yet: then the quote's unit price must not stand in for it.
+PRICE_LATER = re.compile(
+    r"\b(tbc|tba)\b|price\s+(later|to be (confirmed|advised|quoted))|(quote|confirm|advise|revert|let you know|get back)\b.{0,30}\b(price|cost|rate|quotation)\b"
+    r"|\b(price|cost|rate)\b.{0,25}\b(later|to follow|afterwards)\b|\bhow much\b", re.I)
+# Wording that says someone must check before it is a yes. Only the LAST cited message counts, so a
+# "let me check" that is followed by "ok go ahead" does not hold the change back.
+NOT_YET = re.compile(
+    r"\b(ask|check|discuss|confirm)\s+(with\s+)?(my\s+|the\s+|our\s+)?(boss|manager|director|team|husband|wife|partner|first)\b"
+    r"|\blet me (check|ask|confirm|discuss|think)\b|\bget back to you\b|\b(need|have) to (check|ask|discuss)\b|\bnot sure yet\b", re.I)
 
 PROMPT = """You read a WhatsApp chat between an event company and its client, after a quote was signed.
 Find every CHANGE to the signed quote: more or fewer items, an upgrade, a replacement, an extra
@@ -49,11 +58,13 @@ that is not on the quote, a discount request, or a change with no cost (a menu s
 
 Rules:
 - One entry per change. A recap message repeats earlier changes: cite it as evidence, never add it again.
-- "outcome" is one of: agreed (both sides said yes), asked (requested but nobody confirmed, or
-  someone said they must check first), withdrawn (raised, then taken back), discount (asked for a
-  discount), no_cost (agreed and the price stays the same).
+- "outcome" is one of: agreed (both sides clearly said yes, such as "ok", "go ahead", "confirmed"),
+  asked (requested but nobody confirmed, or someone said they must check or ask someone first),
+  withdrawn (raised, then taken back), discount (asked for a discount), no_cost (agreed and the
+  price stays the same, such as a colour, time or menu swap, with kind non_billable).
+  A staff "noted" or "will check" is NOT a yes.
 - "price_delta" is the extra money in RM ONLY if an amount is written in the chat for it. Otherwise null.
-  Never calculate or guess a price.
+  Never calculate or guess a price. If someone says the price will come later, it is null.
 - "qty_delta" is how many more (negative for fewer); 0 if not a quantity change.
 - Times, dates and sizes are not quantities.
 - "line_id" is the quote line it changes (like L03), or null if it is not on the quote. Match on
@@ -145,6 +156,11 @@ def build_changes(raw, messages, catalogue, note=""):
             return Change(key, kind, name, line.line_id if line else None, delta, price, status,
                           evidence, confidence, reason, source="ai")
 
+        cited_text = [m.text for m in cited]
+        if outcome == "agreed" and NOT_YET.search(cited[-1].text):
+            outcome = "asked"                             # the last word was "let me check", not a yes
+        if outcome == "agreed" and kind == "non_billable" and qty == 0 and not _amounts(cited_text):
+            outcome = "no_cost"                           # a colour or time swap is logged, not priced
         if outcome == "withdrawn":
             changes.append(make("withdrawn", 0.0, 0, "medium", why or "Raised, then withdrawn."))
         elif outcome == "discount" or kind == "discount":
@@ -156,7 +172,8 @@ def build_changes(raw, messages, catalogue, note=""):
             how = "price stated in chat"
             if price is not None and abs(price) not in _amounts(m.text for m in cited):
                 price = None                          # the model quoted a number nobody wrote
-            if price is None and line is not None and qty != 0 and kind in ("quantity_change", "extra", "replacement"):
+            if (price is None and line is not None and qty != 0 and kind in ("quantity_change", "extra", "replacement")
+                    and not any(PRICE_LATER.search(t) for t in cited_text)):
                 price, how = qty * line.unit_price, "the quote's unit price"
             if outcome == "asked":
                 changes.append(make("unconfirmed", price, qty, "medium", why or "Raised, but nobody confirmed it."))

@@ -153,3 +153,38 @@ def test_import_with_ai_uses_the_model_when_it_answers(monkeypatch, setup):
     assert b"Read by the AI reader" in page.data
     newest = list(store.JOBS.values())[-1]
     assert newest.ai and all(i.change.source == "ai" for i in newest.job.items.values())
+
+
+def test_a_price_promised_for_later_is_not_filled_in_from_the_quote(setup):
+    messages, catalogue = setup
+    from schema import Message
+    chat = [Message("a", 1, messages[0].sent_at, "Client", "Add 2 more roll-up banners, price later ok?", False),
+            Message("b", 2, messages[0].sent_at, "PM", "Ok, we will confirm the price later", False)]
+    out = llm_extractor.build_changes(raw(change(messages=[1, 2])), chat, catalogue)
+    assert out[0].status == "needs_price" and out[0].price_delta is None
+
+
+def test_a_last_message_of_let_me_check_is_not_a_yes(setup):
+    messages, catalogue = setup
+    from schema import Message
+    chat = [Message("a", 1, messages[0].sent_at, "Client", "Can we add 2 more banners?", False),
+            Message("b", 2, messages[0].sent_at, "Client", "Let me ask my boss first", False)]
+    out = llm_extractor.build_changes(raw(change(messages=[1, 2])), chat, catalogue)
+    assert out[0].status == "unconfirmed"
+
+
+def test_let_me_check_followed_by_a_yes_still_counts_as_agreed(setup):
+    messages, catalogue = setup
+    from schema import Message
+    chat = [Message("a", 1, messages[0].sent_at, "Client", "Let me ask my boss first", False),
+            Message("b", 2, messages[0].sent_at, "Client", "Boss says ok, go ahead with 2 more banners", False)]
+    out = llm_extractor.build_changes(raw(change(messages=[1, 2])), chat, catalogue)
+    assert out[0].status == "ready"
+
+
+def test_a_colour_or_time_swap_with_no_price_is_logged_not_priced(setup):
+    messages, catalogue = setup
+    out = llm_extractor.build_changes(
+        raw(change(item="Backdrop colour", line_id=None, kind="non_billable", qty_delta=0, messages=[messages[3].seq])),
+        messages, catalogue)
+    assert out[0].status == "log_only" and out[0].price_delta == 0.0

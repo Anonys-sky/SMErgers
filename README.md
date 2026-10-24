@@ -75,7 +75,7 @@ When something is unclear, SMErgers does not guess. A change with no price anywh
 The chat-reading step has two readers behind one interface (`src/reader.py`):
 
 - **Rules reader** (default): fixed, explainable rules. Fast, offline, and the fallback.
-- **AI reader** (`SMERGERS_READER=llm`): a pre-trained language model, Llama 3.1 8B Instruct, running on a GPU on RunPod (Serverless vLLM). No training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price that is not written in the cited messages or in the quote, sets every status itself, and falls back to the rules if the model is offline or answers badly. Approval and billing never use the model.
+- **AI reader** (`SMERGERS_READER=llm`): a pre-trained language model, Llama 3.1 8B Instruct, running on a GPU on RunPod (Serverless vLLM). No training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price that is not written in the cited messages or in the quote, sets every status itself, and falls back to the rules if the model is offline or answers badly. Three code guards sit on top of the prompt: a price promised "later" is never filled in from the quote, a colour or time swap with no price is logged as no cost, and a change whose last message is "let me ask my boss first" cannot be ready. Approval and billing never use the model.
 
 Tick **Read with the AI reader** when importing a chat. The model runs on a RunPod endpoint (see "How we use RunPod"); for local development it can also run on a local [Ollama](https://ollama.com) server (`ollama pull llama3.1:8b`), which is the default when no RunPod keys are set.
 
@@ -266,13 +266,14 @@ Baseline: every message with an RM amount counts as a change.
 
 **The first two rows are not accuracy figures.** The same person wrote the chats, the answer keys and the rules.
 
-**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring. Each reader was scored once ([Runs 2 to 5](docs/results.md)); the AI reader row is the run on RunPod:
+**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring. Each reader was scored once ([Runs 2 to 6](docs/results.md)); the AI reader rows are runs on RunPod. The last row is not independent, because we fixed the error types seen in the row above on the same chats:
 
 | Reader | Found | Fully right (status and price) | False changes |
 | --- | --- | --- | --- |
 | Baseline | 15 of 29 | 3 | 5 |
 | Rules | 22 of 29 | 13 | 3 |
 | AI reader (Llama 3.1 8B on RunPod) | 26 of 29 | 17 | 1 |
+| AI reader after fixing the errors seen in that run (same chats, so optimistic) | 26 of 29 | 21 | 0 |
 
 Earlier runs of the same model on a laptop GPU and on a CPU (Runs 3 and 4) fully got 18 of 29 right. That is 29 changes in synthetic chats, so it is a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong (for example, calling an unconfirmed change "ready"), which is why a person checks every change.
 

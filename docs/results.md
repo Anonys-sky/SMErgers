@@ -79,3 +79,29 @@ By chat: A found 10 of 10, 7 fully right, 0 false; B found 7 of 10, 4 fully righ
 - Chat C: the withdrawn peony upgrade came back as "unconfirmed" at RM30, the "price later" second lion dance was priced at RM1,200 (one false change), and the band start time was filed as "needs a price".
 
 **Timing:** the first request waited about 2.5 minutes for the worker to start and load the model (cold start); once warm, a request ran in under a second. Billing for this run had not yet appeared when it was written (it lags by up to an hour).
+
+## Run 6: 24 Oct 2026, AI reader on RunPod after fixing the errors seen in Run 5
+
+Same command, endpoint and model as Run 5 (`python src/evaluate.py --blind --ai`, Llama-3.1-8B-Instruct, RTX 4090). Between Run 5 and this run `src/llm_extractor.py` changed in four ways, each a general rule and not a list of phrases from one chat:
+1. If a cited message says the price will come later (tbc, "price later", "how much"), the quote's unit price is not used, so the change needs a price.
+2. A change the model labels non-billable, with no quantity and no price written in the chat, is logged as "no cost" instead of "needs a price".
+3. If the last cited message is "let me ask my boss first" or similar, an "agreed" change drops to "unconfirmed". A "let me check" followed by "ok, go ahead" still counts as agreed.
+4. The prompt now says a staff "noted" or "will check" is not a yes, and that colour, time and menu swaps are no-cost.
+
+Four tests in `tests/test_llm_reader.py` cover these rules; the full suite passes (298 tests). The tuning chat scored 10 of 10 fully right before the blind set was run. The blind set was run once after the change.
+
+**This run is not independent.** The four changes were chosen after reading the Run 5 misses on these same blind chats, so the score is optimistic. Run 5 (17 of 29) remains the clean blind result; this run shows that the three error types were fixable, not what the reader would score on new chats.
+
+| Reader | Found | Fully right (status and price) | False changes |
+|---|---|---|---|
+| AI reader, Run 5 (before the fixes) | 26 of 29 | 17 (59%) | 1 |
+| **AI reader, Run 6 (after the fixes, same chats)** | **26 of 29** | **21 (72%)** | **0** |
+
+By chat, fully right: A 10 of 10, B 6 of 10, C 5 of 9.
+
+**Still wrong:**
+- Chat B: the discount request and the extra registration counter are missed; the venue extension came back "needs a price" (expected RM1,200); the drone operator came back "unconfirmed" and should be "needs a price".
+- Chat C: tables_44 came back "unconfirmed" and should be "ready" at RM5,120, probably because rule 3 held it back; the peony upgrade, withdrawn in the key, is "unconfirmed" at RM30; the mocha cake swap is missed; the second lion dance is "unconfirmed" at RM1,200 where the key says "needs a price".
+- Total ready on chat C is RM-1,500 against RM3,620 expected, because a cancellation counts but the big table addition is held back, so the total is wrong in the other direction from Run 5. This is one more reason a person checks every change.
+
+Next honest step: write new chats that nobody has scored (teammates, kit in `data/blind/`) and score them once.
