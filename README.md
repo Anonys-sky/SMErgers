@@ -126,7 +126,7 @@ When something is unclear it does not guess: a change with no price is marked "n
 
 Requirements: Python 3.12. Node.js is only needed for the optional WhatsApp bridge and two test files.
 
-**On Replit:** import this repository (**Create Repl → Import from GitHub**) and click **Run**. The `.replit` workflow starts `python src/main.py` on port 5000. Add secrets only if you want the AI reader (see [Configuration](#configuration)).
+**On Replit:** import this repository (**Create Repl → Import from GitHub**) and click **Run**. The `.replit` workflow starts Flask on port 5000 and the WhatsApp bridge on loopback port 3001 using `scripts/start-application.sh`. Add secrets only if you want the AI reader (see [Configuration](#configuration)).
 
 **Locally:**
 
@@ -140,6 +140,16 @@ python src/main.py               # then open http://localhost:5000
 ```
 
 The app opens on the Project manager workspace with four synthetic projects. State is kept in memory, and **Reset demo data** restores the samples.
+
+### WhatsApp bridge on the published VM
+
+Publishing uses `scripts/build-production.sh` to install the Node dependencies and verify that Chromium can actually launch. Nix supplies Chromium with its Linux shared libraries; the bridge prefers that executable over Puppeteer's standalone download. `scripts/start-application.sh` then runs both Flask and the bridge, and shuts both down if either process exits. Only Flask is publicly exposed; the bridge listens on `127.0.0.1:3001`.
+
+After changing these settings, **republish**: restarting the development workspace does not update the published VM. Open `/whatsapp` in the published app and wait for **Ready for pairing**, then scan the QR code. A running bridge is not the same as a paired account. Linked sessions are not copied from the workspace into a deployment; a new or replaced runtime may need pairing again.
+
+**Access warning:** demo role selection is not authentication. Make the deployment private to invited collaborators before pairing an account. Anyone who can access the app can switch demo roles and use the WhatsApp pages. This remains an unofficial test connector; use synthetic test groups, not real client conversations.
+
+For local development with both services, install the Node dependencies (`npm ci`) and use `npm start`. You can override the browser executable with `PUPPETEER_EXECUTABLE_PATH`; without a system browser the bridge uses Puppeteer's default browser.
 
 ## Demo walkthrough
 
@@ -179,7 +189,7 @@ All settings are environment variables; none is required to run the demo. On Rep
 | `SMERGERS_LLM_TIMEOUT` | Seconds to wait for the model | `300` |
 | `WHATSAPP_VERIFY_TOKEN` | Token echoed back when Meta verifies the webhook | unset: verification refused |
 | `WHATSAPP_APP_SECRET` | When set, every webhook call must carry a valid `X-Hub-Signature-256` | unset: not checked |
-| `WHATSAPP_BRIDGE_URL`, `WHATSAPP_TIMEZONE` | Optional local test bridge (unofficial, not part of the product) | `http://127.0.0.1:3001`, system zone |
+| `WHATSAPP_BRIDGE_URL`, `WHATSAPP_TIMEZONE` | Optional test bridge (unofficial, not part of the product) | `http://127.0.0.1:3001`, system zone |
 
 ## API and webhook
 
@@ -210,7 +220,7 @@ curl http://localhost:5000/api/jobs/annual-dinner
 | `GET /webhooks/whatsapp` | Verification handshake: echoes `hub.challenge` when `hub.verify_token` matches `WHATSAPP_VERIFY_TOKEN`, otherwise 403 |
 | `POST /webhooks/whatsapp` | Accepts Meta's payload (`entry → changes → value → messages`); returns 403 if `WHATSAPP_APP_SECRET` is set and the signature is invalid |
 
-The group id is read from a `group_id` field on each message, which is our assumption because we had no API access; check it against Meta's Groups API documentation before going live. Messages are delivered to the job linked to that group; the default demo has no linked group, so chats come in by text export. The signature check and the handshake are covered by tests. Limits of the official Groups API: at most 8 participants per group, and an Official Business Account is required. The optional bridge (`npm run whatsapp`, then `/whatsapp`) uses an unofficial client for team testing only and is not part of the product.
+The group id is read from a `group_id` field on each message, which is our assumption because we had no API access; check it against Meta's Groups API documentation before going live. Messages are delivered to the job linked to that group; the default demo has no linked group, so chats come in by text export. The signature check and the handshake are covered by tests. Limits of the official Groups API: at most 8 participants per group, and an Official Business Account is required. The optional bridge starts alongside the app with the configured launcher (`npm start`), including on the published VM; visit `/whatsapp` to pair it. It uses an unofficial client for team testing only and is not part of the product.
 
 ---
 

@@ -1,0 +1,5 @@
+# Never copy linked-account credentials from the workspace into a deployment.
+.wwebjs_auth/
+.wwebjs_cache/
+whatsapp/.wwebjs_auth/
+whatsapp/.wwebjs_cache/

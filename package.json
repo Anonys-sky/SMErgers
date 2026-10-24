@@ -6,6 +6,8 @@
     "node": ">=22.12.0"
   },
   "scripts": {
+    "start": "bash scripts/start-application.sh",
+    "check:browser": "node whatsapp/browser.js",
     "whatsapp": "node whatsapp/bridge.js",
     "test": "node --test whatsapp/*.test.js"
   },

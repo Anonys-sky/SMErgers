@@ -6,7 +6,7 @@
  *   node whatsapp/bridge.js        (or: npm run whatsapp)
  *
  * Two pairing options:
- *   1. Scan QR code (auto-refreshed, rendered on http://localhost:8080/whatsapp)
+ *   1. Scan QR code (auto-refreshed, rendered on the app's /whatsapp page)
  *   2. Enter phone number to get an 8-character pairing code directly on your phone
  *
  * Session is stored in whatsapp/.wwebjs_auth so it stays linked across restarts.
@@ -22,9 +22,9 @@ const path = require('path');
 const QRCode = require('qrcode');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { toRecord, contactName } = require('./convert');
+const { browserOptions } = require('./browser');
 
 const PORT = Number(process.env.WHATSAPP_BRIDGE_PORT || 3001);
-const HEADLESS = (process.env.WHATSAPP_HEADLESS || 'true').toLowerCase() !== 'false';
 const DEFAULT_LIMIT = 2000;
 const MAX_LIMIT = 20000;
 const RESTART_DELAY_MS = 5000;
@@ -74,32 +74,21 @@ function start() {
         authStrategy: new LocalAuth({ dataPath: path.join(__dirname, '.wwebjs_auth') }),
         webVersionCache: { type: 'none' },
         userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
-        puppeteer: {
-            headless: HEADLESS,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-dev-shm-usage',
-                '--disable-accelerated-2d-canvas',
-                '--no-first-run',
-                '--disable-gpu',
-            ],
-        },
+        puppeteer: browserOptions(),
     });
 
     client.on('qr', async (qr) => {
         try {
             const dataUrl = await QRCode.toDataURL(qr, { margin: 2, width: 300 });
             setStatus('qr', { qr: dataUrl });
-            console.log(await QRCode.toString(qr, { type: 'terminal', small: true }));
-            console.log('[whatsapp] Scan QR code, or link using phone number at http://localhost:8080/whatsapp');
+            console.log('[whatsapp] Scan the QR code or link using a phone number on the app /whatsapp page.');
         } catch (err) {
             setStatus('error', { error: `Could not draw the QR code: ${err.message}` });
         }
     });
 
     client.on('code', (code) => {
-        console.log(`[whatsapp] Pairing code received: ${code}`);
+        console.log('[whatsapp] Pairing code ready on the app /whatsapp page.');
         state.pairing_code = code;
     });
 
@@ -326,7 +315,7 @@ const server = http.createServer(async (req, res) => {
             return send(res, 503, { error: 'WhatsApp Web is not ready yet' });
         }
         try {
-            console.log(`[whatsapp] Requesting pairing code for phone: +${cleanPhone}`);
+            console.log('[whatsapp] Requesting a pairing code.');
             const code = await client.requestPairingCode(cleanPhone);
             state.pairing_code = code;
             return send(res, 200, { code, phone: cleanPhone });

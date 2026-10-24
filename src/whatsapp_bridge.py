@@ -17,7 +17,7 @@ from chat_import import messages_from_whatsapp
 DEFAULT_URL = "http://127.0.0.1:3001"
 DEFAULT_LIMIT = 2000
 MAX_LIMIT = 20000
-START_HINT = "Start it in a second terminal with: npm run whatsapp"
+START_HINT = "Start both services with npm start (or just the bridge with npm run whatsapp). For the published app, republish with the configured build and run commands."
 
 
 class BridgeError(Exception):

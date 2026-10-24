@@ -19,7 +19,8 @@
     <p class="description">A shortcut when the separate bridge is running and linked. Text export and upload remain available from Import chat.</p>
   </div></div><span class="summary-status">Bridge status · {{ label }}</span>
 </section>
-<p class="lede">Optional local development connector. It is separate from the guided live-message demo and may be unavailable; the standard .txt export on the Import chat page does not need it.</p>
+<p class="lede">Optional WhatsApp Web connector. It starts alongside the app when using the configured launcher, including on the published VM. The standard .txt export on the Import chat page does not need it.</p>
+<p class="hint">Demo roles are not sign-in. Keep the published app private before pairing an account; anyone who can access this app can switch demo roles and use this connector.</p>
 
 <div class="panel" id="wa-status" style="margin-bottom: 20px;">
   <p><span class="tag {{ tone }}" id="status-badge">{{ label }}</span>
@@ -29,8 +30,10 @@
   {% if status.error %}<p class="hint" style="color: var(--bad);">{{ status.error }}</p>{% endif %}
 
   {% if status.status == 'offline' %}
-    <p><strong>The bridge is offline.</strong> No WhatsApp account or groups are connected to this page. Nothing is paired or being read. Use the synthetic .txt import on the Import chat page, or start the optional local bridge in the development environment:</p>
-    <pre><code>npm run whatsapp</code></pre>
+    <p><strong>The app cannot reach the bridge.</strong> Start both services using the configured Run workflow or:</p>
+    <pre><code>npm start</code></pre>
+    <p>If Flask is already running separately, start only the bridge with <code>npm run whatsapp</code>.</p>
+    <p>For a published app, republish after updating the build and run commands. A service running in the development workspace does not start it in the published VM. Text export and upload remain available on Import chat.</p>
   {% elif status.status != 'ready' %}
     {% if status.pairing_code %}
       <div style="background: var(--ok-soft); border: 2px solid var(--ok); border-radius: 8px; padding: 16px; margin: 16px 0; text-align: center;">
