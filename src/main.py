@@ -223,9 +223,14 @@ def import_chat():
     if not any(message.sender for message in messages):
         flash("No WhatsApp messages with sender names were found. Choose an export containing a conversation.")
         return redirect(url_for("imports_page"))
+    ai = request.form.get("ai") == "1"
     record = store.build_from_messages(
-        store.new_job_id(store.quote_title(quote)), messages, upload.filename, quote,
+        store.new_job_id(store.quote_title(quote)), messages, upload.filename, quote, ai=ai,
     )
+    if ai and not record.ai:
+        flash("The AI reader could not be reached, so the rules read this chat instead.")
+    elif record.ai:
+        flash("Read by the AI reader. Every price and status was checked by the rules before showing it here.")
     return redirect(url_for("job_page", job_id=record.id))
 
 

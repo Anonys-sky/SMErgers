@@ -11,12 +11,11 @@ The AI reader (`src/llm_extractor.py`) can call any OpenAI-compatible endpoint. 
 5. Put them in Replit **Secrets** (never in the repository):
 
    ```
-   SMERGERS_READER=llm
    RUNPOD_ENDPOINT_ID=<your endpoint id>
    RUNPOD_API_KEY=<your api key>
    ```
 
-   The reader then calls `https://api.runpod.ai/v2/<id>/openai/v1/chat/completions`. If the endpoint is unreachable the app falls back to the rules reader.
+   The reader then calls `https://api.runpod.ai/v2/<id>/openai/v1/chat/completions` whenever a chat is imported with **Read with the AI reader** ticked. If the endpoint is unreachable the app falls back to the rules reader and says so.
 
 ## Check it and score it
 

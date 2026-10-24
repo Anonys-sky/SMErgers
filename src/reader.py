@@ -14,10 +14,14 @@ LAST_NOTE = ""
 _cache = {}
 
 
-def read(messages, catalogue):
-    """Changes for these messages. Repeated calls on the same chat reuse the model's answer."""
+def read(messages, catalogue, ai=None):
+    """Changes for these messages. ai=True asks for the AI reader, ai=False for the rules; None follows
+    SMERGERS_READER. Repeated calls on the same chat reuse the model's answer."""
     global LAST_NOTE
-    if os.environ.get("SMERGERS_READER", "rules") != "llm":
+    LAST_NOTE = ""
+    if ai is None:
+        ai = os.environ.get("SMERGERS_READER", "rules") == "llm"
+    if not ai:
         return rules_extractor.extract(messages, catalogue)
     key = (tuple(m.id for m in messages), json.dumps(catalogue.quote, sort_keys=True))
     if key not in _cache:

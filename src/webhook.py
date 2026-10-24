@@ -71,7 +71,7 @@ def ingest(record, records, now=None):
         return []
     feed.received.extend(fresh)
     record.messages = messages_from_whatsapp(feed.received, KL)
-    new = record.job.refresh(extract(record.messages, record.catalogue), now)
+    new = record.job.refresh(extract(record.messages, record.catalogue, ai=record.ai), now)
     sync.after_detection(record, new, now)
     return new
 

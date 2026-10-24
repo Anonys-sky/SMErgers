@@ -33,6 +33,7 @@
         <label>Matching existing quote
           <select name="quote" required><option value="" disabled selected>Choose the quote for this chat</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
         </label>
+        <label class="check-row"><input type="checkbox" name="ai" value="1"> Read with the AI reader <span class="hint">Llama 3.1 on RunPod · falls back to the rules</span></label>
         <div><button class="primary">Find changes</button></div>
       </form>
       <p class="hint" style="margin-top:12px">Only text exports are accepted. Choose an existing quote here, or create a new project with its own quote lines. Use synthetic chats only in this prototype; do not upload private client conversations.</p>

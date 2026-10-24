@@ -75,10 +75,7 @@ The chat-reading step has two readers behind one interface (`src/reader.py`):
 - **Rules reader** (default): fixed, explainable rules. Fast, offline, and the fallback.
 - **AI reader** (`SMERGERS_READER=llm`): a pre-trained language model, by default Llama 3.1 8B running locally through [Ollama](https://ollama.com). No API key, no internet, no training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price that is not written in the cited messages or in the quote, sets every status itself, and falls back to the rules if the model is offline or answers badly. Approval and billing never use the model.
 
-```bash
-ollama pull llama3.1:8b
-SMERGERS_READER=llm python src/main.py
-```
+Tick **Read with the AI reader** when importing a chat. The model runs on a RunPod endpoint (see "How we use RunPod"); for local development it can also run on a local [Ollama](https://ollama.com) server (`ollama pull llama3.1:8b`), which is the default when no RunPod keys are set.
 
 Other OpenAI-compatible endpoints work through `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL` and `SMERGERS_LLM_KEY`. On a laptop GPU the model takes about 2 minutes per chat, so the demo uses the rules by default.
 
@@ -317,7 +314,7 @@ Usage pricing through Orbyte credits is the alternative. Break-even: Confirm cos
 | --- | --- |
 | Replit | Development and running the app; `.replit` defines the run workflow. Replit Agent assisted with configuration and styling. |
 | GitHub | This repository: Apache 2.0, small commits through the hackathon |
-| RunPod | GPU for the AI reader's model, through a serverless vLLM endpoint (see [runpod/README.md](runpod/README.md)). The one scoring run so far (Run 3) used a local laptop GPU; the RunPod run is logged separately in docs/results.md |
+| RunPod | Serverless vLLM endpoint that runs the AI reader's model on a GPU (see "How we use RunPod") |
 | Claude and Replit Agent | AI coding assistants; declared in the Technical Tools Declaration |
 | whatsapp-web.js | Optional local bridge for team testing only |
 
@@ -330,7 +327,12 @@ Usage pricing through Orbyte credits is the alternative. Break-even: Confirm cos
 
 ## How we use RunPod
 
-The AI reader sends the chat text to a RunPod serverless vLLM endpoint running Llama 3.1 8B Instruct; plain code then checks every price and status (`src/llm_extractor.py`). Setup, the test request and the proof screenshot are in [runpod/README.md](runpod/README.md). If the endpoint is unreachable the app falls back to the rules reader. Proof of use: `submission/SDC2026_VBall_Runpod_POU.pdf`.
+The AI reader's model runs on a GPU on RunPod, not on Replit. The Replit app sends the chat text to a RunPod Serverless vLLM endpoint running Llama 3.1 8B Instruct (OpenAI-compatible API); plain code then checks every price and status (`src/llm_extractor.py`).
+
+- **When it runs:** only when a chat is imported with **Read with the AI reader** ticked. Demo jobs and the live feed use the rules, so the app starts fast and approvals stay stable.
+- **Setup:** `RUNPOD_ENDPOINT_ID` and `RUNPOD_API_KEY` in Replit Secrets; steps in [runpod/README.md](runpod/README.md).
+- **If it is down:** the rules read the chat and the page says so.
+- **Proof of use:** `submission/SDC2026_VBall_Runpod_POU.pdf`.
 
 ## Challenges and learnings
 

@@ -50,3 +50,13 @@ By chat, fully right: A 6 of 10, B 6 of 10, C 6 of 9 for the AI reader, against 
 **Where it is still wrong, plainly:** it sometimes marks a change "ready" that was never confirmed (centrepieces), calls a "price later" item ready by pricing it from the quote (second lion dance, RM1,200), and files colour or time swaps as "needs a price" instead of "no cost". It over-bills in total on chat C (RM9,940 against RM3,620 expected), which is exactly why nothing is billed without the project manager's check and the client's yes. It takes about 2 minutes per chat on a laptop GPU (RTX 2050), so it is not fast enough for live use on that machine.
 
 **Not claimed:** accuracy on real chats. Next: teammates' chats, a faster hosted or larger model, and a rule that stops "ready" without an explicit yes.
+
+## Run 4: 24 Oct 2026, AI reader on the same blind chats, CPU only, commit de36caf
+
+Same command as Run 3, against a separate local Ollama server started with the GPU disabled (`CUDA_VISIBLE_DEVICES=-1`, Vulkan off); its log reports `inference compute id=cpu`. Prompt and checks unchanged from Run 3.
+
+| Reader | Found | Fully right (status and price) | False changes |
+|---|---|---|---|
+| AI reader, CPU only | 27 of 29 | 18 (62%) | 1 |
+
+By chat, fully right: A 7 of 10, B 5 of 10, C 6 of 9. The total matches Run 3; individual answers differ slightly because the model's output is not exactly repeatable. This is the run we quote, as it used no GPU. Same caveats: 29 changes, synthetic chats written by AI agents.

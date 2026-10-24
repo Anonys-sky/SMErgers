@@ -125,3 +125,31 @@ def test_runpod_settings_build_the_endpoint_url(monkeypatch):
         monkeypatch.delenv("RUNPOD_ENDPOINT_ID")
         monkeypatch.delenv("RUNPOD_API_KEY")
         importlib.reload(llm_extractor)
+
+
+def test_import_with_ai_falls_back_to_rules_and_says_so(monkeypatch):
+    import io
+    import main
+    monkeypatch.setattr(reader, "_cache", {})
+    monkeypatch.setattr(llm_extractor, "URL", "http://127.0.0.1:9/v1/chat/completions")
+    monkeypatch.setattr(llm_extractor, "TIMEOUT", 2)
+    raw = (DATA / "chats" / "dinner_client.txt").read_text(encoding="utf-8")
+    client = main.app.test_client()
+    page = client.post("/import", data={"quote": "q_dinner.json", "ai": "1", "chat": (io.BytesIO(raw.encode()), "x.txt")},
+                       content_type="multipart/form-data", follow_redirects=True)
+    assert b"could not be reached" in page.data
+
+
+def test_import_with_ai_uses_the_model_when_it_answers(monkeypatch, setup):
+    import io
+    import main
+    import store
+    messages, _ = setup
+    monkeypatch.setattr(reader, "_cache", {})
+    monkeypatch.setattr(llm_extractor, "_call", lambda prompt: raw(change(messages=[messages[3].seq])))
+    text = (DATA / "chats" / "dinner_client.txt").read_text(encoding="utf-8")
+    page = main.app.test_client().post("/import", data={"quote": "q_dinner.json", "ai": "1", "chat": (io.BytesIO(text.encode()), "y.txt")},
+                                       content_type="multipart/form-data", follow_redirects=True)
+    assert b"Read by the AI reader" in page.data
+    newest = list(store.JOBS.values())[-1]
+    assert newest.ai and all(i.change.source == "ai" for i in newest.job.items.values())

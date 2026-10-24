@@ -8,6 +8,7 @@ from datetime import datetime
 import sync
 from catalogue import DATA, Catalogue
 from chat_import import parse_chat
+import reader
 from reader import read as extract
 from workflow import Actor, Job
 
@@ -33,6 +34,7 @@ class JobRecord:
     versions: list = field(default_factory=list)   # sync.QuoteVersion, v1 = signed quote
     outbox: list = field(default_factory=list)     # sync.Outgoing, messages to the group or a person
     live: object = None                            # webhook.LiveFeed when fed message by message
+    ai: bool = False                               # read by the AI reader instead of the rules
 
     @property
     def title(self):
@@ -57,21 +59,22 @@ def team_directory():
 JOBS: dict[str, JobRecord] = {}
 
 
-def build(job_id, chat_text, chat_name, quote_file):
-    return build_from_messages(job_id, parse_chat(chat_text), chat_name, quote_file)
+def build(job_id, chat_text, chat_name, quote_file, ai=False):
+    return build_from_messages(job_id, parse_chat(chat_text), chat_name, quote_file, ai)
 
 
-def build_from_messages(job_id, messages, chat_name, quote_file):
+def build_from_messages(job_id, messages, chat_name, quote_file, ai=False):
     """Same as build(), for messages already read, e.g. live from a WhatsApp group."""
     catalogue = Catalogue.load(quote_file)
-    return build_with_catalogue(job_id, messages, chat_name, catalogue)
+    return build_with_catalogue(job_id, messages, chat_name, catalogue, ai)
 
 
-def build_with_catalogue(job_id, messages, chat_name, catalogue):
+def build_with_catalogue(job_id, messages, chat_name, catalogue, ai=False):
     """Publish a complete record only after extraction and version initialization succeed."""
     now = datetime.now()
-    record = JobRecord(job_id, chat_name, messages, catalogue,
-                       Job(extract(messages, catalogue), now=now, catalogue=catalogue), now)
+    changes = extract(messages, catalogue, ai=ai)
+    record = JobRecord(job_id, chat_name, messages, catalogue, Job(changes, now=now, catalogue=catalogue), now,
+                       ai=ai and not reader.LAST_NOTE)
     sync.start(record)
     JOBS[job_id] = record
     return record

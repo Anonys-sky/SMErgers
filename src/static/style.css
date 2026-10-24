@@ -175,3 +175,6 @@ pre{padding:12px;border-radius:6px;background:#f2f4f7;overflow:auto}
 .project-intake-note{margin:0 0 18px}
 .project-create-link{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
 @media(max-width:767px){.project-fields,.project-line-fields{grid-template-columns:1fr}.project-field-wide,.project-line-fields .aliases-field{grid-column:auto}.project-form-actions{align-items:stretch}.project-form-actions .actions{width:100%}.project-form-actions .actions>*{flex:1}}
+
+.check-row{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-weight:500}
+.check-row input{width:auto;margin:0}
