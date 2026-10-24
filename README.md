@@ -74,7 +74,7 @@ When something is unclear it does not guess: a change with no price is marked "n
 | GitHub Repository | https://github.com/Anonys-sky/SMErgers |
 | Live Demo | https://sm-ergers-1.replit.app |
 | RunPod Endpoint | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM, needs an API key kept in Replit Secrets) |
-| Slide Deck | https://canva.link/yh0xo39bpzxaomf |
+| Slide Deck | https://canva.link/yh0xo39bpzxaomf (PDF: [submission/SDC2026_VBall_PitchDeck.pdf](submission/SDC2026_VBall_PitchDeck.pdf)) |
 | Demo Video | (template) |
 
 ---
