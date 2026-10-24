@@ -202,7 +202,7 @@ The group id is read from a `group_id` field on each message, which is our assum
 | AI / compute | Llama 3.1 8B Instruct on a RunPod Serverless vLLM endpoint (GPU); local Ollama for development |
 | WhatsApp | Meta Cloud API webhook format; optional Node.js bridge for team testing only |
 | Tests | pytest (290+ tests); Node test runner for the bridge and workspace filters |
-| Hosting and development | Replit |
+| Design, testing and hosting | Replit (workspace, preview, Deployments) |
 
 ## Project structure and architecture
 
@@ -254,9 +254,11 @@ This is 29 changes in synthetic chats: a first independent check, not accuracy o
 
 ## How we use Replit
 
-- **Development and hosting:** the Flask app runs on Replit; `.replit` starts `python src/main.py` on port 5000 and `requirements.txt` pins the dependencies.
-- **Secrets:** `SECRET_KEY` and the AI reader's RunPod keys are set in Replit Secrets, never committed.
-- **Assistance:** Replit Agent helped with configuration and styling, declared in the Technical Tools Declaration.
+Replit is where the team designs, tests and deploys SMErgers.
+
+- **Design:** the interface is built and iterated in the Replit workspace, with the live preview beside the code. Replit Agent helped with configuration and styling, declared in the Technical Tools Declaration.
+- **Test:** the app runs in Replit's preview, and the test suite runs in its shell (`python -m pytest`); `requirements.txt` pins the dependencies so Replit matches the local build.
+- **Deploy:** the prototype is published with Replit Deployments; `.replit` starts `python src/main.py` on port 5000. Secrets such as `SECRET_KEY` and the AI reader's RunPod keys are set in Replit Secrets and never committed.
 - **Proof of use:** `submission/SDC2026_VBall_Replit_POU.pdf`.
 
 ## How we use RunPod
