@@ -1,15 +1,14 @@
 # SMErgers
 
-> Changes agreed in a job's WhatsApp group become approved, traceable changes, a new version of the quote for everyone, and a correct draft final bill. Built for small event companies first, and for any business that works job by job.
+> Changes agreed in a job's WhatsApp group become approved, traceable changes, a new quote version for everyone, and a correct draft final bill. Built for small event companies first, and for any business that works job by job.
 
-**Team VBall** · SDC Hackathon 2026, Domain 2: Orbyte Smart SME Challenge · SDG 8 (targets 8.2 and 8.3) · Licensed under Apache 2.0
+**Team VBall** · SDC Hackathon 2026 · Domain 2: Orbyte Smart SME Challenge · SDG 8 (targets 8.2 and 8.3) · [Apache 2.0](LICENSE)
 
-| Resource | Link |
-| --- | --- |
-| GitHub repository | https://github.com/Anonys-sky/SMErgers |
-| Pitch deck | https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx |
-| Live prototype (Replit) | (template) |
-| Demo video (YouTube) | (template) |
+**Contents:** [Team](#team-information) · [Links](#links) · [Overview](#overview) · [Key features](#key-features) · [Where AI fits](#where-ai-fits) · [Tech stack](#tech-stack) · [Structure and architecture](#project-structure-and-architecture) · [How to run](#how-to-run) · [Demo walkthrough](#demo-walkthrough) · [Results](#results) · [Replit](#how-we-use-replit) · [RunPod](#how-we-use-runpod) · [Business model](#business-model) · [Privacy and limits](#privacy-boundaries-and-limits) · [Learnings](#challenges-and-learnings) · [Future](#future-improvements) · [Team](#team) · [Submission documents](#submission-documents)
+
+All data in this repository is synthetic. No real chat, person, client or company is used.
+
+---
 
 ## Team information
 
@@ -19,144 +18,103 @@
 | Team domain | Domain 2: Orbyte Smart SME Challenge |
 | SDG track | SDG 8, targets 8.2 and 8.3 |
 | Team leader | Vincent Chew Wen Jie |
+| University | (template) |
 | Number of members | 3 |
 
-All data in this repository is synthetic. No real chat, person, client or company is used.
+## Links
+
+| Resource | Link |
+| --- | --- |
+| GitHub repository | https://github.com/Anonys-sky/SMErgers |
+| Replit project | (template) |
+| Live prototype | (template) |
+| RunPod endpoint | Serverless vLLM, endpoint ID `2y90x5ojwpgxnh` (the API key is kept in Replit Secrets) |
+| Slide deck | https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx |
+| Demo video (YouTube) | (template) |
 
 ---
 
-## The problem
+## Overview
 
-In a small event company the quote is signed early, and then the job changes inside the WhatsApp group: 15 more guests, a bigger LED wall, the emcee staying an extra hour, two microphones on the night. Nobody turns those messages into a record. Everyone remembers a different version. At the end of the job someone rebuilds the final bill by scrolling the chat, extras go unbilled, and when the client says "I never agreed to that" there is nothing to show, so the owner often gives the money away.
+### Problem
 
-This comes from a team member's experience at an event company, where it happened on almost every event. It is one person's account, not a survey.
+In a small event company the quote is signed early, and then the job changes inside the WhatsApp group: 15 more guests, a bigger LED wall, an extra hour of overtime, two microphones on the night. Nobody turns those messages into a record, so at the end of the job someone rebuilds the bill by scrolling the chat, extras go unbilled, and when the client says "I never agreed to that" there is nothing to show. The owner often gives the money away. This comes from a team member's experience at an event company, where it happened on almost every event; it is one person's account, not a survey.
 
-## What SMErgers does
+### Solution
 
-**Catch it.** SMErgers reads the job's WhatsApp group as messages arrive, so nobody exports anything. It groups messages into threads (a request and its replies) and works out what changed, by how much, at what price, and whether both sides agreed.
+- **Catch it.** SMErgers reads the job's WhatsApp chat and works out what changed, by how much, at what price, and whether both sides agreed.
+- **Confirm it.** The project manager checks each change, the project director signs off on large or unusual items, and the client confirms or disputes on their own phone-sized page.
+- **Sync it.** Every confirmation creates a new quote version (v2, v3 and so on) and posts a summary back to the group. Only confirmed changes reach the draft bill, and every line links to the messages it came from.
 
-**Confirm it.** Each change goes to the right person. The project manager checks it, the project director signs off on large or unusual items, and the client confirms or disputes it on their own page. Each person is messaged when it is their turn.
+When something is unclear, SMErgers does not guess: a change with no price is marked "needs a price", a discount goes to the project director, and a request nobody agreed to stays unconfirmed.
 
-**Sync it.** Every client confirmation creates a new version of the quote (v2, v3 and so on) and posts a summary back to the group, so everyone works from the same numbers. Only confirmed changes reach the draft bill, and every line links back to the messages it came from.
-
-When something is unclear, SMErgers does not guess. A change with no price anywhere is marked "needs a price", a discount with no clear base goes to the project director, and a request nobody agreed to stays "discussed, not confirmed".
-
-## Features
-
-| Feature | What it does |
-| --- | --- |
-| Role workspaces | Blue sidebar interface with separate Project manager, Project director, Client and Finance workspaces. Project lists, review queues, search, status filters, checklists and activity are tailored to each role. |
-| Add project | Project managers and directors can create a project with its own event details, team, quote items, optional extra-item rates and a pasted or uploaded WhatsApp export. It appears in Projects in progress and uses the existing review, approval, confirmation and billing workflow. |
-| Validated chat imports | Both intake flows reject conversations with no sender messages. Invalid chat dates and times produce a line-numbered error instead of a server crash. A valid conversation can be imported even if no changes are detected. |
-| Price and navigation safeguards | Price entry and director discount decisions reject NaN, infinity and overflow-to-infinity values. Invalid prices cannot progress through review, approval or confirmation. Action forms accept only local return paths, not external redirects. |
-| WhatsApp webhook | Accepts messages in Meta's official Cloud API webhook format, with signature checking and the verification handshake (tested with synthetic payloads). The demo brings a chat in from a WhatsApp text export. |
-| Change finder | Rules that handle follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals. |
-| Show in chat | Every change and bill line highlights the exact messages it came from. Clicking a message jumps to its change. |
-| Approval by the right person | Named people from a company directory: the project manager and the project director use the app; the client confirms on a phone-sized page opened from a WhatsApp link; finance downloads the CSV. The project director signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff. Enforced on the server, not only hidden in the page. |
-| Quote versions and messages | Each confirmation makes a new quote version and posts it to the group. Approval and confirmation requests go to the next person. All of it, with the activity log, is on the job's History page. |
-| Guided journey | A five-step guide on every job (messages arrive, PM checks, director approves, client confirms, everyone in sync) says who acts next and hands over in one click. |
-| Next time, quote it upfront | Counts from past jobs show what usually changes late in this kind of event and the one step that moves the decision into the quote, e.g. "the event ran past the planned end in 4 of 4 dinners: put overtime rates in the quote". |
-| Draft final bill | The quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV for accounting software. A draft, never an invoice. |
-| Activity log | Who did what, in which role, and when. Each entry is chained to the one before, so a later edit shows. |
-| Job API | `GET /api/jobs/<id>` returns changes, approvals, bill totals, suggestions and the log, as a building block for Orbyte. |
-
-## How it fits the Domain 2 journey
+### How it fits the Domain 2 journey
 
 | Step in the brief | In SMErgers |
 | --- | --- |
 | Trigger | A message arrives in the job's WhatsApp group (webhook), or a chat export is imported in the prototype |
-| Connected data | The signed quote, the rate card, the client, the job and the company directory |
-| Decision logic | Fixed, explainable rules find each change, its quantity and price, and whether both sides agreed |
+| Connected data | The signed quote, rate card, client, job and company directory |
+| Decision logic | Rules, or an AI reader for messy chats, find each change, its quantity and price, and whether both sides agreed |
 | Human approval | PM checks; project director signs off on large or unusual items; client confirms |
 | Visible outcome | Quote v2 posted to the group, the draft bill and CSV, and the activity log |
 
-## Where AI fits, and where it does not
+**Orbyte fit.** SMErgers reuses Orbyte's clients and projects, directory and roles, approvals, eSign and audit trail, and adds one capability Orbyte does not have: turning chat into approved changes. The same engine runs a café renovation chat with only a different quote file. Interface assumptions are in [docs/orbyte-integration.md](docs/orbyte-integration.md).
+
+## Key features
+
+| Feature | What it does |
+| --- | --- |
+| Change finder | Handles follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals |
+| Show in chat | Every change and bill line highlights the exact messages it came from |
+| Role workspaces | Project manager, project director, client and finance views with their own queues, filters and checklists |
+| Approvals enforced on the server | The director signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff; a client link cannot approve its own change |
+| Client confirmation page | A phone-sized page opened from a WhatsApp link: confirm, or dispute with a reason |
+| Quote versions | Each confirmation makes a new version and queues a summary for the group and the next approver |
+| Guided journey | A five-step guide on every job says who acts next and hands over in one click |
+| Draft final bill | Quote plus agreed changes, what is not on the bill yet and why, and a CSV; a draft, never an invoice |
+| Activity log | Who did what, in which role, and when; each entry is chained to the one before, so an edit shows |
+| Next time, quote it upfront | Counts from past jobs show what usually changes late and what to put in the quote |
+| Add project | Create a project with its own quote and chat ([guide](docs/add-a-project.md)) |
+| Job API | `GET /api/jobs/<id>` returns changes, approvals, bill totals and the log, as a building block for Orbyte |
+| WhatsApp webhook | Meta's Cloud API payload format with signature check and verification handshake, tested with synthetic payloads |
+
+## Where AI fits
 
 The chat-reading step has two readers behind one interface (`src/reader.py`):
 
 - **Rules reader** (default): fixed, explainable rules. Fast, offline, and the fallback.
-- **AI reader** (`SMERGERS_READER=llm`): a pre-trained language model, Llama 3.1 8B Instruct, running on a GPU on RunPod (Serverless vLLM). No training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price that is not written in the cited messages or in the quote, sets every status itself, and falls back to the rules if the model is offline or answers badly. Three code guards sit on top of the prompt: a price promised "later" is never filled in from the quote, a colour or time swap with no price is logged as no cost, and a change whose last message is "let me ask my boss first" cannot be ready. Approval and billing never use the model.
+- **AI reader**: Llama 3.1 8B Instruct on a RunPod GPU, used as it is with no training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price not written in the cited messages or the quote, sets every status itself, and the rules take over if the model is unreachable. Three code guards sit on top of the prompt: a price promised "later" is never filled in from the quote, a colour or time swap with no price is logged as no cost, and a change whose last message is "let me ask my boss first" cannot be ready. Approval and billing never use the model.
 
-Tick **Read with the AI reader** when importing a chat. The model runs on a RunPod endpoint (see "How we use RunPod"); for local development it can also run on a local [Ollama](https://ollama.com) server (`ollama pull llama3.1:8b`), which is the default when no RunPod keys are set.
+Tick **Read with the AI reader** when importing a chat. Without RunPod keys the same reader uses a local [Ollama](https://ollama.com) server for development. `SMERGERS_READER=llm` makes it the default; other OpenAI-compatible endpoints work through `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL` and `SMERGERS_LLM_KEY`. After a quiet period the first AI request takes 2 to 3 minutes while the GPU worker starts.
 
-`SMERGERS_READER=llm` makes the AI reader the default for every job. Other OpenAI-compatible endpoints work through `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL` and `SMERGERS_LLM_KEY`. On RunPod the first request after a quiet period takes 2 to 3 minutes while the worker starts, then seconds per chat, so the demo uses the rules by default.
-
-The product creates its own training data: every approval, rejection and dispute is a human-checked label on real chat messages. After a pilot with real companies, that data can train a model to read messages and to make the "quote it upfront" suggestions. We do not train on made-up chats.
-
-## Orbyte fit
-
-SMErgers is a module for Orbyte's hub. It reuses Orbyte's clients and projects, directory and roles, approvals, eSign and audit trail, and adds one capability Orbyte does not have: turning chat into approved changes. The same engine runs a café renovation chat with only a different quote file. Interface assumptions are in [docs/orbyte-integration.md](docs/orbyte-integration.md).
-
----
-
-## How WhatsApp is read
-
-The product uses Meta's official WhatsApp Business (Cloud) API. The business number creates one group per job, the client and vendors join by invite link, and messages arrive by webhook.
-
-- `POST /webhooks/whatsapp` accepts Meta's payload format and checks the `X-Hub-Signature-256` signature when `WHATSAPP_APP_SECRET` is set.
-- `GET /webhooks/whatsapp` answers Meta's verification handshake using `WHATSAPP_VERIFY_TOKEN`.
-
-Known limits of the official Groups API: at most 8 participants per group, and an Official Business Account is required. Chat export (.txt) remains as a fallback.
-
-`whatsapp/bridge.js` is an optional local connector built on whatsapp-web.js for reading an existing group during team testing. It is an unofficial client and against WhatsApp's terms for production use, so it is not part of the product.
-
----
+Every approval and dispute is a human-checked label; after a pilot with real companies that data can train a model. We do not train on made-up chats.
 
 ## Tech stack
 
 | Layer | Technology |
 | --- | --- |
 | Web app | Python 3.12, Flask, server-rendered Jinja templates, one CSS file |
-| Logic | Rules engine, approval workflow, quote versioning, suggestions (all Python) |
+| Logic | Rules engine, AI reader, approval workflow, quote versioning, suggestions (Python) |
 | Data | In-memory store for the prototype; synthetic JSON data |
-| WhatsApp | Meta Cloud API webhook format; optional Node.js bridge for testing |
-| Tests | pytest for parsing, intake, permissions, approvals, billing and redirect validation; Node test runner for bridge conversion and workspace filters |
+| AI / compute | Llama 3.1 8B Instruct on a RunPod Serverless vLLM endpoint (GPU); local Ollama for development |
+| WhatsApp | Meta Cloud API webhook format; optional Node.js bridge for team testing only |
+| Tests | pytest (290+ tests); Node test runner for the bridge and workspace filters |
 | Hosting and development | Replit |
 
-## Project structure
+## Project structure and architecture
 
 ```
 .
-├── data/                      Synthetic data only (see data/README.md)
-│   ├── quotes/                Signed quote and rate card per job
-│   ├── chats/                 WhatsApp-style chats
-│   ├── answer_keys/           Expected changes, for scoring (tuning, same-author and blind sets)
-│   ├── blind/                 Kit for teammates to write blind test chats
-│   ├── history/               Past jobs, for "quote it upfront" suggestions
-│   ├── vendor_invoices/       Vendor invoice for a future vendor check
-│   └── team.json              Company directory (stands in for Orbyte's Directory)
-├── docs/
-│   ├── results.md             Every accuracy run, with caveats
-│   └── orbyte-integration.md  Interface assumptions and the WhatsApp design
-├── src/
-│   ├── main.py                Web app entry point (routes only)
-│   ├── project_intake.py      New-project validation and quote/chat preparation
-│   ├── workspaces.py          Role-specific dashboard, queue and checklist data
-│   ├── pricing.py             Price parsing and limits
-│   ├── navigation.py          Safe local return paths for action forms
-│   ├── webhook.py             WhatsApp Cloud API webhook format and live ingestion
-│   ├── chat_import.py         Chat parsing (exports and live messages)
-│   ├── catalogue.py           Quote lines, rate card and the words that name them
-│   ├── reader.py              Chooses the rules reader (default) or the AI reader, with fallback
-│   ├── rules_extractor.py     Rules reader: finds the changes agreed in a chat
-│   ├── llm_extractor.py       AI reader: Llama on RunPod (or local Ollama), every price and status checked by code
-│   ├── workflow.py            Approval flow, permissions, activity log
-│   ├── sync.py                Quote versions and messages to the group and approvers
-│   ├── bill.py                Matches confirmed changes to the quote, builds the draft bill
-│   ├── suggest.py             Suggestions from past jobs
-│   ├── evaluate.py            Scores the extractor against the answer keys
-│   ├── store.py               Jobs, demo reset and the webhook feed
-│   ├── whatsapp_bridge.py     Client for the optional local bridge
-│   ├── schema.py              Shared data shapes
-│   └── templates/, static/    Pages and styles
-├── runpod/                    Setup guide for the AI reader's RunPod endpoint
-├── whatsapp/                  Optional local bridge (Node.js, team testing only)
-├── submission/                Submission documents (see submission/README.md)
-├── tests/                     pytest suite
-├── .env.example  .replit  replit.md  requirements.txt  package.json  LICENSE
+├── src/                 Flask app and logic (main.py, reader.py, rules_extractor.py, llm_extractor.py,
+│                        workflow.py, sync.py, bill.py, suggest.py, webhook.py, ...), templates/, static/
+├── data/                Synthetic quotes, chats, answer keys, past jobs, company directory (data/README.md)
+├── tests/               pytest suite
+├── docs/                results.md (every accuracy run), orbyte-integration.md, add-a-project.md
+├── runpod/              Setup guide for the AI reader's RunPod endpoint
+├── whatsapp/            Optional local bridge (Node.js, team testing only)
+├── submission/          Submission documents (see submission/README.md)
+└── .env.example  .replit  replit.md  requirements.txt  package.json  LICENSE
 ```
-
-## Architecture
 
 ```
 WhatsApp group ──webhook──► webhook.py ──► reader (rules or AI) ──► workflow ──► sync.py ──► group update, quote v2
@@ -168,17 +126,11 @@ WhatsApp group ──webhook──► webhook.py ──► reader (rules or AI) 
                                                                   activity log, GET /api/jobs/<id>
 ```
 
----
-
 ## How to run
 
-### On Replit
+**On Replit:** import this repository (**Create Repl → Import from GitHub**), optionally add `SECRET_KEY` and the RunPod keys in **Secrets** (see `.env.example`), then click **Run**. The `.replit` workflow starts `python src/main.py` on port 5000.
 
-1. Import this repository: **Create Repl → Import from GitHub**.
-2. Optional: add `SECRET_KEY` in **Secrets** (see `.env.example`).
-3. Click **Run**. The `.replit` workflow starts `python src/main.py` on port 5000.
-
-### Locally
+**Locally:**
 
 ```bash
 git clone https://github.com/Anonys-sky/SMErgers.git
@@ -189,97 +141,64 @@ pip install -r requirements.txt
 python src/main.py               # then open http://localhost:5000
 ```
 
-### Tests and accuracy scores
+**Tests and scores:**
 
 ```bash
 python -m pytest
-python src/evaluate.py
+python src/evaluate.py           # add --blind --ai to score the AI reader (needs a model endpoint)
 npm test                         # bridge conversion tests (needs Node.js)
-node --test tests/workspace_filter.test.cjs  # workspace search and status filters
+node --test tests/workspace_filter.test.cjs
 ```
 
-### Optional local WhatsApp bridge (team testing only)
+The optional WhatsApp bridge (`npm run whatsapp`, then `/whatsapp`) is an unofficial client for team testing only and is not part of the product.
 
-```bash
-npm install
-npm run whatsapp                 # then link a test number from /whatsapp
-```
+## Demo walkthrough
 
-## Demo walkthrough (about 3 minutes)
+About 3 minutes. The guide bar at the top of each job says what happens next and who does it.
 
-The guide bar at the top of each job always says what happens next and who does it, and hands over to the next person with one button.
-
-1. In the Project manager overview, open **Annual Dinner 2026** from **Projects in progress**. The full WhatsApp chat is on the left and the changes found in it are on the right.
+1. In the Project manager overview, open **Annual Dinner 2026**. The chat is on the left and the changes found in it are on the right.
 2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
-3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the project director must now approve it, because staff entered the price), then **Check all**.
-4. Use the guide's hand-over button to continue as the **Project director**. Read **Next time, quote it upfront**, then approve.
-5. Press **Open the client's link**: the phone-sized page the client sees from WhatsApp. Dispute the banners ("we asked for 2") and confirm the rest.
-6. Press **Back to Aisyah**. In the chat, SMErgers has posted "quote version 2" to the group. Click **Show in chat** on the disputed banners: the client's own "2 more" and "and 1 at the lift lobby" settle it. Then open **Draft bill** and **History**.
+3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the director must now approve it, because staff entered the price), then **Check all**.
+4. Press **Continue as Daniel (Project Director)**. Read **Next time, quote it upfront**, then **Approve all**.
+5. Press **Open the client's link**, the page the client sees from WhatsApp. Confirm all seven changes (RM3,860), or dispute one with a reason and it stays off the bill.
+6. Press **Back to Aisyah**, then open **History**: SMErgers has posted "quote version 2" (RM38,390 when all seven are confirmed) to the group. Open **Draft bill** to see every line linked to its source.
 
-## Add your own test project
-
-Use synthetic data only; this prototype is not intended for private client records.
-
-1. Switch to **Project manager** or **Project director**. In Overview or Projects, find **Projects in progress** and select **Add project** (also available from Import chat). The form is at `/projects/new`.
-2. Enter the project title, client, company, quote reference, event date and event type. Supply names for the project manager, project director and finance contact.
-3. Add at least one original quote item: item name, positive quantity, unit and non-negative unit price in **RM**. Add or remove rows as needed. Optional comma-separated aliases help match chat wording; the item name is automatically included.
-4. Optionally add a rate card for extras outside the original quote. These rates are not included in the starting quote total.
-5. Either paste a WhatsApp text export **or** upload a UTF-8 `.txt` export without media—not both. The total request limit is **1,000,000 bytes**, including all form fields and upload overhead. Keep timestamps and sender names intact.
-6. Select **Create project**. The project appears in **Projects in progress** and opens for review. Check detected changes against the chat, add missing prices, obtain director approval when required, and hand over to the client for confirmation. Finance can then view the draft bill and export CSV.
-
-Android and iOS WhatsApp export formats are supported, with dates read **day/month/year**. For example:
-
-```text
-02/09/2026, 09:12 - Demo Client: Add 10 more guests
-02/09/2026, 09:13 - Demo PM: OK noted
-```
-
-Use aliases such as `guests` on the corresponding quote item so the reader can match it.
-
-### Validation and error handling
-
-- Required fields and quote rows are checked on the server before creation. Quantities must be positive; original quote and rate-card prices must be non-negative. Numeric inputs in this form are capped at 1,000,000,000.
-- Invalid dates or times in chat headers (including impossible dates and invalid AM/PM hours) show the offending line number. A failed submission creates no partial project and retains entered text; uploaded files must be selected again.
-- Empty files, unrelated plain text and exports containing only system notices are rejected. A conversation with sender messages but no detected changes is still valid.
-- The older **Import chat** flow at `/imports` continues to use an existing sample quote. It now rejects empty conversations before creating a record and handles malformed timestamps without crashing. Use **Add project** to enter a new quote; quote-document upload is not supported.
-- Subsequent change-price entry and director discount decisions reject non-finite amounts such as `NaN`, `Infinity` and `1e309`, without changing the record or audit log. Zero amounts and negative credits remain valid.
-- Individual change amounts are limited to **±RM1,000,000,000**, matching the intake price limit and preventing extreme finite prices from overflowing billing totals. Unusable extracted amounts remain unpriced for staff review.
-- Quantity changes are checked against the original quote and confirmed changes at review, approval and confirmation. A cancellation cannot leave a negative quantity, even with a manually changed price or competing cancellations. Only confirmed additions can support a larger cancellation. Invalid quantities must be rejected and corrected at the source, not hidden by changing the price.
-- Director discount decisions require a **zero or negative amount** and a written basis (for example, “5% of the original quote”). Positive amounts are rejected rather than silently converted into discounts.
-- Client disputes queue the reason and affected item for the responsible person: the PM for ordinary changes, or the project director for discounts. Disputed changes remain excluded from billing until resolved and confirmed again. As with other prototype notifications, messages are queued in History, not delivered externally.
-- Single-item and bulk action forms reject external return URLs, including protocol-relative and encoded bypasses. Safe local paths retain their query parameters and anchors; unsafe targets fall back to the project page.
-
-**Storage limitation:** New and imported projects, approvals and quote versions are held in memory. Restarting the app or choosing **Reset demo data** removes them and restores the sample projects. Switching roles is a demo mechanism, not authentication.
-
----
+To try the AI reader, open **Import chat**, choose `data/chats/blind_agent_a.txt` with its quote `q_blind_agent_a.json`, and tick **Read with the AI reader**.
 
 ## Results
 
-Scored with `python src/evaluate.py` against hand-written answer keys. A change is fully right when both its status and its price match.
+Scored with `python src/evaluate.py` against hand-written answer keys. A change is fully right when both its status and its price match. The rules scored 10 of 10 and 20 of 20 on chats written by the same author as the rules, which is **not** an accuracy figure.
 
-| Chats | Changes | Rules: fully right | Baseline: fully right |
+**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring ([docs/results.md](docs/results.md), Runs 2 to 6):
+
+| Reader | Found | Fully right | False changes |
 | --- | --- | --- | --- |
-| The chat the rules were built on | 10 | 10 | 3 |
-| Three more chats by the same author | 20 | 20 | 5 |
-
-Baseline: every message with an RM amount counts as a change.
-
-**The first two rows are not accuracy figures.** The same person wrote the chats, the answer keys and the rules.
-
-**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring. Each reader was scored once ([Runs 2 to 6](docs/results.md)); the AI reader rows are runs on RunPod. The last row is not independent, because we fixed the error types seen in the row above on the same chats:
-
-| Reader | Found | Fully right (status and price) | False changes |
-| --- | --- | --- | --- |
-| Baseline | 15 of 29 | 3 | 5 |
+| Baseline (any message with an RM amount) | 15 of 29 | 3 | 5 |
 | Rules | 22 of 29 | 13 | 3 |
-| AI reader (Llama 3.1 8B on RunPod) | 26 of 29 | 17 | 1 |
-| AI reader after fixing the errors seen in that run (same chats, so optimistic) | 26 of 29 | 21 | 0 |
+| AI reader on RunPod | 26 of 29 | **17** | 1 |
+| AI reader after fixing the errors seen in that run (same chats, so optimistic, not independent) | 26 of 29 | 21 | 0 |
 
-Earlier runs of the same model on a laptop GPU and on a CPU (Runs 3 and 4) fully got 18 of 29 right. That is 29 changes in synthetic chats, so it is a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong (for example, calling an unconfirmed change "ready"), which is why a person checks every change.
+This is 29 changes in synthetic chats: a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong, which is why a person checks every change.
+
+## How we use Replit
+
+- **Development and hosting:** the Flask app runs on Replit; `.replit` starts `python src/main.py` on port 5000 and `requirements.txt` pins the dependencies.
+- **Secrets:** `SECRET_KEY` and the AI reader's RunPod keys are set in Replit Secrets, never committed.
+- **Assistance:** Replit Agent helped with configuration and styling, declared in the Technical Tools Declaration.
+- **Proof of use:** `submission/SDC2026_VBall_Replit_POU.pdf`.
+
+## How we use RunPod
+
+The AI reader's model runs on a RunPod Serverless vLLM endpoint (Llama 3.1 8B Instruct, RTX 4090), not on Replit. RunPod runs the pre-trained model only: we train and fine-tune nothing.
+
+- **When it runs:** only when a chat is imported with **Read with the AI reader** ticked; demo jobs and webhook messages use the rules.
+- **Setup:** `RUNPOD_ENDPOINT_ID` and `RUNPOD_API_KEY` in Replit Secrets; steps and lessons in [runpod/README.md](runpod/README.md).
+- **If it is down:** the rules read the chat and the page says so.
+- **Proof of use:** `submission/SDC2026_VBall_Runpod_POU.pdf`.
 
 ## Business model
 
-The owner pays, because the owner is the one giving money away; the PM and finance use it every day. Tiers, as hypotheses to test in a pilot:
+The owner pays, because the owner is the one giving money away; the project manager and finance use it every day. A B2B freemium subscription, with prices as hypotheses to test in a pilot:
 
 | Tier | Price | Includes |
 | --- | --- | --- |
@@ -287,70 +206,39 @@ The owner pays, because the owner is the one giving money away; the PM and finan
 | Confirm | RM100 a month | Approvals, client confirmation links, group updates |
 | Settle | RM250 a month | Draft bills, CSV, log export, suggestions, all jobs |
 
-Usage pricing through Orbyte credits is the alternative. Break-even: Confirm costs RM1,200 a year, so recovering one forgotten RM1,200 extra a year pays for it.
+Break-even: Confirm costs RM1,200 a year, so recovering one forgotten RM1,200 extra a year pays for it. Usage pricing through Orbyte credits is the alternative.
 
-## Privacy and boundaries
+## Privacy, boundaries and limits
 
-- **Synthetic data only.** Every chat, quote, company and person in this repository is invented and labelled.
-- **No payments, filings or advice.** The bill is a draft for accounting software. Nothing is sent or paid. The record of what was agreed is not legal advice.
-- **Sign-in is simulated,** as the brief allows: switch people with the menu at the top or the guide's hand-over button. Permissions are still checked on the server.
-- **PDPA in a real deployment:** clients and vendors are told why the group is read; only messages linked to changes are kept; access is limited by role; a retention period is set; access and deletion requests are honoured. A pilot with real chats needs a legal review first.
-
-## Known limits
-
-- Rules understand the phrasing they were written for. New slang, typos and voice notes can be missed, which is why nothing reaches the bill without a person's check and the client's confirmation.
-- Data is held in memory; a restart resets the demo.
-- Messages to the group and to approvers are queued and shown on screen; delivering them needs the official WhatsApp API.
-- Dates in chat exports are read day-first, as WhatsApp exports them in Malaysia.
-
-## Roadmap
-
-| Phase | What | Proof we will need |
-| --- | --- | --- |
-| Now | Prototype: live webhook, rules, approvals, quote versions, suggestions | Score on unseen chats; timed test of building the final bill by hand against SMErgers |
-| Pilot | 3 to 5 event companies on the official WhatsApp API with consent; Orbyte approvals and eSign; a model trained on approvals | Hours saved per job, changes caught, disputes settled with a source |
-| Grow | Renovation, agencies and print; vendor quote comparison; turning a client's photo into a change | Paying teams who stay |
-
----
-
-## Tools we used
-
-| Tool | How we used it |
-| --- | --- |
-| Replit | Development and running the app; `.replit` defines the run workflow. Replit Agent assisted with configuration and styling. |
-| GitHub | This repository: Apache 2.0, small commits through the hackathon |
-| RunPod | Serverless vLLM endpoint that runs the AI reader's model on a GPU (see "How we use RunPod") |
-| Claude and Replit Agent | AI coding assistants; declared in the Technical Tools Declaration |
-| whatsapp-web.js | Optional local bridge for team testing only |
-
-## How we use Replit
-
-- **Development and hosting:** the Flask app runs on Replit; `.replit` starts `python src/main.py` on port 5000 and `requirements.txt` pins the dependencies.
-- **Secrets:** `SECRET_KEY` and the optional AI-reader keys are set in Replit Secrets, never committed (`.env.example` lists them).
-- **Assistance:** Replit Agent helped with configuration and styling, declared in the Technical Tools Declaration.
-- **Proof of use:** `submission/SDC2026_VBall_Replit_POU.pdf`.
-
-## How we use RunPod
-
-The AI reader's model runs on a GPU on RunPod, not on Replit. The Replit app sends the chat text to a RunPod Serverless vLLM endpoint running Llama 3.1 8B Instruct (OpenAI-compatible API); plain code then checks every price and status (`src/llm_extractor.py`).
-
-- **When it runs:** only when a chat is imported with **Read with the AI reader** ticked. Demo jobs and webhook messages use the rules, so the app starts fast and approvals stay stable.
-- **Setup:** `RUNPOD_ENDPOINT_ID` and `RUNPOD_API_KEY` in Replit Secrets; steps in [runpod/README.md](runpod/README.md).
-- **What RunPod is used for:** running the pre-trained model (inference) only. We do not train or fine-tune any model; training data would come from approvals after a pilot with real companies.
-- **If it is down:** the rules read the chat and the page says so.
-- **Proof of use:** `submission/SDC2026_VBall_Runpod_POU.pdf`.
+- **Synthetic data only.** Every chat, quote, company and person here is invented and labelled.
+- **No payments, filings or advice.** The bill is a draft for accounting software; nothing is sent or paid.
+- **Sign-in is simulated,** as the brief allows; permissions are still checked on the server.
+- **PDPA in a real deployment:** tell clients and vendors why the group is read, keep only messages linked to changes, limit access by role, set a retention period, honour access and deletion requests, and get legal review before a pilot.
+- **Limits:** data is held in memory and resets on restart; group messages are queued and shown on screen (delivery needs the official WhatsApp API, which allows 8 participants per group and needs a verified business); the rules and the AI reader can miss unusual phrasing, which is why nothing reaches the bill without a person's check and the client's confirmation.
 
 ## Challenges and learnings
 
-- **Our first accuracy scores were contaminated.** One author wrote the chats, the keys and the rules, so 20 of 20 meant nothing. On chats written blind, the rules fully got 13 of 29 right; the AI reader got 17 ([docs/results.md](docs/results.md)).
-- **WhatsApp limits shape the design.** The official Groups API allows 8 participants and needs a verified business, so the prototype uses the official webhook format, tested with synthetic payloads, and brings chats in from a text export.
+- **Our first accuracy scores were contaminated.** One author wrote the chats, the keys and the rules, so 20 of 20 meant nothing. On chats written blind, the rules fully got 13 of 29 right and the AI reader 17.
+- **WhatsApp limits shape the design.** The official Groups API has participant limits and needs a verified business, so the prototype uses the official webhook format with synthetic payloads and imports chats from a text export.
 - **A model should read, not decide.** The AI reader only reports what it found; code rejects invented prices and a person approves every change.
 
-## Team VBall
+## Future improvements
 
-- **Vincent Chew Wen Jie**, team leader ([@Anonys-sky](https://github.com/Anonys-sky))
-- **Steven Elnathan Meliala**, WhatsApp connector (`whatsapp/`)
-- **Looi Wan Wei**
+| Phase | What |
+| --- | --- |
+| Now | Prototype: webhook, rules and AI reader, approvals, quote versions, suggestions. Next: score on chats written by teammates, and time the final bill by hand against SMErgers |
+| Pilot | 3 to 5 event companies on the official WhatsApp API with consent; Orbyte approvals and eSign; a model trained on real approvals |
+| Grow | Renovation, agencies and print; vendor quote comparison; turning a client's photo into a change |
+
+## Team
+
+- Vincent Chew Wen Jie ([@Anonys-sky](https://github.com/Anonys-sky))
+- Steven Elnathan Meliala ([@stevenmeliala](https://github.com/stevenmeliala))
+- Looi Wan Wei ([@wan-wei-looi](https://github.com/wan-wei-looi))
+
+## Submission documents
+
+The proposal, Technical Tools Declaration and proofs of use are in [submission/](submission/README.md).
 
 ## License
 
