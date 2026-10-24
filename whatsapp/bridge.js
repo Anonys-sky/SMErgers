@@ -385,3 +385,14 @@ async function shutdown(signal) {
 }
 process.on('SIGINT', () => shutdown('SIGINT'));
 process.on('SIGTERM', () => shutdown('SIGTERM'));
+
+// whatsapp-web.js re-injects its page hooks inside async event handlers (for example after a
+// logout redirect). If that fails the rejection is unhandled and would kill the whole bridge,
+// so log it and restart the WhatsApp client instead.
+process.on('unhandledRejection', (reason) => {
+    const message = reason && reason.message ? reason.message : String(reason);
+    console.error(`[whatsapp] unhandled error: ${message}`);
+    if (stopping) return;
+    setStatus('error', { error: message });
+    scheduleRestart('unhandled error');
+});
