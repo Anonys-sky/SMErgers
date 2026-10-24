@@ -35,6 +35,8 @@ externalPort = 80
 
 [deployment]
 run = ["python", "src/main.py"]
+deploymentTarget = "gce"
+ignorePorts = false
 
 [postMerge]
 path = "scripts/post-merge.sh"
