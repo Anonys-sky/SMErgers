@@ -8,8 +8,8 @@
 | --- | --- |
 | GitHub repository | https://github.com/Anonys-sky/SMErgers |
 | Pitch deck | https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx |
-| Live prototype (Replit) | |
-| Demo video (YouTube) | |
+| Live prototype (Replit) | (template) |
+| Demo video (YouTube) | (template) |
 
 ## Team information
 
