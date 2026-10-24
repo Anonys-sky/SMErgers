@@ -4,31 +4,56 @@
 
 **Team VBall** · SDC Hackathon 2026 · Domain 2: Orbyte Smart SME Challenge · SDG 8 (targets 8.2 and 8.3) · [Apache License 2.0](LICENSE)
 
+**Live prototype:** (template) · **Demo video:** (template) · [Slide deck](https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx) · [Source code](https://github.com/Anonys-sky/SMErgers)
+
 All data in this repository is synthetic. No real chat, person, client or company is used.
+
+---
+
+## The problem, in one example
+
+A client types in the job's WhatsApp group: *"The LED wall abit small la. Can we upgrade?"* The project manager checks with the vendor. The next morning: *"RM1,100 more."* The client replies: *"ok go ahead."* The quote was signed weeks ago, so that RM1,100 lives only in a chat.
+
+Multiply it by every change on an event: 15 more guests, an hour of overtime, two emergency microphones. In our example job, RM3,860 of changes (11.2% of the RM34,530 quote) were agreed in chat and recorded nowhere. At the end, someone scrolls weeks of messages to rebuild the bill, extras go unbilled, and when the client says "I never agreed to that" there is nothing to show, so the owner often gives the money away. The problem comes from a team member's experience at an event company, where it happened on almost every event; it is one person's account, not a survey.
+
+## What SMErgers does
+
+- **Catch it.** It reads the job's WhatsApp chat and finds each change: what, how many, what price, and whether both sides agreed.
+- **Confirm it.** The project manager checks each change, the project director signs off on large or unusual items, and the client confirms or disputes on their own phone-sized page.
+- **Sync it.** Every confirmation creates a new quote version (v2, v3 and so on) and posts a summary back to the group. Only confirmed changes reach the draft bill, and every line links to the messages it came from.
+
+When something is unclear it does not guess: a change with no price is marked "needs a price", a discount goes to the project director, and a request nobody agreed to stays unconfirmed.
+
+## Screenshots
+
+<img src="docs/img/review.png" width="760" alt="Project manager review: RM3,540 agreed on top of the RM34,530 quote, the chat with the dinner package messages highlighted, and the changes with Mark checked buttons">
+
+*The project manager checks each change against the highlighted chat messages it came from.*
+
+<img src="docs/img/client-confirmation.png" width="300" alt="The client's phone-sized confirmation page with the source messages and Confirm and Dispute buttons">
+
+*The client confirms or disputes each change from a link, with no login.*
+
+<img src="docs/img/draft-bill.png" width="760" alt="Draft final bill: quote total plus RM3,860 of confirmed changes, with each changed line linked to its source">
+
+*The draft final bill: only confirmed changes, every changed line linked to its chat evidence. A draft, never an invoice.*
 
 ## Contents
 
 | Section | What it covers |
 | --- | --- |
-| [Team information](#team-information) | Team, domain and SDG track |
-| [Links](#links) | Repository, live prototype, deck, video, RunPod endpoint |
-| [Overview](#overview) | The problem, the solution, the Domain 2 journey, Orbyte fit |
-| [Quick start](#quick-start) | Run the app on Replit or locally in a few minutes |
+| [Team information](#team-information) · [Links](#links) | Team, domain, SDG track, all project links |
 | [Key features](#key-features) | What the prototype does |
-| [Demo walkthrough](#demo-walkthrough) | A three-minute guided tour |
+| [How it meets the brief](#how-it-meets-the-brief) | The Domain 2 journey and the six must-haves |
+| [Quick start](#quick-start) · [Demo walkthrough](#demo-walkthrough) | Run it and take the three-minute tour |
 | [Where AI fits](#where-ai-fits) | Rules reader, AI reader, and the guards around the model |
-| [Configuration](#configuration) | Environment variables |
-| [API and webhook](#api-and-webhook) | Job API and WhatsApp webhook reference |
-| [Tech stack](#tech-stack) | Languages, frameworks and services |
-| [Project structure and architecture](#project-structure-and-architecture) | Folders and data flow |
-| [Testing and results](#testing-and-results) | How to run the tests, and the measured accuracy |
+| [Configuration](#configuration) · [API and webhook](#api-and-webhook) | Environment variables and endpoints |
+| [Tech stack](#tech-stack) · [Project structure and architecture](#project-structure-and-architecture) | Technologies, folders and data flow |
+| [Testing and results](#testing-and-results) | Tests and measured accuracy |
 | [How we use Replit](#how-we-use-replit) · [How we use RunPod](#how-we-use-runpod) | Hosting and GPU use, with proof of use |
-| [Business model](#business-model) | Who pays, pricing tiers |
-| [Privacy, boundaries and limits](#privacy-boundaries-and-limits) | Synthetic data, PDPA, known limits |
+| [Business model](#business-model) · [Privacy, boundaries and limits](#privacy-boundaries-and-limits) | Who pays, PDPA, what it does not do |
 | [Challenges and learnings](#challenges-and-learnings) · [Future improvements](#future-improvements) | What we learned and what is next |
-| [Contributing](#contributing) | Workflow and conventions |
-| [Team](#team) · [Submission documents](#submission-documents) | Who built it, and where the proposal and proofs are |
-| [License and acknowledgements](#license-and-acknowledgements) | Apache 2.0 and third-party notices |
+| [Contributing](#contributing) · [Team](#team) · [Submission documents](#submission-documents) · [License](#license-and-acknowledgements) | The rest |
 
 ---
 
@@ -55,23 +80,28 @@ All data in this repository is synthetic. No real chat, person, client or compan
 
 ---
 
-## Overview
+## Key features
 
-### Problem
+| Feature | What it does |
+| --- | --- |
+| Change finder | Finds each change in a chat: follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals |
+| Evidence beside every change | Every change and bill line highlights the exact messages it came from; one click jumps between them |
+| Approvals enforced on the server | The director signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff; a client link cannot approve its own change |
+| Role workspaces | Project manager, project director, client and finance views, each with its own queue, filters and checklist |
+| Client confirmation page | A phone-sized page opened from a WhatsApp link: confirm, or dispute with a reason; a disputed change stays off the bill |
+| Quote versions | Each confirmation makes a new version and queues a summary for the group and the next approver |
+| Draft final bill and CSV | Quote plus confirmed changes, what is not on the bill yet and why; a draft for accounting software, never an invoice |
+| Tamper-evident activity log | Who did what, in which role, and when; each entry is chained to the one before, so an edit shows |
+| Guided journey | A five-step guide on every job says who acts next and hands over in one click |
+| "Quote it upfront" suggestions | Counts from past jobs show what usually changes late and what to put in the quote |
+| Add project | Create a project with its own quote and chat ([guide](docs/add-a-project.md)) |
+| Job API and webhook | A read-only job API and Meta's Cloud API webhook format ([reference](#api-and-webhook)) |
 
-In a small event company the quote is signed early, and then the job changes inside the WhatsApp group: 15 more guests, a bigger LED wall, an extra hour of overtime, two microphones on the night. Nobody turns those messages into a record, so at the end of the job someone rebuilds the bill by scrolling the chat, extras go unbilled, and when the client says "I never agreed to that" there is nothing to show. The owner often gives the money away. This comes from a team member's experience at an event company, where it happened on almost every event; it is one person's account, not a survey. For published context, Malaysian construction studies report that 89% of projects run over cost, typically by 5 to 10%, with variation orders a leading cause (Kamaruddeen, Chang and Wahi, 2020, as cited in *Research in Management of Technology and Business* 5(2), 2024). No public data exists for event companies.
+## How it meets the brief
 
-### Solution
+**The five-step journey** required by Domain 2:
 
-- **Catch it.** SMErgers reads the job's WhatsApp chat and works out what changed, by how much, at what price, and whether both sides agreed.
-- **Confirm it.** The project manager checks each change, the project director signs off on large or unusual items, and the client confirms or disputes on their own phone-sized page.
-- **Sync it.** Every confirmation creates a new quote version (v2, v3 and so on) and posts a summary back to the group. Only confirmed changes reach the draft bill, and every line links to the messages it came from.
-
-When something is unclear, SMErgers does not guess: a change with no price is marked "needs a price", a discount goes to the project director, and a request nobody agreed to stays unconfirmed.
-
-### How it fits the Domain 2 journey
-
-| Step in the brief | In SMErgers |
+| Step | In SMErgers |
 | --- | --- |
 | Trigger | A message arrives in the job's WhatsApp group (webhook), or a chat export is imported in the prototype |
 | Connected data | The signed quote, rate card, client, job and company directory |
@@ -79,9 +109,16 @@ When something is unclear, SMErgers does not guess: a change with no price is ma
 | Human approval | PM checks; project director signs off on large or unusual items; client confirms |
 | Visible outcome | Quote v2 posted to the group, the draft bill and CSV, and the activity log |
 
-### Orbyte fit
+**The six must-have features:**
 
-SMErgers reuses Orbyte's clients and projects, directory and roles, approvals, eSign and audit trail, and adds one capability Orbyte does not have: turning chat into approved changes. The same engine runs a café renovation chat with only a different quote file. Interface assumptions are in [docs/orbyte-integration.md](docs/orbyte-integration.md).
+| Must-have | Where to see it |
+| --- | --- |
+| One clear SME problem | Agreed changes in WhatsApp never reach the final bill ([problem](#the-problem-in-one-example)) |
+| Core automated journey | The five steps above, running in the [demo](#demo-walkthrough) |
+| Accuracy and ease of learning | Evidence beside every change, a five-step guide, and measured scores ([results](#testing-and-results)) |
+| People stay in control | Role checks on the server and the hash-chained log (`src/workflow.py`, `tests/`) |
+| Orbyte fit and reuse | It reuses Orbyte's roles, approvals, eSign and audit trail and adds chat-to-approved-changes. The same engine runs a café renovation chat with only a different quote file, and the job API is a building block. Assumptions: [docs/orbyte-integration.md](docs/orbyte-integration.md) |
+| Business benefit and SDG | Extras recovered and hours saved; SDG 8.2 and 8.3 ([business model](#business-model)) |
 
 ---
 
@@ -89,7 +126,7 @@ SMErgers reuses Orbyte's clients and projects, directory and roles, approvals, e
 
 Requirements: Python 3.12. Node.js is only needed for the optional WhatsApp bridge and two test files.
 
-**On Replit:** import this repository (**Create Repl → Import from GitHub**) and click **Run**. The `.replit` workflow installs nothing extra and starts `python src/main.py` on port 5000. Add secrets only if you want the AI reader (see [Configuration](#configuration)).
+**On Replit:** import this repository (**Create Repl → Import from GitHub**) and click **Run**. The `.replit` workflow starts `python src/main.py` on port 5000. Add secrets only if you want the AI reader (see [Configuration](#configuration)).
 
 **Locally:**
 
@@ -102,24 +139,7 @@ pip install -r requirements.txt
 python src/main.py               # then open http://localhost:5000
 ```
 
-The app opens on the Project manager workspace with four synthetic projects. Open **Annual Dinner 2026** to see a job; the [demo walkthrough](#demo-walkthrough) shows the full journey. State is kept in memory, and **Reset demo data** restores the samples.
-
-## Key features
-
-| Feature | What it does |
-| --- | --- |
-| Change finder | Handles follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals |
-| Show in chat | Every change and bill line highlights the exact messages it came from |
-| Role workspaces | Project manager, project director, client and finance views with their own queues, filters and checklists |
-| Approvals enforced on the server | The director signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff; a client link cannot approve its own change |
-| Client confirmation page | A phone-sized page opened from a WhatsApp link: confirm, or dispute with a reason |
-| Quote versions | Each confirmation makes a new version and queues a summary for the group and the next approver |
-| Guided journey | A five-step guide on every job says who acts next and hands over in one click |
-| Draft final bill | Quote plus agreed changes, what is not on the bill yet and why, and a CSV; a draft, never an invoice |
-| Activity log | Who did what, in which role, and when; each entry is chained to the one before, so an edit shows |
-| Next time, quote it upfront | Counts from past jobs show what usually changes late and what to put in the quote |
-| Add project | Create a project with its own quote and chat ([guide](docs/add-a-project.md)) |
-| Job API and webhook | A read-only job API and Meta's Cloud API webhook format ([reference](#api-and-webhook)) |
+The app opens on the Project manager workspace with four synthetic projects. State is kept in memory, and **Reset demo data** restores the samples.
 
 ## Demo walkthrough
 
@@ -192,6 +212,8 @@ curl http://localhost:5000/api/jobs/annual-dinner
 
 The group id is read from a `group_id` field on each message, which is our assumption because we had no API access; check it against Meta's Groups API documentation before going live. Messages are delivered to the job linked to that group; the default demo has no linked group, so chats come in by text export. The signature check and the handshake are covered by tests. Limits of the official Groups API: at most 8 participants per group, and an Official Business Account is required. The optional bridge (`npm run whatsapp`, then `/whatsapp`) uses an unofficial client for team testing only and is not part of the product.
 
+---
+
 ## Tech stack
 
 | Layer | Technology |
@@ -212,7 +234,7 @@ The group id is read from a `group_id` field on each message, which is our assum
 │                        workflow.py, sync.py, bill.py, suggest.py, webhook.py, ...), templates/, static/
 ├── data/                Synthetic quotes, chats, answer keys, past jobs, company directory (data/README.md)
 ├── tests/               pytest suite
-├── docs/                results.md (every accuracy run), orbyte-integration.md, add-a-project.md
+├── docs/                results.md (every accuracy run), orbyte-integration.md, add-a-project.md, img/
 ├── runpod/              Setup guide for the AI reader's RunPod endpoint
 ├── whatsapp/            Optional local bridge (Node.js, team testing only)
 ├── submission/          Submission documents (see submission/README.md)
