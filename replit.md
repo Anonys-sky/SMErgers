@@ -47,3 +47,13 @@ The rules reader runs by default and needs nothing else. The optional AI reader 
   installation for Puppeteer, and `npm run whatsapp` as a separate local service
   on port 3001. Pair an account from `/whatsapp` after starting that service.
   Keep the bridge bound to loopback; do not expose its API publicly.
+
+## Dependency security
+
+- The WhatsApp bridge needs Node 22.12 or newer (Replit uses Node 24).
+- The Puppeteer override is intentional: the bridge's pinned Puppeteer 24
+  includes vulnerable `extract-zip`, `basic-ftp`, and Zod dependencies. Puppeteer
+  25 removes the first two and uses patched Zod 4. Check the bridge dependency
+  tests before changing or removing the override.
+- Pygments is pinned explicitly even though only pytest uses it, so clean
+  Python installs cannot select the old vulnerable highlighter.
