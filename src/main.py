@@ -294,9 +294,14 @@ def whatsapp_import():
     if not messages:
         flash("No messages could be read from that group yet. Open it once on your phone, then try again.")
         return redirect(url_for("whatsapp_page"))
+    ai = request.form.get("ai") == "1"
     record = store.build_from_messages(store.new_job_id(store.quote_title(quote)), messages,
-                                       f"WhatsApp group: {name}", quote)
+                                       f"WhatsApp group: {name}", quote, ai=ai)
     flash(f"Read {len(messages):,} messages from {name}.", "ok")
+    if ai and not record.ai:
+        flash("The AI reader could not be reached, so the rules read this chat instead.")
+    elif record.ai:
+        flash("Read by the AI reader. Every price and status was checked by the rules before showing it here.")
     return redirect(url_for("job_page", job_id=record.id))
 
 

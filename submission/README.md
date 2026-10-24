@@ -4,7 +4,7 @@ File names from the official GitHub template (`SDC_Hackathon_Submission_Template
 
 - [ ] `SDC2026_VBall_Preliminary.pdf`: the completed submission template (text drafted outside the repo).
 - [ ] `SDC2026_VBall_TechDeclaration.pdf`: the completed Technical Tools Declaration, listing every tool, API and AI assistant.
-- [ ] `SDC2026_VBall_Replit_POU.pdf`: Replit proof of use (live deployment URL, project link with history, or credit screenshot, from a team member's own account).
+- [x] `SDC2026_VBall_Replit_POU.pdf`: Replit proof of use (live deployment URL, project link with history, or credit screenshot, from a team member's own account).
 - [x] `SDC2026_VBall_Runpod_POU.pdf`: RunPod dashboard screenshot from the team's own account showing the Endpoint ID, GPU type and runtime (`runpod/README.md`).
 - [ ] Pitch deck PDF and the YouTube demo link, added to the root `README.md`.
 

@@ -93,6 +93,7 @@
     <label>Latest messages to read
       <input type="number" name="limit" id="wa-limit" value="{{ default_limit }}" min="1" max="{{ max_limit }}" step="1" class="price">
     </label>
+    <label class="check-row"><input type="checkbox" name="ai" value="1"> Read with the AI reader <span class="hint">Llama 3.1 on RunPod · falls back to the rules</span></label>
     <button class="primary" id="wa-submit">Read group and find changes</button>
   </form>
   <p class="hint">This optional connector reads only messages synced on WhatsApp. The prototype is for synthetic sample data only; do not import real client conversations or personal information.</p>

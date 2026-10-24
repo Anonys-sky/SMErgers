@@ -4,7 +4,7 @@
 
 **Team VBall** · SDC Hackathon 2026 · Domain 2: Orbyte Smart SME Challenge · SDG 8 (targets 8.2 and 8.3) · [Apache License 2.0](LICENSE)
 
-**Live prototype:** (template) · **Demo video:** (template) · [Slide deck](https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx) · [Source code](https://github.com/Anonys-sky/SMErgers)
+**Live demo:** [sm-ergers-1.replit.app](https://sm-ergers-1.replit.app) · **Demo video:** (template) · [Slide deck](https://canva.link/yh0xo39bpzxaomf) · [Source code](https://github.com/Anonys-sky/SMErgers)
 
 All data in this repository is synthetic. No real chat, person, client or company is used.
 
@@ -71,12 +71,11 @@ When something is unclear it does not guess: a change with no price is marked "n
 
 | Resource | Link |
 | --- | --- |
-| GitHub repository | https://github.com/Anonys-sky/SMErgers |
-| Replit project | (template) |
-| Live prototype | (template) |
-| RunPod endpoint | Serverless vLLM, endpoint ID `2y90x5ojwpgxnh` (the API key is kept in Replit Secrets) |
-| Slide deck | https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx |
-| Demo video (YouTube) | (template) |
+| GitHub Repository | https://github.com/Anonys-sky/SMErgers |
+| Live Demo | https://sm-ergers-1.replit.app |
+| RunPod Endpoint | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM, needs an API key kept in Replit Secrets) |
+| Slide Deck | https://canva.link/yh0xo39bpzxaomf |
+| Demo Video | (template) |
 
 ---
 
