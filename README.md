@@ -2,29 +2,59 @@
 
 > Changes agreed in a job's WhatsApp group become approved, traceable changes, a new quote version for everyone, and a correct draft final bill. Built for small event companies first, and for any business that works job by job.
 
-**Team VBall** · SDC Hackathon 2026 · Domain 2: Orbyte Smart SME Challenge · SDG 8 (targets 8.2 and 8.3) · [Apache License 2.0](LICENSE)
-
-**Live demo:** [sm-ergers-1.replit.app](https://sm-ergers-1.replit.app) · **Demo video:** [YouTube](https://youtu.be/UKgKFRvKVhM) · [Slide deck](https://canva.link/yh0xo39bpzxaomf) · [Source code](https://github.com/Anonys-sky/SMErgers)
-
 All data in this repository is synthetic. No real chat, person, client or company is used.
 
 ---
 
-## The problem, in one example
+## Team Information
 
-A client types in the job's WhatsApp group: *"The LED wall abit small la. Can we upgrade?"* The project manager checks with the vendor. The next morning: *"RM1,100 more."* The client replies: *"ok go ahead."* The quote was signed weeks ago, so that RM1,100 lives only in a chat.
+| Field                 | Details                                          |
+| --------------------- | ------------------------------------------------ |
+| **Team Name**         | VBall                                            |
+| **Team Domain**       | Domain 2: Orbyte Smart SME Challenge             |
+| **SDG Track (1–17)**  | SDG 8: Decent Work and Economic Growth (targets 8.2 and 8.3) |
+| **Team Leader**       | Vincent Chew Wen Jie                             |
+| **University**        | Universiti Sains Malaysia                        |
+| **Number of Members** | 3                                                |
 
-Multiply it by every change on an event: 15 more guests, an hour of overtime, two emergency microphones. In our example job, RM3,860 of changes (11.2% of the RM34,530 quote) were agreed in chat and recorded nowhere. At the end, someone scrolls weeks of messages to rebuild the bill, extras go unbilled, and when the client says "I never agreed to that" there is nothing to show, so the owner often gives the money away. The problem comes from a team member's experience at an event company, where it happened on almost every event; it is one person's account, not a survey.
+## Links
 
-## What SMErgers does
+| Resource          | Link                                                                                                                       |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| GitHub Repository | https://github.com/Anonys-sky/SMErgers                                                                                     |
+| Live Demo         | https://sm-ergers-1.replit.app                                                                                             |
+| RunPod Endpoint   | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM; calls need an API key, kept in Replit Secrets)                  |
+| Slide Deck        | https://canva.link/yh0xo39bpzxaomf (PDF: [submission/SDC2026_VBall_PitchDeck.pdf](submission/SDC2026_VBall_PitchDeck.pdf)) |
+| Demo Video        | https://youtu.be/UKgKFRvKVhM                                                                                               |
 
-- **Catch it.** It reads the job's WhatsApp chat and finds each change: what, how many, what price, and whether both sides agreed.
+---
+
+## Overview
+
+### Problem
+
+A client types in the job's WhatsApp group: *"The LED wall abit small la. Can we upgrade?"* The next morning: *"RM1,100 more."* The client replies: *"ok go ahead."* The quote was signed weeks ago, so that RM1,100 lives only in a chat. Multiply it by every change on an event: 15 more guests, an hour of overtime, two emergency microphones. In our example job, RM3,860 of changes (11.2% of the RM34,530 quote) were agreed in chat and recorded nowhere. At the end, someone scrolls weeks of messages to rebuild the bill, extras go unbilled, and when the client says "I never agreed to that" there is nothing to show, so the owner often gives the money away. The problem comes from a team member's experience at an event company, where it happened on almost every event; it is one person's account, not a survey.
+
+### Solution
+
+- **Catch it.** An AI reader (Llama 3.1 8B on a RunPod GPU, with a rules reader as the fallback) finds each change in the chat: what, how many, what price, and whether both sides agreed.
 - **Confirm it.** The project manager checks each change, the project director signs off on large or unusual items, and the client confirms or disputes on their own phone-sized page.
 - **Sync it.** Every confirmation creates a new quote version (v2, v3 and so on) and posts a summary back to the group. Only confirmed changes reach the draft bill, and every line links to the messages it came from.
 
-When something is unclear it does not guess: a change with no price is marked "needs a price", a discount goes to the project director, and a request nobody agreed to stays unconfirmed.
+The model only reads. Plain code checks every price, the server enforces who may approve, and nothing reaches the bill without a person's check and the client's confirmation. When something is unclear it does not guess: a change with no price is marked "needs a price", a discount goes to the project director, and a request nobody agreed to stays unconfirmed.
 
-## Screenshots
+### Key Features
+
+- **Change finder** — finds changes in a messy chat: follow-ups, recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals.
+- **Evidence beside every change** — every change and bill line highlights the exact messages it came from.
+- **Approvals enforced on the server** — the director signs off at RM500 or more, on discounts and on staff-set prices; a client link cannot approve its own change.
+- **Client confirmation page** — opened from a WhatsApp link: confirm, or dispute with a reason; a disputed change stays off the bill.
+- **Quote versions, draft bill and CSV** — each confirmation makes a new version; the bill is a draft for accounting software, never an invoice.
+- **Tamper-evident activity log** — each entry is chained to the one before, so an edit shows.
+- **"Quote it upfront" suggestions** — counts from past jobs show what usually changes late (for example, overtime in 4 of 4 dinners).
+- **Role workspaces, guided journey, job API and WhatsApp webhook** — see [Appendix A](#appendix-a-how-it-meets-the-brief).
+
+### Screenshots
 
 <img src="docs/img/review.png" width="760" alt="Project manager review: RM3,540 agreed on top of the RM34,530 quote, the chat with the dinner package messages highlighted, and the changes with Mark checked buttons">
 
@@ -38,67 +68,189 @@ When something is unclear it does not guess: a change with no price is marked "n
 
 *The draft final bill: only confirmed changes, every changed line linked to its chat evidence. A draft, never an invoice.*
 
-## Contents
+### Tech Stack
 
-| Section | What it covers |
-| --- | --- |
-| [Team information](#team-information) · [Links](#links) | Team, domain, SDG track, all project links |
-| [Key features](#key-features) | What the prototype does |
-| [How it meets the brief](#how-it-meets-the-brief) | The Domain 2 journey and the six must-haves |
-| [Quick start](#quick-start) · [Demo walkthrough](#demo-walkthrough) | Run it and take the three-minute tour |
-| [Where AI fits](#where-ai-fits) | Rules reader, AI reader, and the guards around the model |
-| [Configuration](#configuration) · [API and webhook](#api-and-webhook) | Environment variables and endpoints |
-| [Tech stack](#tech-stack) · [Project structure and architecture](#project-structure-and-architecture) | Technologies, folders and data flow |
-| [Testing and results](#testing-and-results) | Tests and measured accuracy |
-| [How we use Replit](#how-we-use-replit) · [How we use RunPod](#how-we-use-runpod) | Hosting and GPU use, with proof of use |
-| [Business model](#business-model) · [Privacy, boundaries and limits](#privacy-boundaries-and-limits) | Who pays, PDPA, what it does not do |
-| [Challenges and learnings](#challenges-and-learnings) · [Future improvements](#future-improvements) | What we learned and what is next |
-| [Contributing](#contributing) · [Team](#team) · [Submission documents](#submission-documents) · [License](#license-and-acknowledgements) | The rest |
+| Layer         | Technology                                                                                   |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| Frontend      | Server-rendered Jinja templates, one CSS file, a few lines of JavaScript                     |
+| Backend       | Python 3.12, Flask                                                                           |
+| Database      | In-memory store for the prototype; synthetic JSON data                                       |
+| AI / Compute  | Llama 3.1 8B Instruct on RunPod Serverless (vLLM, GPU); local Ollama for development         |
+| WhatsApp      | Meta Cloud API webhook format; optional Node.js test connector (unofficial, not part of the product) |
+| Tests         | pytest (290+ tests); Node test runner for the bridge                                         |
+| Hosting / Dev | Replit (workspace, preview, Deployments)                                                     |
 
 ---
 
-## Team information
+## Project Structure
 
-| Field | Details |
-| --- | --- |
-| Team name | VBall |
-| Team domain | Domain 2: Orbyte Smart SME Challenge |
-| SDG track | SDG 8, targets 8.2 and 8.3 |
-| Team leader | Vincent Chew Wen Jie |
-| Number of members | 3 |
+```
+.
+├── docs/                    # results.md (every accuracy run), orbyte-integration.md, add-a-project.md, img/
+├── runpod/
+│   └── README.md            # Setup guide for the AI reader's RunPod endpoint (no custom handler needed)
+├── scripts/                 # Replit build and start scripts
+├── src/
+│   ├── main.py              # Application entry point (Flask)
+│   ├── reader.py, rules_extractor.py, llm_extractor.py   # Rules reader and AI reader
+│   ├── workflow.py, sync.py, bill.py, suggest.py, webhook.py   # Approvals, quote versions, bill, suggestions
+│   └── templates/, static/
+├── data/                    # Synthetic quotes, chats, answer keys, past jobs, company directory
+├── submission/              # Required submission documents
+│   ├── SDC2026_VBall_Preliminary.pdf       # Preliminary submission
+│   ├── SDC2026_VBall_TechDeclaration.pdf   # Technology declaration
+│   ├── SDC2026_VBall_Replit_POU.pdf        # Replit proof of use
+│   ├── SDC2026_VBall_Runpod_POU.pdf        # RunPod proof of use
+│   └── SDC2026_VBall_PitchDeck.pdf         # Pitch deck
+├── tests/                   # pytest suite
+├── whatsapp/                # Optional local test connector (Node.js)
+├── .env.example             # Example environment variables
+├── .gitignore
+├── .replit                  # Replit run configuration
+├── LICENSE
+├── requirements.txt         # Python dependencies
+└── README.md
+```
 
-## Links
+### Architecture
 
-| Resource | Link |
-| --- | --- |
-| GitHub Repository | https://github.com/Anonys-sky/SMErgers |
-| Live Demo | https://sm-ergers-1.replit.app |
-| RunPod Endpoint | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM, needs an API key kept in Replit Secrets) |
-| Slide Deck | https://canva.link/yh0xo39bpzxaomf (PDF: [submission/SDC2026_VBall_PitchDeck.pdf](submission/SDC2026_VBall_PitchDeck.pdf)) |
-| Demo Video | https://youtu.be/UKgKFRvKVhM |
+```
+WhatsApp group ──webhook──► reader (rules or AI on RunPod) ──► approvals (PM ► director ► client) ──► quote v2 posted to the group
+   (.txt export or test connector)        ▲                                                              │
+                         quote, rate card, directory                          draft bill, CSV, API, activity log
+
+User ──► Replit (Flask app) ──► RunPod Endpoint (Llama 3.1 8B, GPU) ──► changes returned to the app, checked by plain code
+```
 
 ---
 
-## Key features
+## How to Run
 
-| Feature | What it does |
-| --- | --- |
-| Change finder | Finds each change in a chat: follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals |
-| Evidence beside every change | Every change and bill line highlights the exact messages it came from; one click jumps between them |
-| Approvals enforced on the server | The director signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff; a client link cannot approve its own change |
-| Role workspaces | Project manager, project director, client and finance views, each with its own queue, filters and checklist |
-| Client confirmation page | A phone-sized page opened from a WhatsApp link: confirm, or dispute with a reason; a disputed change stays off the bill |
-| Quote versions | Each confirmation makes a new version and queues a summary for the group and the next approver |
-| Draft final bill and CSV | Quote plus confirmed changes, what is not on the bill yet and why; a draft for accounting software, never an invoice |
-| Tamper-evident activity log | Who did what, in which role, and when; each entry is chained to the one before, so an edit shows |
-| Guided journey | A five-step guide on every job says who acts next and hands over in one click |
-| "Quote it upfront" suggestions | Counts from past jobs show what usually changes late and what to put in the quote |
-| Add project | Create a project with its own quote and chat ([guide](docs/add-a-project.md)) |
-| Job API and webhook | A read-only job API and Meta's Cloud API webhook format ([reference](#api-and-webhook)) |
+### Option 1: Run on Replit (Recommended)
 
-## How it meets the brief
+1. Import this repository via **Create Repl → Import from GitHub**.
+2. Optional, only for the AI reader: open the **Secrets** tab and add the variables listed in `.env.example`: `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`. Without them the rules reader is used.
+3. Click **Run**. The `.replit` workflow starts Flask on port 5000 (and the optional test connector on loopback port 3001) using `scripts/start-application.sh`.
 
-**The five-step journey** required by Domain 2:
+The deployed demo is at https://sm-ergers-1.replit.app. After changing settings, **republish**: restarting the workspace does not update the published deployment.
+
+### Option 2: Run Locally
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/Anonys-sky/SMErgers.git
+cd SMErgers
+
+# 2. Create and activate a virtual environment
+python -m venv venv
+source venv/bin/activate        # Windows: venv\Scripts\activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Configure environment variables (all optional)
+cp .env.example .env            # then fill in your values
+
+# 5. Run the app
+python src/main.py              # then open http://localhost:5000
+```
+
+The app opens on the Project manager workspace with four synthetic projects. State is kept in memory; **Reset demo data** restores the samples.
+
+### Run Tests
+
+```bash
+python -m pytest                # 290+ tests: parsing, rules, permissions, billing, pages
+npm test                        # bridge conversion tests (needs Node.js)
+```
+
+### Three-minute demo walkthrough
+
+1. In the Project manager overview, open **Annual Dinner 2026**. The chat is on the left, the changes found in it on the right.
+2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
+3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the director must now approve it), then **Check all**.
+4. Press **Continue as Daniel (Project Director)**, then **Approve all**.
+5. Press **Open the client's link**, the page the client sees from WhatsApp. Confirm all seven changes, or dispute one with a reason and it stays off the bill.
+6. Press **Back to Aisyah**, then open **History** (quote version 2 posted to the group) and **Draft bill** (every line linked to its source).
+
+To try the AI reader, open **Import chat**, choose `data/chats/blind_agent_a.txt` with its quote `q_blind_agent_a.json`, and tick **Read with the AI reader**.
+
+---
+
+## How We Use Replit *(Required)*
+
+Replit is where the team designs, tests and deploys SMErgers.
+
+- **Development:** the interface and logic are built and iterated in the Replit workspace, with the live preview beside the code. Replit Agent helped with run configuration, deployment publishing, startup scripts and tests (declared in the Technical & Tools Declaration).
+- **Testing:** the app runs in Replit's preview and the test suite runs in its shell (`python -m pytest`); `requirements.txt` pins the dependencies so Replit matches the local build.
+- **Hosting:** the app is deployed with Replit Deployments at the Live Demo link above; `.replit` starts the app on port 5000.
+- **Secrets:** `SECRET_KEY` and the AI reader's RunPod keys are stored in Replit Secrets, never in the code.
+
+📄 Proof of use: [`submission/SDC2026_VBall_Replit_POU.pdf`](submission/SDC2026_VBall_Replit_POU.pdf)
+
+## How We Use RunPod *(Required)*
+
+The AI reader's model runs on a RunPod Serverless endpoint, not on Replit. RunPod runs a pre-trained model only: we train and fine-tune nothing.
+
+- **Workload:** inference with Llama 3.1 8B Instruct on an RTX 4090, through RunPod's ready-made vLLM worker (`runpod/worker-v1-vllm`). No custom handler is needed; the worker exposes an OpenAI-compatible API.
+- **Setup:** steps and lessons in [runpod/README.md](runpod/README.md). Settings: min workers 0, max workers 1, idle timeout 30 s.
+- **Integration:** the Replit app sends the chat text to the endpoint with `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`, only when a chat is imported with **Read with the AI reader** ticked. If the endpoint is down, the rules read the chat and the page says so. After a quiet period the first request takes 2 to 3 minutes while the GPU worker starts.
+
+Example request:
+
+```bash
+curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/openai/v1/chat/completions \
+  -H "Authorization: Bearer $RUNPOD_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"model": "meta-llama/Llama-3.1-8B-Instruct", "messages": [{"role": "user", "content": "Hello"}]}'
+```
+
+📄 Proof of use: [`submission/SDC2026_VBall_Runpod_POU.pdf`](submission/SDC2026_VBall_Runpod_POU.pdf)
+
+---
+
+## Challenges & Learnings
+
+- **Our first accuracy scores were contaminated.** One author wrote the chats, the keys and the rules, so 20 of 20 meant nothing. On three chats written blind by separate AI agents, the rules fully got 13 of 29 changes right and the AI reader 17 (21 after we fixed its errors, on the same chats, so not independent). See [Appendix C](#appendix-c-testing-and-results).
+- **WhatsApp limits shape the design.** The official Groups API allows at most 8 people per group and needs a verified business, so the prototype uses the official webhook format and imports chats from a text export.
+- **A model should read, not decide.** The AI reader only reports what it found; code rejects invented prices and a person approves every change.
+- **Cold starts matter.** A serverless GPU worker takes minutes to wake, so the app always has a rules fallback.
+
+## Future Improvements
+
+- [ ] Score the AI reader on chats written by our teammates, and time the final bill by hand against SMErgers.
+- [ ] Pilot with 3 to 5 event companies on the official WhatsApp API, with consent.
+- [ ] Reuse Orbyte approvals and eSign; train a model on real, human-checked approvals.
+- [ ] Extend to renovation, agencies and print; vendor quote comparison; turn a client's photo into a change.
+
+## Team
+
+| Name                    | GitHub                                              |
+| ----------------------- | --------------------------------------------------- |
+| Vincent Chew Wen Jie    | [@Anonys-sky](https://github.com/Anonys-sky)        |
+| Steven Elnathan Meliala | [@stevenmeliala](https://github.com/stevenmeliala)  |
+| Looi Wan Wei            | [@wan-wei-looi](https://github.com/wan-wei-looi)    |
+
+---
+
+## Submission Checklist
+
+- [x] Team name, domain (Domain 2) and SDG track filled in
+- [x] Slide deck link added
+- [x] Demo video link added
+- [x] Replit used, with proof of use in `submission/`
+- [x] RunPod used, with proof of use in `submission/`
+- [x] Preliminary submission completed (`SDC2026_VBall_Preliminary.pdf`)
+- [x] Technology declaration completed (`SDC2026_VBall_TechDeclaration.pdf`)
+- [x] Submission files renamed with the team name
+- [x] "How to Run" steps verified
+- [x] No API keys or secrets committed to the repository
+
+---
+
+## Appendix A: How it meets the brief
+
+**The five-step Domain 2 journey:**
 
 | Step | In SMErgers |
 | --- | --- |
@@ -112,162 +264,50 @@ When something is unclear it does not guess: a change with no price is marked "n
 
 | Must-have | Where to see it |
 | --- | --- |
-| One clear SME problem | Agreed changes in WhatsApp never reach the final bill ([problem](#the-problem-in-one-example)) |
-| Core automated journey | The five steps above, running in the [demo](#demo-walkthrough) |
-| Accuracy and ease of learning | Evidence beside every change, a five-step guide, and measured scores ([results](#testing-and-results)) |
+| One clear SME problem | Agreed changes in WhatsApp never reach the final bill ([Problem](#problem)) |
+| Core automated journey | The five steps above, running in the [demo walkthrough](#three-minute-demo-walkthrough) |
+| Accuracy and ease of learning | Evidence beside every change, a five-step guide, and measured scores ([results](#appendix-c-testing-and-results)) |
 | People stay in control | Role checks on the server and the hash-chained log (`src/workflow.py`, `tests/`) |
-| Orbyte fit and reuse | It reuses Orbyte's roles, approvals, eSign and audit trail and adds chat-to-approved-changes. The same engine runs a café renovation chat with only a different quote file, and the job API is a building block. Assumptions: [docs/orbyte-integration.md](docs/orbyte-integration.md) |
-| Business benefit and SDG | Extras recovered and hours saved; SDG 8.2 and 8.3 ([business model](#business-model)) |
+| Orbyte fit and reuse | Reuses Orbyte's roles, approvals, eSign and audit trail and adds chat-to-approved-changes. The same engine runs a café renovation chat with only a different quote file, and the job API is a building block ([docs/orbyte-integration.md](docs/orbyte-integration.md)) |
+| Business benefit and SDG | Extras recovered and hours saved; SDG 8.2 and 8.3 ([Appendix D](#appendix-d-business-model-privacy-and-limits)) |
 
----
-
-## Quick start
-
-Requirements: Python 3.12. Node.js is only needed for the optional WhatsApp bridge and two test files.
-
-**On Replit:** import this repository (**Create Repl → Import from GitHub**) and click **Run**. The `.replit` workflow starts Flask on port 5000 and the WhatsApp bridge on loopback port 3001 using `scripts/start-application.sh`. Add secrets only if you want the AI reader (see [Configuration](#configuration)).
-
-**Locally:**
-
-```bash
-git clone https://github.com/Anonys-sky/SMErgers.git
-cd SMErgers
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-python src/main.py               # then open http://localhost:5000
-```
-
-The app opens on the Project manager workspace with four synthetic projects. State is kept in memory, and **Reset demo data** restores the samples.
-
-### WhatsApp bridge on the published VM
-
-Publishing uses `scripts/build-production.sh` to install the Node dependencies and verify that Chromium can actually launch. Nix supplies Chromium with its Linux shared libraries; the bridge prefers that executable over Puppeteer's standalone download. `scripts/start-application.sh` then runs both Flask and the bridge, and shuts both down if either process exits. Only Flask is publicly exposed; the bridge listens on `127.0.0.1:3001`.
-
-After changing these settings, **republish**: restarting the development workspace does not update the published VM. Open `/whatsapp` in the published app and wait for **Ready for pairing**, then scan the QR code. A running bridge is not the same as a paired account. Linked sessions are not copied from the workspace into a deployment; a new or replaced runtime may need pairing again.
-
-**Access warning:** demo role selection is not authentication. Make the deployment private to invited collaborators before pairing an account. Anyone who can access the app can switch demo roles and use the WhatsApp pages. This remains an unofficial test connector; use synthetic test groups, not real client conversations.
-
-For local development with both services, install the Node dependencies (`npm ci`) and use `npm start`. You can override the browser executable with `PUPPETEER_EXECUTABLE_PATH`; without a system browser the bridge uses Puppeteer's default browser.
-
-## Demo walkthrough
-
-About 3 minutes. The guide bar at the top of each job says what happens next and who does it.
-
-1. In the Project manager overview, open **Annual Dinner 2026**. The chat is on the left and the changes found in it are on the right.
-2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
-3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the director must now approve it, because staff entered the price), then **Check all**.
-4. Press **Continue as Daniel (Project Director)**. Read **Next time, quote it upfront**, then **Approve all**.
-5. Press **Open the client's link**, the page the client sees from WhatsApp. Confirm all seven changes (RM3,860), or dispute one with a reason and it stays off the bill.
-6. Press **Back to Aisyah**, then open **History**: SMErgers has posted "quote version 2" (RM38,390 when all seven are confirmed) to the group. Open **Draft bill** to see every line linked to its source.
-
-To try the AI reader, open **Import chat**, choose `data/chats/blind_agent_a.txt` with its quote `q_blind_agent_a.json`, and tick **Read with the AI reader**.
-
-## Where AI fits
+## Appendix B: Where AI fits, configuration and API
 
 The chat-reading step has two readers behind one interface (`src/reader.py`):
 
 - **Rules reader** (default): fixed, explainable rules. Fast, offline, and the fallback.
-- **AI reader**: Llama 3.1 8B Instruct on a RunPod GPU, used as it is with no training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price not written in the cited messages or the quote, sets every status itself, and the rules take over if the model is unreachable. Three code guards sit on top of the prompt: a price promised "later" is never filled in from the quote, a colour or time swap with no price is logged as no cost, and a change whose last message is "let me ask my boss first" cannot be ready. Approval and billing never use the model.
-
-Tick **Read with the AI reader** when importing a chat. Without RunPod keys the same reader uses a local [Ollama](https://ollama.com) server for development. After a quiet period the first AI request takes 2 to 3 minutes while the GPU worker starts.
+- **AI reader**: Llama 3.1 8B Instruct on a RunPod GPU, used as it is. It only reads: it finds the changes and cites the messages. Plain code then rejects any price not written in the cited messages or the quote, and sets every status itself. Three code guards sit on top of the prompt: a price promised "later" is never filled in from the quote, a colour or time swap with no price is logged as no cost, and a change whose last message is "let me ask my boss first" cannot be ready. Approval and billing never use the model.
 
 Every approval and dispute is a human-checked label; after a pilot with real companies that data can train a model. We do not train on made-up chats.
 
-## Configuration
-
-All settings are environment variables; none is required to run the demo. On Replit, set them in **Secrets**. Never commit real values (`.env.example` lists them).
+**Configuration.** All settings are environment variables and none is required to run the demo. On Replit, set them in **Secrets**. Never commit real values (`.env.example` lists them).
 
 | Variable | Purpose | Default |
 | --- | --- | --- |
 | `PORT` | Port the app listens on | `5000` |
-| `SECRET_KEY` | Signs the cookie that remembers which role you are viewing as (`SESSION_SECRET` is also read) | random at start-up |
+| `SECRET_KEY` | Signs the cookie that remembers which role you are viewing as | random at start-up |
 | `SMERGERS_READER` | `llm` makes the AI reader the default for every job | `rules` |
 | `RUNPOD_ENDPOINT_ID`, `RUNPOD_API_KEY` | Use the AI reader on a RunPod Serverless endpoint | unset: local Ollama |
-| `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL`, `SMERGERS_LLM_KEY` | Point the AI reader at any OpenAI-compatible endpoint | RunPod or Ollama |
-| `SMERGERS_LLM_TIMEOUT` | Seconds to wait for the model | `300` |
-| `WHATSAPP_VERIFY_TOKEN` | Token echoed back when Meta verifies the webhook | unset: verification refused |
-| `WHATSAPP_APP_SECRET` | When set, every webhook call must carry a valid `X-Hub-Signature-256` | unset: not checked |
-| `WHATSAPP_BRIDGE_URL`, `WHATSAPP_TIMEZONE` | Optional test bridge (unofficial, not part of the product) | `http://127.0.0.1:3001`, system zone |
+| `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL`, `SMERGERS_LLM_KEY`, `SMERGERS_LLM_TIMEOUT` | Point the AI reader at any OpenAI-compatible endpoint | RunPod or Ollama; timeout `300` s |
+| `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | Webhook handshake token; when the secret is set, every call must carry a valid `X-Hub-Signature-256` | unset |
+| `WHATSAPP_BRIDGE_URL`, `WHATSAPP_TIMEZONE` | Optional test connector (unofficial, not part of the product) | `http://127.0.0.1:3001`, system zone |
 
-## API and webhook
-
-**Job API.** `GET /api/jobs/<job_id>` returns one job as JSON. It is read-only and meant as a building block for Orbyte modules.
+**Job API.** `GET /api/jobs/<job_id>` returns one job as JSON (read-only, a building block for Orbyte modules):
 
 ```bash
 curl http://localhost:5000/api/jobs/annual-dinner
 ```
 
-```json
-{
-  "job": { "id": "annual-dinner", "title": "Annual Dinner 2026", "client": "Sinar Demo Trading Sdn Bhd",
-           "quote_id": "Q-2026-041", "simulated": true },
-  "bill": { "quote_total": 34530.0, "agreed_in_chat_beyond_quote": 3540.0, "confirmed_changes": 0.0,
-            "not_on_bill_yet": 3540.0, "draft_total": 34530.0 },
-  "changes": [ { "key": "t1", "item": "Dinner package", "kind": "quantity_change", "qty_delta": 15,
-                 "price": 1920.0, "found_as": "ready", "approval_state": "detected", "confidence": "high",
-                 "quote_line": "L01", "evidence_message_ids": ["e7b3d420f6e7", "..."], "reason": "..." } ],
-  "suggestions": [ { "title": "...", "seen_in": 4, "of_jobs": 4, "advice": "..." } ],
-  "activity_log": { "intact": true, "entries": [ { "seq": 1, "action": "import", "hash": "...", "prev_hash": "start" } ] }
-}
-```
+**WhatsApp webhook** (Meta Cloud API format): `GET /webhooks/whatsapp` echoes `hub.challenge` when `hub.verify_token` matches `WHATSAPP_VERIFY_TOKEN`, otherwise 403. `POST /webhooks/whatsapp` accepts Meta's payload and returns 403 if the signature is invalid. The group id is read from a `group_id` field on each message, which is our assumption because we had no API access; check it against Meta's Groups API documentation before going live. The default demo has no linked group, so chats come in by text export.
 
-**WhatsApp webhook** (Meta Cloud API format):
+**Optional test connector.** `whatsapp/` holds an unofficial WhatsApp Web connector, used for team testing only and not part of the product. Use a spare test number and synthetic groups, never real client conversations. Open `/whatsapp` to pair it. On the published Replit VM, `scripts/build-production.sh` installs the Node dependencies and checks that Chromium launches, and `scripts/start-application.sh` runs Flask and the connector together. Demo role selection is not authentication, so make the deployment private before pairing an account.
 
-| Method and path | Behaviour |
-| --- | --- |
-| `GET /webhooks/whatsapp` | Verification handshake: echoes `hub.challenge` when `hub.verify_token` matches `WHATSAPP_VERIFY_TOKEN`, otherwise 403 |
-| `POST /webhooks/whatsapp` | Accepts Meta's payload (`entry → changes → value → messages`); returns 403 if `WHATSAPP_APP_SECRET` is set and the signature is invalid |
-
-The group id is read from a `group_id` field on each message, which is our assumption because we had no API access; check it against Meta's Groups API documentation before going live. Messages are delivered to the job linked to that group; the default demo has no linked group, so chats come in by text export. The signature check and the handshake are covered by tests. Limits of the official Groups API: at most 8 participants per group, and an Official Business Account is required. The optional bridge starts alongside the app with the configured launcher (`npm start`), including on the published VM; visit `/whatsapp` to pair it. It uses an unofficial client for team testing only and is not part of the product.
-
----
-
-## Tech stack
-
-| Layer | Technology |
-| --- | --- |
-| Web app | Python 3.12, Flask, server-rendered Jinja templates, one CSS file |
-| Logic | Rules engine, AI reader, approval workflow, quote versioning, suggestions (Python) |
-| Data | In-memory store for the prototype; synthetic JSON data |
-| AI / compute | Llama 3.1 8B Instruct on a RunPod Serverless vLLM endpoint (GPU); local Ollama for development |
-| WhatsApp | Meta Cloud API webhook format; optional Node.js bridge for team testing only |
-| Tests | pytest (290+ tests); Node test runner for the bridge and workspace filters |
-| Design, testing and hosting | Replit (workspace, preview, Deployments) |
-
-## Project structure and architecture
-
-```
-.
-├── src/                 Flask app and logic (main.py, reader.py, rules_extractor.py, llm_extractor.py,
-│                        workflow.py, sync.py, bill.py, suggest.py, webhook.py, ...), templates/, static/
-├── data/                Synthetic quotes, chats, answer keys, past jobs, company directory (data/README.md)
-├── tests/               pytest suite
-├── docs/                results.md (every accuracy run), orbyte-integration.md, add-a-project.md, img/
-├── runpod/              Setup guide for the AI reader's RunPod endpoint
-├── whatsapp/            Optional local bridge (Node.js, team testing only)
-├── submission/          Submission documents (see submission/README.md)
-└── .env.example  .replit  replit.md  requirements.txt  package.json  LICENSE
-```
-
-```
-WhatsApp group ──webhook──► webhook.py ──► reader (rules or AI) ──► workflow ──► sync.py ──► group update, quote v2
-   (.txt export ──► chat_import)              ▲                (PM ► director ► client)        approval and confirm requests
-                                 quote, rate card, directory                    │
-                                                                                ▼
-                                       suggest.py ◄── past jobs        bill.py ──► draft bill, CSV
-                                                                                ▼
-                                                                  activity log, GET /api/jobs/<id>
-```
-
-## Testing and results
+## Appendix C: Testing and results
 
 ```bash
-python -m pytest                              # 290+ tests: parsing, rules, permissions, billing, pages
+python -m pytest                              # 290+ tests
 python src/evaluate.py                        # score the rules against the answer keys
 python src/evaluate.py --blind --ai           # also score the AI reader (needs a model endpoint)
-npm test                                      # bridge conversion tests (needs Node.js)
-node --test tests/workspace_filter.test.cjs   # workspace search and status filters
 ```
 
 A change is fully right when both its status and its price match the hand-written answer key. The rules scored 10 of 10 and 20 of 20 on chats written by the same author as the rules, which is **not** an accuracy figure.
@@ -283,27 +323,9 @@ A change is fully right when both its status and its price match the hand-writte
 
 This is 29 changes in synthetic chats: a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong, which is why a person checks every change.
 
-## How we use Replit
+## Appendix D: Business model, privacy and limits
 
-Replit is where the team designs, tests and deploys SMErgers.
-
-- **Design:** the interface is built and iterated in the Replit workspace, with the live preview beside the code. Replit Agent helped with configuration and styling, declared in the Technical Tools Declaration.
-- **Test:** the app runs in Replit's preview, and the test suite runs in its shell (`python -m pytest`); `requirements.txt` pins the dependencies so Replit matches the local build.
-- **Deploy:** the prototype is published with Replit Deployments; `.replit` starts `python src/main.py` on port 5000. Secrets such as `SECRET_KEY` and the AI reader's RunPod keys are set in Replit Secrets and never committed.
-- **Proof of use:** `submission/SDC2026_VBall_Replit_POU.pdf`.
-
-## How we use RunPod
-
-The AI reader's model runs on a RunPod Serverless vLLM endpoint (Llama 3.1 8B Instruct, RTX 4090), not on Replit. RunPod runs the pre-trained model only: we train and fine-tune nothing.
-
-- **When it runs:** only when a chat is imported with **Read with the AI reader** ticked; demo jobs and webhook messages use the rules.
-- **Setup:** `RUNPOD_ENDPOINT_ID` and `RUNPOD_API_KEY` in Replit Secrets; steps and lessons in [runpod/README.md](runpod/README.md).
-- **If it is down:** the rules read the chat and the page says so.
-- **Proof of use:** `submission/SDC2026_VBall_Runpod_POU.pdf`.
-
-## Business model
-
-The owner pays, because the owner is the one giving money away; the project manager and finance use it every day. A B2B freemium subscription, with prices as hypotheses to test in a pilot:
+The owner pays, because the owner is the one giving money away. A B2B freemium subscription, with prices as hypotheses to test in a pilot:
 
 | Tier | Price | Includes |
 | --- | --- | --- |
@@ -311,29 +333,13 @@ The owner pays, because the owner is the one giving money away; the project mana
 | Confirm | RM100 a month | Approvals, client confirmation links, group updates |
 | Settle | RM250 a month | Draft bills, CSV, log export, suggestions, all jobs |
 
-Break-even: Confirm costs RM1,200 a year, so recovering one forgotten RM1,200 extra a year pays for it. Usage pricing through Orbyte credits is the alternative.
-
-## Privacy, boundaries and limits
+Worked example from one simulated job: RM3,860 of extras on a dinner, times 10 dinners a year, is RM38,600. Winning back a quarter is RM9,650 against the RM1,200 a year Confirm tier: a net gain of RM8,450, 7.0 times the cost. Break-even is about 3% of extras. The real rate is unknown, so the pilot measures it.
 
 - **Synthetic data only.** Every chat, quote, company and person here is invented and labelled.
 - **No payments, filings or advice.** The bill is a draft for accounting software; nothing is sent or paid.
 - **Sign-in is simulated,** as the brief allows; permissions are still checked on the server.
 - **PDPA in a real deployment:** tell clients and vendors why the group is read, keep only messages linked to changes, limit access by role, set a retention period, honour access and deletion requests, and get legal review before a pilot.
 - **Limits:** data is held in memory and resets on restart; group messages are queued and shown on screen, because delivery needs the official WhatsApp API; the rules and the AI reader can miss unusual phrasing, which is why nothing reaches the bill without a person's check and the client's confirmation.
-
-## Challenges and learnings
-
-- **Our first accuracy scores were contaminated.** One author wrote the chats, the keys and the rules, so 20 of 20 meant nothing. On chats written blind, the rules fully got 13 of 29 right and the AI reader 17.
-- **WhatsApp limits shape the design.** The official Groups API has participant limits and needs a verified business, so the prototype uses the official webhook format and imports chats from a text export.
-- **A model should read, not decide.** The AI reader only reports what it found; code rejects invented prices and a person approves every change.
-
-## Future improvements
-
-| Phase | What |
-| --- | --- |
-| Now | Prototype: webhook, rules and AI reader, approvals, quote versions, suggestions. Next: score on chats written by teammates, and time the final bill by hand against SMErgers |
-| Pilot | 3 to 5 event companies on the official WhatsApp API with consent; Orbyte approvals and eSign; a model trained on real approvals |
-| Grow | Renovation, agencies and print; vendor quote comparison; turning a client's photo into a change |
 
 ## Contributing
 
@@ -343,20 +349,12 @@ Break-even: Confirm costs RM1,200 a year, so recovering one forgotten RM1,200 ex
 - Keep the approval rules on the server: a hidden button is not a permission check.
 - Record every accuracy run in [docs/results.md](docs/results.md), including bad ones, and never tune on the blind chats.
 
-## Team
+---
 
-- Vincent Chew Wen Jie ([@Anonys-sky](https://github.com/Anonys-sky))
-- Steven Elnathan Meliala ([@stevenmeliala](https://github.com/stevenmeliala))
-- Looi Wan Wei ([@wan-wei-looi](https://github.com/wan-wei-looi))
+## License
 
-## Submission documents
-
-The proposal, Technical Tools Declaration and proofs of use are in [submission/](submission/README.md).
-
-## License and acknowledgements
-
-Licensed under the [Apache License 2.0](LICENSE).
+This project is licensed under the [Apache License 2.0](LICENSE).
 
 **Built with Llama.** The AI reader uses Meta Llama 3.1 8B Instruct under the Llama 3.1 Community License. Llama 3.1 is licensed under the Llama 3.1 Community License, Copyright © Meta Platforms, Inc. All Rights Reserved.
 
-Third-party software: Flask, Jinja2, MarkupSafe and Werkzeug (BSD-3-Clause), tzdata (Apache-2.0), pytest (MIT), vLLM (Apache-2.0), Ollama (MIT), and, for the optional bridge only, whatsapp-web.js (Apache-2.0) and qrcode (MIT). Full list with versions: `requirements.txt`, `package.json` and the Technical Tools Declaration.
+Third-party software: Flask, Jinja2, MarkupSafe and Werkzeug (BSD-3-Clause), tzdata (Apache-2.0), pytest (MIT), vLLM (Apache-2.0), Ollama (MIT), and, for the optional test connector only, whatsapp-web.js (Apache-2.0) and qrcode (MIT). Full list with versions: `requirements.txt`, `package.json` and the Technical & Tools Declaration.
