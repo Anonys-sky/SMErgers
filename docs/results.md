@@ -59,4 +59,23 @@ Same command as Run 3, against a separate local Ollama server started with the G
 |---|---|---|---|
 | AI reader, CPU only | 27 of 29 | 18 (62%) | 1 |
 
-By chat, fully right: A 7 of 10, B 5 of 10, C 6 of 9. The total matches Run 3; individual answers differ slightly because the model's output is not exactly repeatable. This is the run we quote, as it used no GPU. Same caveats: 29 changes, synthetic chats written by AI agents.
+By chat, fully right: A 7 of 10, B 5 of 10, C 6 of 9. The total matches Run 3; individual answers differ slightly because the model's output is not exactly repeatable. Run 5 supersedes this run for quoting. Same caveats: 29 changes, synthetic chats written by AI agents.
+
+## Run 5: 24 Oct 2026, AI reader on RunPod (GPU) on the same blind chats, commit 1173d1e
+
+Same command as Runs 3 and 4 (`python src/evaluate.py --blind --ai`), but the model ran on a RunPod Serverless vLLM endpoint: `meta-llama/Llama-3.1-8B-Instruct`, `MAX_MODEL_LEN` 8192, one RTX 4090 (24 GB) worker, image `runpod/worker-v1-vllm:v2.30.1`, endpoint ID `2y90x5ojwpgxnh`. The endpoint's job counter went up by 3, one per chat, so no chat fell back to the rules. Prompt and checks unchanged from Run 3. This is the run that follows handbook section 9.4 (GPU work on RunPod).
+
+| Reader | Found | Fully right (status and price) | False changes |
+|---|---|---|---|
+| AI reader, RunPod RTX 4090 | 26 of 29 (90%) | 17 (59%) | 1 |
+
+By chat: A found 10 of 10, 7 fully right, 0 false; B found 7 of 10, 4 fully right, 0 false; C found 9 of 9, 6 fully right, 1 false. Total ready amount against the key: A RM4,344 (RM3,834), B RM1,390 (RM2,590), C RM8,740 (RM3,620).
+
+**Compared with Runs 3 and 4:** one fewer change found than Run 4 (27) and two fewer than Run 3 (28), and one fewer fully right (17 against 18). The model is the same, but the serving stack is different (vLLM instead of Ollama, bf16 instead of a quantised model) and the output is not exactly repeatable, so a gap of one or two changes is not evidence that one setup is better. Same caveats: 29 changes, synthetic chats written by AI agents.
+
+**Where it was wrong:**
+- Chat B: missed the discount request, the extra registration counter and the drone operator, and called the venue extension "needs a price". It also filed the tote colour and load-in time as "needs a price" instead of "no cost".
+- Chat A: marked the centrepieces "ready" although the client never confirmed, and filed the backdrop colour and arrival time as "needs a price".
+- Chat C: the withdrawn peony upgrade came back as "unconfirmed" at RM30, the "price later" second lion dance was priced at RM1,200 (one false change), and the band start time was filed as "needs a price".
+
+**Timing:** the first request waited about 2.5 minutes for the worker to start and load the model (cold start); once warm, a request ran in under a second. Billing for this run had not yet appeared when it was written (it lags by up to an hour).

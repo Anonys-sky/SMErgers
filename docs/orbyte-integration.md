@@ -12,8 +12,8 @@ Orbyte already provides people, roles, approvals, eSign and an audit trail. SMEr
 |---|---|---|
 | The job and its client | Clients and projects | `data/quotes/*.json` |
 | The signed quote and rate card | Project documents | Same JSON files |
-| Who is PM, owner, client, finance | Directory, shared roles | "Viewing as" switch, checked server-side in `src/workflow.py` |
-| Owner and client sign-off | Approvals, eSign | Approve and Confirm buttons |
+| Who is PM, director, client, finance | Directory, shared roles | "Viewing as" switch, checked server-side in `src/workflow.py` |
+| Director and client sign-off | Approvals, eSign | Approve and Confirm buttons |
 | A record that cannot be quietly edited | Audit trail | Hash-chained log in `src/workflow.py` |
 | Sending the bill out | Accounting and e-invoicing partners | CSV export of the draft bill; nothing is sent |
 

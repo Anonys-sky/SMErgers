@@ -8,6 +8,8 @@
 | --- | --- |
 | GitHub repository | https://github.com/Anonys-sky/SMErgers |
 | Pitch deck | https://claude.ai/artifact/E9Ha8YrDr2SKnbHsF4QFjx |
+| Live prototype (Replit) | |
+| Demo video (YouTube) | |
 
 ## Team information
 
@@ -33,11 +35,11 @@ This comes from a team member's experience at an event company, where it happene
 
 **Catch it.** SMErgers reads the job's WhatsApp group as messages arrive, so nobody exports anything. It groups messages into threads (a request and its replies) and works out what changed, by how much, at what price, and whether both sides agreed.
 
-**Confirm it.** Each change goes to the right person. The project manager checks it, the owner signs off on large or unusual items, and the client confirms or disputes it on their own page. Each person is messaged when it is their turn.
+**Confirm it.** Each change goes to the right person. The project manager checks it, the project director signs off on large or unusual items, and the client confirms or disputes it on their own page. Each person is messaged when it is their turn.
 
 **Sync it.** Every client confirmation creates a new version of the quote (v2, v3 and so on) and posts a summary back to the group, so everyone works from the same numbers. Only confirmed changes reach the draft bill, and every line links back to the messages it came from.
 
-When something is unclear, SMErgers does not guess. A change with no price anywhere is marked "needs a price", a discount with no clear base goes to the owner, and a request nobody agreed to stays "discussed, not confirmed".
+When something is unclear, SMErgers does not guess. A change with no price anywhere is marked "needs a price", a discount with no clear base goes to the project director, and a request nobody agreed to stays "discussed, not confirmed".
 
 ## Features
 
@@ -47,12 +49,12 @@ When something is unclear, SMErgers does not guess. A change with no price anywh
 | Add project | Project managers and directors can create a project with its own event details, team, quote items, optional extra-item rates and a pasted or uploaded WhatsApp export. It appears in Projects in progress and uses the existing review, approval, confirmation and billing workflow. |
 | Validated chat imports | Both intake flows reject conversations with no sender messages. Invalid chat dates and times produce a line-numbered error instead of a server crash. A valid conversation can be imported even if no changes are detected. |
 | Price and navigation safeguards | Price entry and director discount decisions reject NaN, infinity and overflow-to-infinity values. Invalid prices cannot progress through review, approval or confirmation. Action forms accept only local return paths, not external redirects. |
-| Live from WhatsApp | Receives messages in Meta's official Cloud API webhook format, with signature checking and the verification handshake. The demo feeds a synthetic chat one message at a time. |
+| WhatsApp webhook | Accepts messages in Meta's official Cloud API webhook format, with signature checking and the verification handshake (tested with synthetic payloads). The demo brings a chat in from a WhatsApp text export. |
 | Change finder | Rules that handle follow-ups ("and 1 at the lift lobby also"), recaps, withdrawn requests, "let me ask boss first", Malay and Chinese phrasing, per-unit prices and running totals. |
 | Show in chat | Every change and bill line highlights the exact messages it came from. Clicking a message jumps to its change. |
-| Approval by the right person | Named people from a company directory: the PM and the owner use the app; the client confirms on a phone-sized page opened from a WhatsApp link; finance downloads the CSV. The owner signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff. Enforced on the server, not only hidden in the page. |
+| Approval by the right person | Named people from a company directory: the project manager and the project director use the app; the client confirms on a phone-sized page opened from a WhatsApp link; finance downloads the CSV. The project director signs off at RM500 or more, on discounts, on unconfirmed items and on prices typed by staff. Enforced on the server, not only hidden in the page. |
 | Quote versions and messages | Each confirmation makes a new quote version and posts it to the group. Approval and confirmation requests go to the next person. All of it, with the activity log, is on the job's History page. |
-| Guided journey | A five-step guide on every job (messages arrive, PM checks, owner approves, client confirms, everyone in sync) says who acts next and hands over in one click. |
+| Guided journey | A five-step guide on every job (messages arrive, PM checks, director approves, client confirms, everyone in sync) says who acts next and hands over in one click. |
 | Next time, quote it upfront | Counts from past jobs show what usually changes late in this kind of event and the one step that moves the decision into the quote, e.g. "the event ran past the planned end in 4 of 4 dinners: put overtime rates in the quote". |
 | Draft final bill | The quote with adjusted quantities plus agreed changes, what is not on the bill yet and why, and a CSV for accounting software. A draft, never an invoice. |
 | Activity log | Who did what, in which role, and when. Each entry is chained to the one before, so a later edit shows. |
@@ -62,10 +64,10 @@ When something is unclear, SMErgers does not guess. A change with no price anywh
 
 | Step in the brief | In SMErgers |
 | --- | --- |
-| Trigger | A message arrives in the job's WhatsApp group (webhook) |
+| Trigger | A message arrives in the job's WhatsApp group (webhook), or a chat export is imported in the prototype |
 | Connected data | The signed quote, the rate card, the client, the job and the company directory |
 | Decision logic | Fixed, explainable rules find each change, its quantity and price, and whether both sides agreed |
-| Human approval | PM checks; owner signs off on large or unusual items; client confirms |
+| Human approval | PM checks; project director signs off on large or unusual items; client confirms |
 | Visible outcome | Quote v2 posted to the group, the draft bill and CSV, and the activity log |
 
 ## Where AI fits, and where it does not
@@ -73,11 +75,11 @@ When something is unclear, SMErgers does not guess. A change with no price anywh
 The chat-reading step has two readers behind one interface (`src/reader.py`):
 
 - **Rules reader** (default): fixed, explainable rules. Fast, offline, and the fallback.
-- **AI reader** (`SMERGERS_READER=llm`): a pre-trained language model, by default Llama 3.1 8B running locally through [Ollama](https://ollama.com). No API key, no internet, no training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price that is not written in the cited messages or in the quote, sets every status itself, and falls back to the rules if the model is offline or answers badly. Approval and billing never use the model.
+- **AI reader** (`SMERGERS_READER=llm`): a pre-trained language model, Llama 3.1 8B Instruct, running on a GPU on RunPod (Serverless vLLM). No training by us. It only reads: it finds the changes and cites the messages. Plain code then rejects any price that is not written in the cited messages or in the quote, sets every status itself, and falls back to the rules if the model is offline or answers badly. Approval and billing never use the model.
 
 Tick **Read with the AI reader** when importing a chat. The model runs on a RunPod endpoint (see "How we use RunPod"); for local development it can also run on a local [Ollama](https://ollama.com) server (`ollama pull llama3.1:8b`), which is the default when no RunPod keys are set.
 
-Other OpenAI-compatible endpoints work through `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL` and `SMERGERS_LLM_KEY`. On a laptop GPU the model takes about 2 minutes per chat, so the demo uses the rules by default.
+`SMERGERS_READER=llm` makes the AI reader the default for every job. Other OpenAI-compatible endpoints work through `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL` and `SMERGERS_LLM_KEY`. On RunPod the first request after a quiet period takes 2 to 3 minutes while the worker starts, then seconds per chat, so the demo uses the rules by default.
 
 The product creates its own training data: every approval, rejection and dispute is a human-checked label on real chat messages. After a pilot with real companies, that data can train a model to read messages and to make the "quote it upfront" suggestions. We do not train on made-up chats.
 
@@ -130,22 +132,24 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 │   ├── main.py                Web app entry point (routes only)
 │   ├── project_intake.py      New-project validation and quote/chat preparation
 │   ├── workspaces.py          Role-specific dashboard, queue and checklist data
+│   ├── pricing.py             Price parsing and limits
 │   ├── navigation.py          Safe local return paths for action forms
 │   ├── webhook.py             WhatsApp Cloud API webhook format and live ingestion
 │   ├── chat_import.py         Chat parsing (exports and live messages)
 │   ├── catalogue.py           Quote lines, rate card and the words that name them
 │   ├── reader.py              Chooses the rules reader (default) or the AI reader, with fallback
 │   ├── rules_extractor.py     Rules reader: finds the changes agreed in a chat
-│   ├── llm_extractor.py       AI reader: local Llama via Ollama, every price and status checked by code
+│   ├── llm_extractor.py       AI reader: Llama on RunPod (or local Ollama), every price and status checked by code
 │   ├── workflow.py            Approval flow, permissions, activity log
 │   ├── sync.py                Quote versions and messages to the group and approvers
 │   ├── bill.py                Matches confirmed changes to the quote, builds the draft bill
 │   ├── suggest.py             Suggestions from past jobs
 │   ├── evaluate.py            Scores the extractor against the answer keys
-│   ├── store.py               Jobs, demo reset and the live demo feed
+│   ├── store.py               Jobs, demo reset and the webhook feed
 │   ├── whatsapp_bridge.py     Client for the optional local bridge
 │   ├── schema.py              Shared data shapes
 │   └── templates/, static/    Pages and styles
+├── runpod/                    Setup guide for the AI reader's RunPod endpoint
 ├── whatsapp/                  Optional local bridge (Node.js, team testing only)
 ├── submission/                Submission documents (see submission/README.md)
 ├── tests/                     pytest suite
@@ -156,7 +160,7 @@ Known limits of the official Groups API: at most 8 participants per group, and a
 
 ```
 WhatsApp group ──webhook──► webhook.py ──► reader (rules or AI) ──► workflow ──► sync.py ──► group update, quote v2
-   (.txt export ──► chat_import)              ▲                (PM ► owner ► client)        approval and confirm requests
+   (.txt export ──► chat_import)              ▲                (PM ► director ► client)        approval and confirm requests
                                  quote, rate card, directory                    │
                                                                                 ▼
                                        suggest.py ◄── past jobs        bill.py ──► draft bill, CSV
@@ -207,7 +211,7 @@ The guide bar at the top of each job always says what happens next and who does 
 
 1. In the Project manager overview, open **Annual Dinner 2026** from **Projects in progress**. The full WhatsApp chat is on the left and the changes found in it are on the right.
 2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
-3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the owner must now approve it, because staff entered the price), then **Check all**.
+3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the project director must now approve it, because staff entered the price), then **Check all**.
 4. Use the guide's hand-over button to continue as the **Project director**. Read **Next time, quote it upfront**, then approve.
 5. Press **Open the client's link**: the phone-sized page the client sees from WhatsApp. Dispute the banners ("we asked for 2") and confirm the rest.
 6. Press **Back to Aisyah**. In the chat, SMErgers has posted "quote version 2" to the group. Click **Show in chat** on the disputed banners: the client's own "2 more" and "and 1 at the lift lobby" settle it. Then open **Draft bill** and **History**.
@@ -262,15 +266,15 @@ Baseline: every message with an RM amount counts as a change.
 
 **The first two rows are not accuracy figures.** The same person wrote the chats, the answer keys and the rules.
 
-**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring. Each reader was scored once ([Runs 2 and 3](docs/results.md)):
+**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring. Each reader was scored once ([Runs 2 to 5](docs/results.md)); the AI reader row is the run on RunPod:
 
 | Reader | Found | Fully right (status and price) | False changes |
 | --- | --- | --- | --- |
 | Baseline | 15 of 29 | 3 | 5 |
 | Rules | 22 of 29 | 13 | 3 |
-| AI reader | 28 of 29 | 18 | 1 |
+| AI reader (Llama 3.1 8B on RunPod) | 26 of 29 | 17 | 1 |
 
-That is 29 changes in synthetic chats, so it is a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong (for example, calling an unconfirmed change "ready"), which is why a person checks every change.
+Earlier runs of the same model on a laptop GPU and on a CPU (Runs 3 and 4) fully got 18 of 29 right. That is 29 changes in synthetic chats, so it is a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong (for example, calling an unconfirmed change "ready"), which is why a person checks every change.
 
 ## Business model
 
@@ -329,15 +333,16 @@ Usage pricing through Orbyte credits is the alternative. Break-even: Confirm cos
 
 The AI reader's model runs on a GPU on RunPod, not on Replit. The Replit app sends the chat text to a RunPod Serverless vLLM endpoint running Llama 3.1 8B Instruct (OpenAI-compatible API); plain code then checks every price and status (`src/llm_extractor.py`).
 
-- **When it runs:** only when a chat is imported with **Read with the AI reader** ticked. Demo jobs and the live feed use the rules, so the app starts fast and approvals stay stable.
+- **When it runs:** only when a chat is imported with **Read with the AI reader** ticked. Demo jobs and webhook messages use the rules, so the app starts fast and approvals stay stable.
 - **Setup:** `RUNPOD_ENDPOINT_ID` and `RUNPOD_API_KEY` in Replit Secrets; steps in [runpod/README.md](runpod/README.md).
+- **What RunPod is used for:** running the pre-trained model (inference) only. We do not train or fine-tune any model; training data would come from approvals after a pilot with real companies.
 - **If it is down:** the rules read the chat and the page says so.
 - **Proof of use:** `submission/SDC2026_VBall_Runpod_POU.pdf`.
 
 ## Challenges and learnings
 
-- **Our first accuracy scores were contaminated.** One author wrote the chats, the keys and the rules, so 20 of 20 meant nothing. On chats written blind, the rules fully got 13 of 29 right; the AI reader got 18 ([docs/results.md](docs/results.md)).
-- **WhatsApp limits shape the design.** The official Groups API allows 8 participants and needs a verified business, so the prototype uses the official webhook format with a simulated feed and keeps chat export as a fallback.
+- **Our first accuracy scores were contaminated.** One author wrote the chats, the keys and the rules, so 20 of 20 meant nothing. On chats written blind, the rules fully got 13 of 29 right; the AI reader got 17 ([docs/results.md](docs/results.md)).
+- **WhatsApp limits shape the design.** The official Groups API allows 8 participants and needs a verified business, so the prototype uses the official webhook format, tested with synthetic payloads, and brings chats in from a text export.
 - **A model should read, not decide.** The AI reader only reports what it found; code rejects invented prices and a person approves every change.
 
 ## Team VBall
