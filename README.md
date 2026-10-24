@@ -4,7 +4,7 @@
 
 **Team VBall** · SDC Hackathon 2026 · Domain 2: Orbyte Smart SME Challenge · SDG 8 (targets 8.2 and 8.3) · [Apache License 2.0](LICENSE)
 
-**Live demo:** [sm-ergers-1.replit.app](https://sm-ergers-1.replit.app) · **Demo video:** (template) · [Slide deck](https://canva.link/yh0xo39bpzxaomf) · [Source code](https://github.com/Anonys-sky/SMErgers)
+**Live demo:** [sm-ergers-1.replit.app](https://sm-ergers-1.replit.app) · **Demo video:** [YouTube](https://youtu.be/UKgKFRvKVhM) · [Slide deck](https://canva.link/yh0xo39bpzxaomf) · [Source code](https://github.com/Anonys-sky/SMErgers)
 
 All data in this repository is synthetic. No real chat, person, client or company is used.
 
@@ -75,7 +75,7 @@ When something is unclear it does not guess: a change with no price is marked "n
 | Live Demo | https://sm-ergers-1.replit.app |
 | RunPod Endpoint | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM, needs an API key kept in Replit Secrets) |
 | Slide Deck | https://canva.link/yh0xo39bpzxaomf (PDF: [submission/SDC2026_VBall_PitchDeck.pdf](submission/SDC2026_VBall_PitchDeck.pdf)) |
-| Demo Video | (template) |
+| Demo Video | https://youtu.be/UKgKFRvKVhM |
 
 ---
 

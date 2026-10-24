@@ -7,9 +7,9 @@ File names from the official GitHub template (`SDC_Hackathon_Submission_Template
 - [x] `SDC2026_VBall_Replit_POU.pdf`: Replit proof of use (live deployment URL, project link with history, or credit screenshot, from a team member's own account).
 - [x] `SDC2026_VBall_Runpod_POU.pdf`: RunPod dashboard screenshot from the team's own account showing the Endpoint ID, GPU type and runtime (`runpod/README.md`).
 - [x] `SDC2026_VBall_PitchDeck.pdf`: the pitch deck (21 slides). Online version: https://canva.link/yh0xo39bpzxaomf
-- [ ] YouTube demo link, added to the root `README.md` once uploaded.
+- [x] YouTube demo video (6:47): https://youtu.be/UKgKFRvKVhM
 
-Before submitting: make the repository public, add the committee's GitHub accounts as collaborators, and add the YouTube link.
+Before submitting: make the repository public, add the committee's GitHub accounts as collaborators.
 
 ## RunPod
 
