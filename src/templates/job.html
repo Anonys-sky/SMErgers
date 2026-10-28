@@ -95,6 +95,26 @@
     {% else %}
       {% if total_items %}<p class="panel empty-state">Nothing needs you right now. <a href="{{ url_for('job_page', job_id=r.id) }}">Show all changes</a></p>{% else %}<p class="panel empty-state">No changes yet. {% if r.live %}Messages from the group are read as they arrive, and changes appear here.{% else %}Uploaded chats are analysed when you import them.{% endif %}</p>{% endif %}
     {% endfor %}
+    {% if role in ('pm', 'owner') %}
+    <details class="panel add-change">
+      <summary><strong>The reader missed something?</strong> Add the change yourself</summary>
+      <p class="hint">Pick the chat messages that show it was agreed. It goes through the same steps as every other change, and the project director always signs it off.</p>
+      <form method="post" action="{{ url_for('add_change', job_id=r.id) }}" class="import-form">
+        <label>What changed<input name="item" maxlength="80" required placeholder="e.g. Two more banners"></label>
+        <label>Kind of change<select name="kind">{% for value, label in add_kinds.items() %}<option value="{{ value }}">{{ label }}</option>{% endfor %}</select></label>
+        <label>Quote item it changes <span class="hint">optional</span><select name="line_id"><option value="">None, it is an extra</option>{% for l in r.catalogue.lines %}<option value="{{ l.line_id }}">{{ l.item }}</option>{% endfor %}</select></label>
+        <label>How many more (or fewer, as -2)<input name="qty" inputmode="decimal" placeholder="0"></label>
+        <label>Price in RM <span class="hint">leave empty if nobody said a price</span><input name="price" inputmode="decimal" placeholder="e.g. 270"></label>
+        <label>Messages that show it was agreed
+          <select name="evidence" multiple size="6" required>
+            {% for m in r.messages if m.sender and not m.is_media %}<option value="{{ m.id }}">{{ m.sent_at.strftime('%d %b %H:%M') }} · {{ m.sender.split(' (')[0] }}: {{ m.text[:70] }}</option>{% endfor %}
+          </select>
+          <span class="hint">Hold Ctrl (or Cmd) to pick more than one.</span></label>
+        <label>Note <span class="hint">optional</span><input name="note" maxlength="200"></label>
+        <div><button class="primary">Add this change</button></div>
+      </form>
+    </details>
+    {% endif %}
   </section>
 </div>
 </div>

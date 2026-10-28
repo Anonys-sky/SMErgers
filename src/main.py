@@ -18,7 +18,7 @@ from project_intake import InvalidProject, prepare
 from chat_import import InvalidChatTimestamp, parse_chat
 from navigation import local_return_path
 from bill import build_bill
-from schema import STATUSES
+from schema import STATUSES, Change
 from workflow import ACTIONS, STATE_LABELS, NotAllowed
 from workspaces import PERSONAS, build_workspace
 
@@ -474,7 +474,7 @@ def job_page(job_id):
     return render_template("job.html", r=record, bill=bill, items=items, total_items=len(record.job.items),
                            allowed=allowed_actions, highlighted=highlighted, show=show, waiting=waiting,
                            only_mine=only_mine, owner_limit=record.job.policy["owner_approval_at"], linked=linked,
-                           stages=progress(record.job), bulk=bulk_candidates(record.job, role),
+                           stages=progress(record.job), bulk=bulk_candidates(record.job, role), add_kinds=ADD_KINDS,
                            suggestions=suggest.for_job(record) if role in ("pm", "owner") else [], guide=guide(record))
 
 
@@ -506,6 +506,50 @@ def progress(job):
     if counts.get("disputed"):
         out.append(("disputed", "Disputed", counts["disputed"]))
     return out
+
+
+ADD_KINDS = {"quantity_change": "More or fewer of a quoted item", "replacement": "A swap with a price difference",
+             "extra": "An extra that is not on the quote", "discount": "A discount", "non_billable": "A change with no price difference"}
+
+
+@app.post("/job/<job_id>/changes/add")
+def add_change(job_id):
+    """A person adds a change the reader missed. It enters the normal approval flow."""
+    record = get_record(job_id)
+    if redirect_client := staff_only(job_id):
+        return redirect_client
+    managers_only()
+    back = url_for("job_page", job_id=job_id)
+    form = request.form
+    kind = form.get("kind", "extra")
+    item = form.get("item", "").strip()
+    line_id = form.get("line_id") or None
+    known = {m.id for m in record.messages}
+    evidence = [i for i in form.getlist("evidence") if i in known]
+    price_text = form.get("price", "").replace(",", "").replace("RM", "").strip()
+    try:
+        price = float(price_text) if price_text else None
+        qty = float(form.get("qty", "").strip() or 0)
+    except ValueError:
+        flash("Enter the price and the quantity as plain numbers.")
+        return redirect(back)
+    if kind not in ADD_KINDS or not item or len(item) > 80 or (line_id and record.catalogue.line(line_id) is None):
+        flash("Name the change (up to 80 characters) and choose what kind it is.")
+        return redirect(back)
+    if kind == "discount":
+        price = None   # the director decides a discount's amount and its basis
+    status = "log_only" if kind == "non_billable" else ("needs_decision" if kind == "discount" else
+                                                         ("ready" if price is not None else "needs_price"))
+    actor = record.actor(current_role())
+    reason = f"Added by {actor.name}: the reader had not found it." + (f" {form.get('note', '').strip()[:200]}" if form.get("note", "").strip() else "")
+    change = Change("", kind, item, line_id, qty, 0.0 if kind == "non_billable" else price, status, evidence, "medium", reason, "manual")
+    try:
+        key = record.job.add_change(change, actor)
+    except NotAllowed as err:
+        flash(str(err))
+        return redirect(back)
+    flash(f"{item} added. It goes to the project director like any other change.", "ok")
+    return redirect(back + f"?show={key}")
 
 
 @app.post("/job/<job_id>/bulk")

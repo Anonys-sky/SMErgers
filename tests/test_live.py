@@ -211,3 +211,70 @@ def test_a_new_business_can_set_its_own_approval_limit_in_the_form(client):
     assert record.job.policy["owner_approval_at"] == 1500
     form["approval_limit"] = "0"
     assert client.post("/projects/new", data=form).status_code == 400
+
+
+# ---------------------------------------------------------------- a person adds a change the reader missed
+def evidence_ids(record, *phrases):
+    from chat_import import find_message
+    return [find_message(record.messages, p).id for p in phrases]
+
+
+def test_a_person_can_add_a_missed_change_and_the_director_must_sign_it_off(client):
+    record = store.JOBS["annual-dinner"]
+    ids = evidence_ids(record, "195 people attending")
+    client.post("/role", data={"role": "pm"})
+    answer = client.post("/job/annual-dinner/changes/add", data={
+        "item": "Welcome drinks", "kind": "extra", "price": "400", "qty": "1", "evidence": ids, "note": "agreed by voice note"})
+    assert answer.status_code == 302 and "show=m1" in answer.location
+    item = record.job.items["m1"]
+    assert item.state == "detected" and item.price == 400 and item.change.source == "manual"
+    client.post("/job/annual-dinner/act/m1", data={"action": "review"})
+    assert item.state == "reviewed" and "added by staff" in item.needs_owner_reason       # below RM500, still the director
+    client.post("/role", data={"role": "owner"})
+    client.post("/job/annual-dinner/act/m1", data={"action": "approve"})
+    client.post("/role", data={"role": "client"})
+    client.post("/job/annual-dinner/act/m1", data={"action": "confirm"})
+    assert item.state == "confirmed"
+    assert any(e.action == "add" and e.change_key == "m1" and "had not found it" in e.detail for e in record.job.log.entries)
+    assert record.job.log.intact()
+
+
+def test_adding_a_change_needs_evidence_a_kind_and_a_sensible_price(client):
+    record = store.JOBS["annual-dinner"]
+    ids = evidence_ids(record, "195 people attending")
+    client.post("/role", data={"role": "pm"})
+    base = {"item": "Welcome drinks", "kind": "extra", "price": "400", "evidence": ids}
+    for bad in ({**base, "evidence": []}, {**base, "item": "  "}, {**base, "kind": "magic"},
+                {**base, "price": "four hundred"}, {**base, "price": "1e309"}, {**base, "line_id": "L99"}):
+        client.post("/job/annual-dinner/changes/add", data=bad)
+    assert "m1" not in record.job.items
+    client.post("/job/annual-dinner/changes/add", data={**base, "evidence": ["not-a-message-id"]})
+    assert "m1" not in record.job.items                                                    # made-up evidence is dropped
+
+
+def test_a_discount_added_by_hand_goes_to_the_director_with_no_amount(client):
+    record = store.JOBS["annual-dinner"]
+    client.post("/role", data={"role": "owner"})
+    client.post("/job/annual-dinner/changes/add", data={
+        "item": "Loyalty discount", "kind": "discount", "price": "-100", "evidence": evidence_ids(record, "195 people attending")})
+    item = record.job.items["m1"]
+    assert item.price is None and item.change.status == "needs_decision"
+
+
+def test_a_client_cannot_add_a_change(client):
+    record = store.JOBS["annual-dinner"]
+    client.post("/role", data={"role": "client"})
+    client.post("/job/annual-dinner/changes/add", data={
+        "item": "Free cake", "kind": "extra", "price": "0", "evidence": evidence_ids(record, "195 people attending")})
+    assert "m1" not in record.job.items
+
+
+def test_a_manual_change_survives_new_messages_arriving_in_a_live_group(client):
+    job_id = start_live(client)
+    record = store.JOBS[job_id]
+    client.post(f"/job/{job_id}/live/next")
+    client.post("/role", data={"role": "pm"})
+    client.post(f"/job/{job_id}/changes/add", data={"item": "Welcome drinks", "kind": "extra", "price": "400",
+                                                      "evidence": [record.messages[-1].id]})
+    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
+    assert record.job.items["m1"].change.source == "manual" and record.job.items["m1"].price == 400

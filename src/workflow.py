@@ -140,9 +140,32 @@ class Job:
                     self.log.add(now, SYSTEM, "update", c.key, f"updated from chat: {STATE_LABELS[item.state].lower()}")
         return new
 
+    def add_change(self, change, actor, now=None):
+        """A person adds a change the reader missed, with the chat messages that show it was agreed.
+        It goes through the same approval flow as any other change, and the director always signs it off."""
+        now = now or datetime.now()
+        if actor.role not in ("pm", "owner"):
+            raise NotAllowed(f"A {actor.role} cannot add a change.")
+        if not change.item.strip():
+            raise NotAllowed("Name the change.")
+        if not change.evidence_ids:
+            raise NotAllowed("Pick at least one chat message that shows it was agreed.")
+        if change.price_delta is not None and usable_change_price(change.price_delta) is None:
+            raise NotAllowed("Enter a valid amount in RM.")
+        key = f"m{1 + sum(1 for k in self.items if k.startswith('m'))}"
+        change.key = key
+        item = Item(change, price=usable_change_price(change.price_delta))
+        if change.status == "log_only":
+            item.state = "record_only"
+        self.items[key] = item
+        self.log.add(now, actor, "add", key, f"added by {actor.name}: {change.item} (the reader had not found it)")
+        return key
+
     def needs_owner(self, item):
         """Why the owner must approve this change, or '' if the PM's review is enough."""
         c = item.change
+        if c.source == "manual":
+            return "added by staff: the reader did not find it"
         if c.kind == "discount":
             return "discounts always need the owner"
         if c.status == "unconfirmed":
