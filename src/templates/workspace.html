@@ -64,9 +64,18 @@
     <a class="live-callout" href="{{ url_for('job_page', job_id=live.id) }}">
       <span class="live-dot" aria-hidden="true"></span>
       <span class="live-callout-text"><strong>Guided live demo · {{ live.title }}</strong>
-        <small>{{ live.catalogue.quote.client }} · starting quote {{ live_bill.quote_total | rm }} · advance the synthetic WhatsApp conversation one message at a time and follow each hand-over.</small></span>
-      <span class="btn btn-primary">Open live demo</span>
+        <small>{{ live.catalogue.quote.client }} · starting quote {{ live_bill.quote_total | rm }} · messages arrive on their own through the webhook; follow each hand-over.</small></span>
+      <span class="btn btn-primary">Open live group</span>
     </a>
+    {% endif %}
+    {% if role in ('pm', 'owner') and workspace.view == 'overview' and not live %}
+    <form class="live-callout live-start" method="post" action="{{ url_for('live_start') }}">
+      <span class="live-dot" aria-hidden="true"></span>
+      <span class="live-callout-text"><strong>Try a live WhatsApp group</strong>
+        <small>A simulated group where messages arrive on their own. SMErgers reads each one and lists the changes, with no import.</small></span>
+      <select name="quote" aria-label="Sample business">{% for file, title in live_quotes %}<option value="{{ file }}">{{ title }}</option>{% endfor %}</select>
+      <button class="btn btn-primary">Start live group</button>
+    </form>
     {% endif %}
 
     {% if role == 'client' and workspace.jobs %}

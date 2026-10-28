@@ -125,6 +125,13 @@ pre{padding:12px;border-radius:6px;background:#f2f4f7;overflow:auto}
 .live-callout:hover{border-color:var(--accent);color:inherit;transform:translateY(-1px)}
 .live-callout-text{flex:1;min-width:0}.live-callout-text strong{display:block;font-size:13px}.live-callout-text small{display:block;color:#596474;font-size:12px;margin-top:2px}
 .live-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:0 0 14px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--radius);background:#fff}
+.live-text{flex:1 1 260px;min-width:0}.live-text strong{display:block;font-size:13px}.live-text small{display:block;color:#596474;font-size:12px;margin-top:2px}
+.live-manual{display:flex;gap:8px;margin:0}.live-send{flex:1 1 100%;margin:0}.live-send label{display:block;font-size:12px;color:#596474}
+.live-send-row{display:flex;gap:8px;margin-top:5px}.live-send-row input{flex:1;min-width:0}.live-send-row select{max-width:240px}
+.live-start{flex-wrap:wrap}.live-start select{max-width:240px}
+@keyframes arrived{from{outline:3px solid #8fb3f5;outline-offset:2px}to{outline:3px solid transparent;outline-offset:2px}}
+.fresh{animation:arrived 2.2s ease-out}
+@media (prefers-reduced-motion:reduce){.fresh{animation:none}}
 .msg.outgoing{margin-left:12%;background:var(--accent-soft);border-color:#d5e0f5}.msg.outgoing .who{color:var(--accent-dark)}
 
 /* Suggestions from past jobs */

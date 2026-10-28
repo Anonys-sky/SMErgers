@@ -14,6 +14,8 @@
 {% elif role == 'owner' %}
   <p class="hint role-guidance"><strong>Your next step as project director:</strong> review the PM-checked items that need your approval. Approve individually or use the bulk action for ready items; items needing a price or decision stay separate.</p>
 {% endif %}
+{% if r.live and role != 'client' %}{% include "_live_bar.html" %}{% endif %}
+<div id="live-region">
 {% include "_guide.html" %}
 {% if bill.agreed_beyond_quote or waiting %}
 <p class="headline">
@@ -91,11 +93,13 @@
         {{ action_forms(r, key, item, allowed(item, role), url_for('job_page', job_id=r.id, show=key)) }}
       </article>
     {% else %}
-      {% if total_items %}<p class="panel empty-state">Nothing needs you right now. <a href="{{ url_for('job_page', job_id=r.id) }}">Show all changes</a></p>{% else %}<p class="panel empty-state">No changes yet. For this guided sample, use “Next message” above to advance the synthetic conversation. Uploaded chats are analysed when you import them.</p>{% endif %}
+      {% if total_items %}<p class="panel empty-state">Nothing needs you right now. <a href="{{ url_for('job_page', job_id=r.id) }}">Show all changes</a></p>{% else %}<p class="panel empty-state">No changes yet. {% if r.live %}Messages from the group are read as they arrive, and changes appear here.{% else %}Uploaded chats are analysed when you import them.{% endif %}</p>{% endif %}
     {% endfor %}
   </section>
 </div>
+</div>
 
+{% if r.live and role != 'client' %}<script src="{{ url_for('static', filename='live.js') }}" defer></script>{% endif %}
 <script>
 // Display only: link changes and chat messages both ways. All decisions happen on the server.
 function showSource(card, scrollChat = true) {
@@ -112,16 +116,22 @@ function showSource(card, scrollChat = true) {
     chat.scrollTo({top: chat.scrollTop + offset - 60, behavior: 'smooth'});
   }
 }
-document.querySelectorAll('.show-src').forEach(b => b.addEventListener('click', () => showSource(b.closest('.change'))));
-document.querySelectorAll('.msg.linked').forEach(m => {
-  const open = () => {
-    const card = document.getElementById('c-' + m.dataset.changes.split(' ')[0]);
-    if (!card) return;
-    showSource(card, false);
-    card.scrollIntoView({behavior: 'smooth', block: 'center'});
-  };
-  m.addEventListener('click', open);
-  m.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); open(); } });
+// Delegated, so it keeps working when the live page swaps in new messages and changes.
+function openLinked(m) {
+  const card = document.getElementById('c-' + m.dataset.changes.split(' ')[0]);
+  if (!card) return;
+  showSource(card, false);
+  card.scrollIntoView({behavior: 'smooth', block: 'center'});
+}
+document.addEventListener('click', e => {
+  const button = e.target.closest('.show-src');
+  if (button) return showSource(button.closest('.change'));
+  const linked = e.target.closest('.msg.linked');
+  if (linked) openLinked(linked);
+});
+document.addEventListener('keydown', e => {
+  const linked = e.target.closest && e.target.closest('.msg.linked');
+  if (linked && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); openLinked(linked); }
 });
 const active = document.querySelector('.change.active');
 if (active) { showSource(active); active.scrollIntoView({block: 'center'}); }

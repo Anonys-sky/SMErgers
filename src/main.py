@@ -143,11 +143,12 @@ def render_workspace():
     view = request.args.get("view", "overview")
     allowed_views = {"overview", "projects", "tasks", "activity"} - ({"activity"} if role == "client" else set())
     workspace["view"] = view if view in allowed_views else "overview"
-    live = next((r for r in store.JOBS.values() if r.live), None) if role in ("pm", "owner") else None
+    live = next((r for r in reversed(list(store.JOBS.values())) if r.live), None) if role in ("pm", "owner") else None
     return render_template(
         "workspace.html", workspace=workspace, allowed=allowed_actions, live=live,
         live_bill=build_bill(live.catalogue, live.job) if live else None,
         selected_client_job=selected_client_job(),
+        live_quotes=[(q, store.quote_title(q)) for q in store.LIVE_CHATS],
         client_options=[(r.id, r.catalogue.quote["client"], r.title) for r in store.JOBS.values()],
     )
 
@@ -169,7 +170,8 @@ def workspace_page(persona):
 @app.get("/imports")
 def imports_page():
     managers_only()
-    return render_template("home.html", quotes=[(q, store.quote_title(q)) for q in store.quote_files()])
+    return render_template("home.html", quotes=[(q, store.quote_title(q)) for q in store.quote_files()],
+                           live_quotes=[(q, store.quote_title(q)) for q in store.LIVE_CHATS])
 
 
 @app.route("/projects/new", methods=["GET", "POST"])
@@ -323,6 +325,29 @@ def webhook_receive():
     return "ok"
 
 
+def wants_json():
+    """The live page asks for JSON so it can update itself without a reload."""
+    return request.headers.get("X-Requested-With") == "fetch"
+
+
+def live_state(record, new=()):
+    return {"remaining": len(record.live.script) if record.live else 0, "messages": len(record.messages),
+            "new": [record.job.items[k].change.item for k in new]}
+
+
+@app.post("/live/start")
+def live_start():
+    """Demo: open a simulated WhatsApp group for any sample quote. Messages then arrive on their own."""
+    managers_only()
+    try:
+        record = store.start_live(request.form.get("quote", ""))
+    except ValueError as err:
+        flash(str(err))
+        return redirect(url_for("imports_page"))
+    flash(f"A simulated WhatsApp group for {record.title} is open. Messages arrive on their own.", "ok")
+    return redirect(url_for("job_page", job_id=record.id))
+
+
 @app.post("/job/<job_id>/live/next")
 def live_next(job_id):
     """Demo only: deliver the next synthetic message of the live chat through the webhook path."""
@@ -330,11 +355,38 @@ def live_next(job_id):
     if redirect_client := staff_only(job_id):
         return redirect_client
     managers_only()
-    count = 1 if request.form.get("all") != "1" else len(record.live.script if record.live else [])
+    if record.live is None:
+        abort(404)
+    count = 1 if request.form.get("all") != "1" else len(record.live.script)
     before = set(record.job.items)
     for _ in range(count):
         store.play_next(record)
     new = [k for k in record.job.items if k not in before]
+    if wants_json():
+        return jsonify(live_state(record, new))
+    if new:
+        flash(f"New in the chat: {', '.join(record.job.items[k].change.item for k in new)}.", "ok")
+    return redirect(url_for("job_page", job_id=job_id) + "#chat-end")
+
+
+@app.post("/job/<job_id>/live/send")
+def live_send(job_id):
+    """Demo only: a person types a message into the live group. It takes the same webhook path as a real one."""
+    record = get_record(job_id)
+    if redirect_client := staff_only(job_id):
+        return redirect_client
+    managers_only()
+    if record.live is None:
+        abort(404)
+    try:
+        new = store.send_message(record, request.form.get("sender", ""), request.form.get("text", ""))
+    except ValueError as err:
+        if wants_json():
+            return jsonify({"error": str(err)}), 400
+        flash(str(err))
+        return redirect(url_for("job_page", job_id=job_id) + "#chat-end")
+    if wants_json():
+        return jsonify(live_state(record, new))
     if new:
         flash(f"New in the chat: {', '.join(record.job.items[k].change.item for k in new)}.", "ok")
     return redirect(url_for("job_page", job_id=job_id) + "#chat-end")
@@ -378,7 +430,7 @@ def guide(record):
     disputed = any(i.state == "disputed" for i in items)
     if record.live and record.live.script:
         step, who = 0, "pm"
-        text = "New messages are waiting in the job's WhatsApp group. Press Next message to watch changes appear."
+        text = "Messages are arriving from the job's WhatsApp group. SMErgers reads each one as it comes in and lists the changes."
     elif any(needs(i, "pm") for i in items):
         step, who = 1, "pm"
         text = ("The client disputed a change. Use Show in chat to see who said what, then check it again."

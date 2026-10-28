@@ -9,13 +9,8 @@
   </ol>
   <div class="guide-next">
     <p>{{ guide.text }}
-      {% if r.live and r.live.script %}<br><small class="t-muted">Demo only: {{ r.live.script|length }} synthetic message{{ '' if r.live.script|length == 1 else 's' }} left. Use the demo controls to advance them; no WhatsApp account is paired or read. The simulation follows the webhook message path.</small>{% endif %}</p>
-    {% if r.live and r.live.script and role != 'client' %}
-      <form method="post" action="{{ url_for('live_next', job_id=r.id) }}">
-        <button class="primary" name="all" value="0">Next message</button>
-        <button name="all" value="1">Play the rest</button>
-      </form>
-    {% elif guide.hand_over %}
+      {% if r.live and r.live.script %}<br><small class="t-muted">Demo only: {{ r.live.script|length }} synthetic message{{ '' if r.live.script|length == 1 else 's' }} still to arrive. No WhatsApp account is paired or read; the simulation follows the webhook message path.</small>{% endif %}</p>
+    {% if guide.hand_over %}
       <form method="post" action="{{ url_for('continue_as', job_id=r.id, role=guide.hand_over[0]) }}">
         <button class="primary">{{ guide.hand_over[1] }} →</button>
       </form>

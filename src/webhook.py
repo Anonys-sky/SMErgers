@@ -14,6 +14,7 @@ from zoneinfo import ZoneInfo
 
 from chat_import import messages_from_whatsapp
 from reader import read as extract
+from workflow import SYSTEM
 
 KL = ZoneInfo("Asia/Kuala_Lumpur")
 
@@ -23,6 +24,8 @@ class LiveFeed:
     group_id: str
     received: list = field(default_factory=list)   # message records, as messages_from_whatsapp takes them
     script: list = field(default_factory=list)     # demo only: synthetic messages still to "arrive"
+    senders: list = field(default_factory=list)    # demo only: people in the synthetic group, for typed messages
+    typed: int = 0                                  # demo only: how many messages were typed in
 
 
 def signature_ok(body, header):
@@ -70,24 +73,32 @@ def ingest(record, records, now=None):
     if not fresh:
         return []
     feed.received.extend(fresh)
+    for r in fresh:  # the trigger is part of the record: what arrived, from whom, and by which route
+        record.job.log.add(now or datetime.now(), SYSTEM, "trigger", "-",
+                           f"message from {r['sender']} arrived through the WhatsApp webhook")
     record.messages = messages_from_whatsapp(feed.received, KL)
     new = record.job.refresh(extract(record.messages, record.catalogue, ai=record.ai), now)
     sync.after_detection(record, new, now)
     return new
 
 
-def payload_for(group_id, message, seq):
-    """A synthetic webhook payload for one demo message, in Meta's format."""
-    phone = "6010" + str(int(hashlib.sha1(message.sender.encode()).hexdigest(), 16) % 10**7).zfill(7)
-    sent = message.sent_at.replace(tzinfo=KL)
+def payload_for_text(group_id, sender, text, wa_id, when):
+    """A synthetic webhook payload for one text message, in Meta's format."""
+    phone = "6010" + str(int(hashlib.sha1(sender.encode()).hexdigest(), 16) % 10**7).zfill(7)
+    sent = when if when.tzinfo else when.replace(tzinfo=KL)
     return {
         "object": "whatsapp_business_account",
         "entry": [{"changes": [{"field": "messages", "value": {
             "messaging_product": "whatsapp",
-            "contacts": [{"wa_id": phone, "profile": {"name": message.sender}}],
+            "contacts": [{"wa_id": phone, "profile": {"name": sender}}],
             "messages": [{
-                "from": phone, "id": f"wamid.demo.{group_id}.{seq}", "timestamp": str(int(sent.timestamp())),
-                "group_id": group_id, "type": "text", "text": {"body": message.text},
+                "from": phone, "id": wa_id, "timestamp": str(int(sent.timestamp())),
+                "group_id": group_id, "type": "text", "text": {"body": text},
             }],
         }}]}],
     }
+
+
+def payload_for(group_id, message, seq):
+    """A synthetic webhook payload for one demo message, in Meta's format."""
+    return payload_for_text(group_id, message.sender, message.text, f"wamid.demo.{group_id}.{seq}", message.sent_at)
