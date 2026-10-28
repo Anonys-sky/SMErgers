@@ -16,7 +16,7 @@
       </form>
     {% elif guide.step == 4 %}
       <span>
-        <a class="btn btn-primary" href="{{ url_for('history_page', job_id=r.id) }}">See the history</a>
+        <a class="btn btn-primary" href="{{ url_for('history_page', job_id=r.id) }}">See the activity log</a>
         <a class="btn" href="{{ url_for('bill_page', job_id=r.id) }}">Open the bill</a>
       </span>
     {% endif %}

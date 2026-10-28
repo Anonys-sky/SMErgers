@@ -164,7 +164,7 @@
     </section>
     {% if role != 'client' %}
     <section class="panel">
-      <h2 class="section-title">History</h2>
+      <h2 class="section-title">Activity log</h2>
       <div class="history">
         {% for row in workspace.activity[:5] %}
         <div class="history-item">{{ row.entry.action.replace('_',' ') }}{% if row.entry.detail %} · {{ row.entry.detail }}{% endif %}<small>{{ row.project }} · {{ row.entry.at.replace('T',' ') }}</small></div>

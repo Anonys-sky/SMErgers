@@ -7,6 +7,6 @@
   {% if role in ('pm','owner') %}
   <a href="{{ url_for('client_page', job_id=r.id) }}" class="{{ 'on' if tab == 'client' }}">Client confirmation</a>
   {% endif %}
-  <a href="{{ url_for('history_page', job_id=r.id) }}" class="{{ 'on' if tab == 'history' }}">{{ 'Reconciliation history' if role == 'finance' else 'History' }}</a>
+  <a href="{{ url_for('history_page', job_id=r.id) }}" class="{{ 'on' if tab == 'history' }}">{{ 'Reconciliation log' if role == 'finance' else 'Activity log' }}</a>
 </nav>
 {% endif %}

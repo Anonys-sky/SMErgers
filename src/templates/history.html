@@ -1,14 +1,14 @@
 {% extends "base.html" %}
-{% block title %}History · {{ r.title }}{% endblock %}
+{% block title %}Activity log · {{ r.title }}{% endblock %}
 {% block content %}
 {% set tab = 'history' %}
 <section class="profile-summary">
   <div class="profile-main"><span class="avatar">{{ profile.initials }}</span><div>
-    <p class="eyebrow">{{ r.title }} · record history</p><h1>History</h1>
+    <p class="eyebrow">{{ r.title }} · record</p><h1>Activity log</h1>
     <p class="description">Who recorded a decision, what changed, and when. Entries stay connected to the project's source evidence.</p>
   </div></div><span class="summary-status">Traceable record</span>
 </section>
-<p class="lede">One place to trace quote versions, messages SMErgers prepared, and recorded actions. Use a change link to return to its review and chat evidence.</p>
+<p class="lede">One place to trace what just happened: every action in the log, the quote versions, and the messages SMErgers prepared. Use a change link to return to its review and chat evidence.</p>
 {% include "_guide.html" %}
 <p class="headline">Quote {{ r.catalogue.quote.quote_id }} is at <strong>version {{ versions[-1].number }}</strong>:
   <span class="num">{{ versions[-1].total | rm }}</span>.</p>
