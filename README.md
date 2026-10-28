@@ -102,7 +102,7 @@ The model only reads. Plain code checks every price, the server enforces who may
 │   └── templates/, static/
 ├── data/                    # Synthetic quotes, chats, answer keys, past jobs, company directory
 ├── submission/              # Required submission documents
-│   ├── SDC2026_VBall_Preliminary.pdf       # Preliminary submission
+│   ├── SDC2026_VBall_Preliminary Proposal.pdf       # Preliminary submission
 │   ├── SDC2026_VBall_TechDeclaration.pdf   # Technology declaration
 │   ├── SDC2026_VBall_Replit_POU.pdf        # Replit proof of use
 │   ├── SDC2026_VBall_Runpod_POU.pdf        # RunPod proof of use
@@ -246,7 +246,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/openai/v1/chat/complet
 - [x] Demo video link added
 - [x] Replit used, with proof of use in `submission/`
 - [x] RunPod used, with proof of use in `submission/`
-- [x] Preliminary submission completed (`SDC2026_VBall_Preliminary.pdf`)
+- [x] Preliminary submission completed (`SDC2026_VBall_Preliminary Proposal.pdf`)
 - [x] Technology declaration completed (`SDC2026_VBall_TechDeclaration.pdf`)
 - [x] Submission files renamed with the team name
 - [x] "How to Run" steps verified
