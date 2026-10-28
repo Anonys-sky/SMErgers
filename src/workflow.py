@@ -180,6 +180,8 @@ class Job:
             self._check_quantity(key)
         if action in ("approve", "confirm") and item.price is None:
             raise NotAllowed("Add a valid price and review the change before approval or confirmation.")
+        if action == "reject" and not note:
+            raise NotAllowed("Say why you are rejecting it, so the record shows the reason.")
         if action == "set_price" and item.change.kind == "discount":
             raise NotAllowed("Only the project director can decide a discount with its basis.")
         if action in ("decide", "approve", "confirm") and item.change.kind == "discount":

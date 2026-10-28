@@ -28,13 +28,13 @@
         <input class="price" name="price" inputmode="decimal" placeholder="Amount in RM" aria-label="Price in Malaysian ringgit for {{ item.change.item }}" required>
       {% endif %}
     {% endif %}
-    {% if a == 'decide' or a == 'dispute' or (a == 'review' and item.change.status == 'unconfirmed') or a == 'set_price' %}
+    {% if a == 'decide' or a == 'dispute' or a == 'reject' or (a == 'review' and item.change.status == 'unconfirmed') or a == 'set_price' %}
       {% if a == 'decide' %}
         <input class="note" name="note" placeholder="Basis for discount (e.g. 5% of original quote)"
                aria-label="Basis for discount for {{ item.change.item }}" required>
       {% else %}
-      <input class="note" name="note" placeholder="{{ 'What is wrong?' if a == 'dispute' else ('How was it agreed?' if a == 'review' else 'Where the price came from') }}"
-              aria-label="{{ 'Reason for disputing ' ~ item.change.item if a == 'dispute' else ('Agreement detail for ' ~ item.change.item if a == 'review' else 'Price source for ' ~ item.change.item) }}"
+      <input class="note" name="note" placeholder="{{ 'What is wrong?' if a == 'dispute' else ('Why reject it?' if a == 'reject' else ('How was it agreed?' if a == 'review' else 'Where the price came from')) }}"
+              aria-label="{{ 'Reason for disputing ' ~ item.change.item if a == 'dispute' else ('Reason for rejecting ' ~ item.change.item if a == 'reject' else ('Agreement detail for ' ~ item.change.item if a == 'review' else 'Price source for ' ~ item.change.item)) }}"
               {{ 'required' if a != 'set_price' }}>
       {% endif %}
     {% endif %}

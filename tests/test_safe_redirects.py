@@ -50,6 +50,7 @@ def test_all_action_redirect_branches(client, branch, destination):
     if branch.startswith("action"):
         path = f"/job/{record.id}/act/{key}"
         form["action"] = "reject" if branch == "action_success" else "invalid"
+        form["note"] = "not needed"   # a rejection always carries its reason
         fallback = f"/job/{record.id}?show={key}"
     else:
         path = f"/job/{record.id}/bulk"

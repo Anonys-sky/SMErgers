@@ -7,6 +7,7 @@
   "job": "Cafe fit-out",
   "event_date": "2026-10-30",
   "currency": "RM",
+  "policy": {"owner_approval_at": 2000},
   "lines": [
     {"id": "L01", "item": "Wall painting", "unit": "sqft", "qty": 800, "unit_price": 2.5,
      "aliases": ["paint", "painting", "wall"]},

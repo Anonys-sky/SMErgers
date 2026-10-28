@@ -68,6 +68,17 @@ def after_actions(record, action, keys, actor, now=None):
                   f"{actor.name} disputed {_describe(item)}.\nReason: {reason}\n"
                   "Review the evidence and resolve the dispute before requesting confirmation again.", [key])
 
+    if action == "reject":
+        for key in keys:
+            item = items[key]
+            if item.state != "rejected":
+                continue
+            recipient = team["pm"] if actor.role == "owner" else team["owner"]
+            if recipient != actor.name:   # in a one-person team there is nobody else to tell
+                _send(record, now, recipient, "reject_notice",
+                      f"{actor.name} rejected {_describe(item)}.\nReason: {item.notes[-1][2]}\n"
+                      "It will not reach the bill.", [key])
+
     if action == "confirm":
         confirmed = [k for k in keys if items[k].state == "confirmed"]
         if not confirmed:

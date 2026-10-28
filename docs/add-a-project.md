@@ -3,7 +3,7 @@
 Use synthetic data only; this prototype is not intended for private client records.
 
 1. Switch to **Project manager** or **Project director**. In Overview or Projects, find **Projects in progress** and select **Add project** (also available from Import chat). The form is at `/projects/new`.
-2. Enter the project title, client, company, quote reference, event date and event type. Supply names for the project manager, project director and finance contact.
+2. Enter the project title, client, company, quote reference, event date and event type. Supply names for the project manager, project director and finance contact, and the **director sign-off limit**: a change worth that much or more needs the project director (default RM500). Each business keeps its own limit, so a second business is a setup change, not new code. In a quote file the same setting is `"policy": {"owner_approval_at": 2000}` (the sample café fit-out uses RM2,000).
 3. Add at least one original quote item: item name, positive quantity, unit and non-negative unit price in **RM**. Add or remove rows as needed. Optional comma-separated aliases help match chat wording; the item name is automatically included.
 4. Optionally add a rate card for extras outside the original quote. These rates are not included in the starting quote total.
 5. Either paste a WhatsApp text export **or** upload a UTF-8 `.txt` export without media—not both. The total request limit is **1,000,000 bytes**, including all form fields and upload overhead. Keep timestamps and sender names intact.

@@ -76,7 +76,8 @@ def build_with_catalogue(job_id, messages, chat_name, catalogue, ai=False):
     """Publish a complete record only after extraction and version initialization succeed."""
     now = datetime.now()
     changes = extract(messages, catalogue, ai=ai)
-    record = JobRecord(job_id, chat_name, messages, catalogue, Job(changes, now=now, catalogue=catalogue), now,
+    record = JobRecord(job_id, chat_name, messages, catalogue,
+                       Job(changes, policy=catalogue.quote.get("policy"), now=now, catalogue=catalogue), now,
                        ai=ai and not reader.LAST_NOTE)
     sync.start(record)
     JOBS[job_id] = record

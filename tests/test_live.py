@@ -168,3 +168,46 @@ def test_a_director_rejection_blocks_the_bill_and_is_recorded(client):
     assert banner not in [next(k for k, v in record.job.items.items() if v is item) for item, _ in bill.outstanding]
     log = [e for e in record.job.log.entries if e.action == "reject"]
     assert log and log[0].change_key == banner and "old banners" in log[0].detail and record.job.log.intact()
+
+
+# ---------------------------------------------------------------- saying no, and a second business
+def test_a_rejection_without_a_reason_is_refused_and_leaves_no_trace(client):
+    record = store.JOBS["annual-dinner"]
+    key = next(k for k, i in record.job.items.items() if i.state == "detected")
+    before = len(record.job.log.entries)
+    client.post(f"/job/annual-dinner/act/{key}", data={"action": "reject"})
+    assert record.job.items[key].state == "detected" and len(record.job.log.entries) == before
+
+
+def test_a_director_rejection_tells_the_pm_with_the_reason(client):
+    job_id = start_live(client)
+    record = store.JOBS[job_id]
+    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
+    banner = next(k for k, i in record.job.items.items() if i.change.item == "Roll-up banner")
+    pm_view(client)
+    client.post(f"/job/{job_id}/act/{banner}", data={"action": "review"})
+    client.post("/role", data={"role": "owner"})
+    client.post(f"/job/{job_id}/act/{banner}", data={"action": "reject", "note": "old banners are fine"})
+    notice = record.outbox[-1]
+    assert notice.kind == "reject_notice" and notice.to == "Aisyah"
+    assert "old banners are fine" in notice.text and "will not reach the bill" in notice.text
+
+
+def test_each_business_sets_its_own_approval_limit(client):
+    assert store.JOBS["annual-dinner"].job.policy["owner_approval_at"] == 500
+    assert store.JOBS["cafe-fit-out"].job.policy["owner_approval_at"] == 2000
+    assert "RM2,000 or more" in client.get("/job/cafe-fit-out").data.decode()
+    assert "RM500 or more" in client.get("/job/annual-dinner").data.decode()
+
+
+def test_a_new_business_can_set_its_own_approval_limit_in_the_form(client):
+    form = dict(title="Roof repair", client="Test Client", company="Test Roofing", quote_id="Q-1", event_type="repair",
+                event_date="2026-11-01", pm="Ben", owner="Ben", finance="Ben", approval_limit="1500",
+                item="Roof tiles", qty="100", unit="pcs", unit_price="10", aliases="tiles",
+                chat_text="02/11/2026, 10:00 am - Client: add 50 more tiles\n02/11/2026, 10:05 am - Ben: ok")
+    response = client.post("/projects/new", data=form)
+    assert response.status_code == 302
+    record = store.JOBS[response.location.rsplit("/", 1)[-1]]
+    assert record.job.policy["owner_approval_at"] == 1500
+    form["approval_limit"] = "0"
+    assert client.post("/projects/new", data=form).status_code == 400

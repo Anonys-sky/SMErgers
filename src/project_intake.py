@@ -29,6 +29,7 @@ def prepare(form, upload=None):
         ("pm", "Project manager"), ("owner", "Project director"), ("finance", "Finance contact"),
     ]}
     quote["event_date"] = form.get("event_date", "").strip()
+    limit_text = form.get("approval_limit", "").strip() or '500'
     try:
         date.fromisoformat(quote["event_date"])
     except ValueError:
@@ -71,6 +72,8 @@ def prepare(form, upload=None):
             result.append(row)
         return result
 
+    limit = number(limit_text, "Director sign-off limit", positive=True)
+    quote["policy"] = {"owner_approval_at": limit or 500.0}
     quote["lines"] = rows()
     quote["rate_card"] = rows(extra=True)
     if not quote["lines"]:

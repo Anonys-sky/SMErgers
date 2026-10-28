@@ -35,6 +35,8 @@
       <label for="project-pm">Project manager<input id="project-pm" name="pm" value="{{ values.get('pm', '') }}" required></label>
       <label for="project-owner">Project director / owner<input id="project-owner" name="owner" value="{{ values.get('owner', '') }}" required></label>
       <label for="project-finance">Finance contact<input id="project-finance" name="finance" value="{{ values.get('finance', '') }}" required></label>
+      <label for="project-limit">Director sign-off from (RM)<input id="project-limit" type="number" name="approval_limit" value="{{ values.get('approval_limit', '500') }}" min="1" step="any" inputmode="decimal">
+        <span class="field-help">A change worth this much or more needs the project director. Each business sets its own.</span></label>
     </div>
   </fieldset>
   <fieldset class="panel">
