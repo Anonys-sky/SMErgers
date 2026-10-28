@@ -3,6 +3,7 @@
     python src/evaluate.py            # tuning chats only
     python src/evaluate.py --held-out # same-author chats (not an independent test)
     python src/evaluate.py --blind    # chats written blind by teammates: score once, report as is
+    python src/evaluate.py --blind2   # a second blind set (four businesses), written after the first run
     python src/evaluate.py --blind --ai   # also score the AI reader (needs a model, see llm_extractor.py)
 
 A predicted change matches a key change when they share chat messages as evidence.
@@ -33,10 +34,11 @@ def naive_extract(messages, catalogue):
     return out
 
 
-def score_chat(key_file, extractor):
+def score_chat(key_file, extractor, predicted=None):
     key = json.loads((DATA / "answer_keys" / key_file).read_text(encoding="utf-8"))
     messages = parse_chat((DATA / "chats" / key["chat"]).read_text(encoding="utf-8"))
-    predicted = extractor(messages, Catalogue.load(key["quote"]))
+    if predicted is None:
+        predicted = extractor(messages, Catalogue.load(key["quote"]))
 
     taken, rows = set(), []
     for kc in key["changes"]:
@@ -104,5 +106,6 @@ def report(split="tuning", verbose=True, ai=False):
 
 if __name__ == "__main__":
     sys.stdout.reconfigure(encoding="utf-8")
-    chosen = "blind" if "--blind" in sys.argv else "held_out" if "--held-out" in sys.argv else "tuning"
+    chosen = ("blind2" if "--blind2" in sys.argv else "blind" if "--blind" in sys.argv
+              else "held_out" if "--held-out" in sys.argv else "tuning")
     print(report(chosen, ai="--ai" in sys.argv))
