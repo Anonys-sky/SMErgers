@@ -50,6 +50,11 @@ The model only reads. Plain code checks every price, the server enforces who may
 - **Approvals enforced on the server** — the director signs off at RM500 or more, on discounts and on staff-set prices; a client link cannot approve its own change.
 - **Client confirmation page** — opened from a WhatsApp link: confirm, or dispute with a reason; a disputed change stays off the bill.
 - **Quote versions, draft bill and CSV** — each confirmation makes a new version; the bill is a draft for accounting software, never an invoice.
+- **Live group trigger** — start a live group and the chat's messages arrive on their own through the WhatsApp webhook; each new change appears and the log records the trigger. Anyone can also type a message into the group.
+- **Add what the reader missed** — a PM adds a change by hand, picking the chat messages that show it was agreed; it goes through the same approval flow and the director always signs it off.
+- **Rejection with a reason** — a rejected change stays off the bill, the reason is logged and the other side is told.
+- **Per-business approval limit** — each business sets the amount from which the director must sign off (RM500 by default, RM2,000 for the café sample); set it in **Add project**.
+- **Measured benefit** — `python src/benefit.py` plays a careful team through the real flow and counts what the reader got right alone, what a person fixed or added, what reached the bill and every human action in the log ([docs/benefit.md](docs/benefit.md)).
 - **Tamper-evident activity log** — each entry is chained to the one before, so an edit shows.
 - **"Quote it upfront" suggestions** — counts from past jobs show what usually changes late (for example, overtime in 4 of 4 dinners).
 - **Role workspaces, guided journey, job API and WhatsApp webhook** — see [Appendix A](#appendix-a-how-it-meets-the-brief).
@@ -77,7 +82,7 @@ The model only reads. Plain code checks every price, the server enforces who may
 | Database      | In-memory store for the prototype; synthetic JSON data                                       |
 | AI / Compute  | Llama 3.1 8B Instruct on RunPod Serverless (vLLM, GPU); local Ollama for development         |
 | WhatsApp      | Meta Cloud API webhook format; optional Node.js test connector (unofficial, not part of the product) |
-| Tests         | pytest (290+ tests); Node test runner for the bridge                                         |
+| Tests         | pytest (330+ tests); Node test runner for the bridge                                         |
 | Hosting / Dev | Replit (workspace, preview, Deployments)                                                     |
 
 ---
@@ -160,18 +165,19 @@ The app opens on the Project manager workspace with four synthetic projects. Sta
 ### Run Tests
 
 ```bash
-python -m pytest                # 290+ tests: parsing, rules, permissions, billing, pages
+python -m pytest                # 330+ tests: parsing, rules, permissions, billing, pages
 npm test                        # bridge conversion tests (needs Node.js)
 ```
 
 ### Three-minute demo walkthrough
 
+0. To see the automatic trigger, press **Start live group**: messages arrive on their own and each change appears as it is agreed. You can type a message into the group yourself.
 1. In the Project manager overview, open **Annual Dinner 2026**. The chat is on the left, the changes found in it on the right.
 2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
 3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the director must now approve it), then **Check all**.
 4. Press **Continue as Daniel (Project Director)**, then **Approve all**.
 5. Press **Open the client's link**, the page the client sees from WhatsApp. Confirm all seven changes, or dispute one with a reason and it stays off the bill.
-6. Press **Back to Aisyah**, then open **History** (quote version 2 posted to the group) and **Draft bill** (every line linked to its source).
+6. Press **Back to Aisyah**, then open **Activity log** (quote version 2 posted to the group) and **Draft bill** (every line linked to its source).
 
 To try the AI reader, open **Import chat**, choose `data/chats/blind_agent_a.txt` with its quote `q_blind_agent_a.json`, and tick **Read with the AI reader**.
 
@@ -305,14 +311,14 @@ curl http://localhost:5000/api/jobs/annual-dinner
 ## Appendix C: Testing and results
 
 ```bash
-python -m pytest                              # 290+ tests
+python -m pytest                              # 330+ tests
 python src/evaluate.py                        # score the rules against the answer keys
 python src/evaluate.py --blind --ai           # also score the AI reader (needs a model endpoint)
 ```
 
 A change is fully right when both its status and its price match the hand-written answer key. The rules scored 10 of 10 and 20 of 20 on chats written by the same author as the rules, which is **not** an accuracy figure.
 
-**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring ([docs/results.md](docs/results.md), Runs 2 to 6):
+**Blind chats.** Three chats, their quotes and answer keys were written by separate AI agents that never saw the extractor, and committed before any scoring ([docs/results.md](docs/results.md), Runs 2 to 6; Runs 7 and 8 below):
 
 | Reader | Found | Fully right | False changes |
 | --- | --- | --- | --- |
@@ -321,7 +327,14 @@ A change is fully right when both its status and its price match the hand-writte
 | AI reader on RunPod | 26 of 29 | **17** | 1 |
 | AI reader after fixing the errors seen in that run (same chats, so optimistic, not independent) | 26 of 29 | 21 | 0 |
 
-This is 29 changes in synthetic chats: a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong, which is why a person checks every change.
+**Second blind set (Runs 7 and 8, 28 Oct).** Four more chats, 36 changes, written by independent agents and committed before scoring; nothing was tuned on them. The AI reader was run once on CPU-only local Ollama (same Llama 3.1 8B):
+
+| Reader | Found | Fully right | False changes |
+| --- | --- | --- | --- |
+| Rules | 27 of 36 | 8 (22%) | 1 |
+| AI reader | 33 of 36 | **27 (75%)** | 1 |
+
+Both sets are synthetic chats: a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong, which is why a person checks every change.
 
 ## Appendix D: Business model, privacy and limits
 
