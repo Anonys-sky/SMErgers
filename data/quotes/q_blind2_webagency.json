@@ -1,0 +1,36 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-117",
+  "company": "Brightlane Studio Sdn Bhd",
+  "client": "Kopi Senja Cafe Sdn Bhd",
+  "event_type": "website and branding",
+  "job": "Cafe website, booking page and brand pack",
+  "event_date": "2026-11-20",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Website design and build (up to 5 pages)", "unit": "set", "qty": 1, "unit_price": 6500.0,
+     "aliases": ["website", "web", "site", "homepage", "pages"]},
+    {"id": "L02", "item": "Online booking page with calendar", "unit": "set", "qty": 1, "unit_price": 2800.0,
+     "aliases": ["booking page", "booking", "reservation page"]},
+    {"id": "L03", "item": "Logo design (2 concepts)", "unit": "set", "qty": 1, "unit_price": 1800.0,
+     "aliases": ["logo", "logo files", "logo version"]},
+    {"id": "L04", "item": "Design revision round", "unit": "round", "qty": 3, "unit_price": 300.0,
+     "aliases": ["revision", "revisions", "edit round", "changes round"]},
+    {"id": "L05", "item": "Brand guideline PDF", "unit": "set", "qty": 1, "unit_price": 900.0,
+     "aliases": ["brand guide", "guideline", "brand book", "colour palette"]},
+    {"id": "L06", "item": "Name card design and print (box of 100)", "unit": "box", "qty": 2, "unit_price": 120.0,
+     "aliases": ["name cards", "namecard", "business cards", "cards"]},
+    {"id": "L07", "item": "Standard hosting and domain setup (12 months)", "unit": "year", "qty": 1, "unit_price": 600.0,
+     "aliases": ["hosting", "standard hosting", "domain", "server"]},
+    {"id": "L08", "item": "Copywriting", "unit": "hour", "qty": 6, "unit_price": 150.0,
+     "aliases": ["copywriting hours", "copy", "writing", "menu descriptions"]}
+  ],
+  "rate_card": [
+    {"item": "Additional web page", "unit": "page", "unit_price": 450.0,
+     "aliases": ["extra page", "one more page", "additional page"]},
+    {"item": "Logo variation", "unit": "set", "unit_price": 250.0,
+     "aliases": ["dark version", "mono logo", "logo variation"]},
+    {"item": "Premium hosting upgrade", "unit": "year", "unit_price": 360.0,
+     "aliases": ["premium hosting", "hosting upgrade"]}
+  ]
+}

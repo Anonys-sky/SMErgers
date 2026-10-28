@@ -1,0 +1,32 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-B02",
+  "company": "Dapur Mesra Catering Sdn Bhd",
+  "client": "SK Bestari PTA",
+  "event_type": "graduation lunch",
+  "job": "Majlis Graduasi Lunch 14 Nov",
+  "event_date": "2026-11-14",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Halal buffet lunch", "unit": "pax", "qty": 150, "unit_price": 18.0,
+     "aliases": ["buffet", "makan", "lunch", "nasi", "menu"]},
+    {"id": "L02", "item": "Tent 10x10 hire", "unit": "pc", "qty": 6, "unit_price": 120.0,
+     "aliases": ["khemah", "tent", "canopy"]},
+    {"id": "L03", "item": "Round table and chairs set", "unit": "table", "qty": 15, "unit_price": 25.0,
+     "aliases": ["table", "tables", "meja", "kerusi"]},
+    {"id": "L04", "item": "Drinks (sirap and teh o)", "unit": "pax", "qty": 150, "unit_price": 3.5,
+     "aliases": ["air", "drinks", "minuman", "sirap"]},
+    {"id": "L05", "item": "Serving staff (8 crew, 5 hours)", "unit": "team", "qty": 1, "unit_price": 960.0,
+     "aliases": ["staff", "crew", "waiter", "pelayan"]},
+    {"id": "L06", "item": "Mascot and games corner", "unit": "set", "qty": 1, "unit_price": 800.0,
+     "aliases": ["mascot", "games corner", "games", "maskot"]},
+    {"id": "L07", "item": "Dessert station (pudding cups)", "unit": "set", "qty": 1, "unit_price": 450.0,
+     "aliases": ["dessert", "pudding", "kuih", "pencuci mulut"]}
+  ],
+  "rate_card": [
+    {"item": "Serving staff overtime (team)", "unit": "hour", "unit_price": 60.0,
+     "aliases": ["OT", "overtime", "OT crew"]},
+    {"item": "Vegetarian pack", "unit": "pack", "unit_price": 15.0,
+     "aliases": ["veg pack", "vegetarian", "vegetarian pack"]}
+  ]
+}

@@ -1,0 +1,29 @@
+{
+  "label": "SIMULATED answer key written by an agent who has not seen the rules",
+  "chat": "blind2_print.txt",
+  "quote": "q_blind2_print.json",
+  "split": "blind2",
+  "notes": "Banners 6 to 8 at quoted price; backdrop upsized 4m to 5m; QR stickers extra priced; flyers agreed but unpriced; discount asked, no amount; neon quoted, not confirmed; A-frame increase withdrawn; maroon and 7am install are no-cost.",
+  "changes": [
+    {"key": "banners_to_eight", "kind": "quantity_change", "line_id": "L01", "qty_delta": 2, "price_delta": 170.0,
+     "status": "ready", "evidence": ["Can make it eight total?", "total 8 banners at the same RM85 each"]},
+    {"key": "banner_maroon", "kind": "non_billable", "line_id": "L01", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["can change to maroon?", "maroon no problem. No extra charge"]},
+    {"key": "backdrop_5m", "kind": "upgrade", "line_id": "L03", "qty_delta": 0, "price_delta": 150.0,
+     "status": "ready", "evidence": ["upgrade to 5m wide is RM150 more", "the 5m backdrop RM150 tu fine, go ahead"]},
+    {"key": "aframe_more_withdrawn", "kind": "quantity_change", "line_id": "L05", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["A-frame board can add 2 more? total 5", "cancel the extra A-frame, 3 is enough la"]},
+    {"key": "qr_stickers", "kind": "extra", "line_id": null, "qty_delta": 20, "price_delta": 60.0,
+     "status": "ready", "evidence": ["QR payment sticker for the counter, 20 pcs", "20 pcs QR sticker RM3 each, so RM60 total", "ok go"]},
+    {"key": "flyers_a5", "kind": "extra", "line_id": null, "qty_delta": 100, "price_delta": null,
+     "status": "needs_price", "evidence": ["need 100 flyers A5 for hand out", "can can, I check with boss then tell you"]},
+    {"key": "discount_request", "kind": "discount", "line_id": null, "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["can give us some discount ah?", "Boss say he will see how"]},
+    {"key": "neon_sign", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 480.0,
+     "status": "unconfirmed", "evidence": ["add LED neon sign Lestari 60cm", "Neon 60cm is RM480 ya", "let me ask Encik Hafiz first"]},
+    {"key": "install_7am", "kind": "non_billable", "line_id": "L07", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["Install time can change to 7am Friday instead of 9am?", "ok 7am can, team will reach early"]}
+  ],
+  "expected_known_delta": 380.0,
+  "expected_needs_price": 1
+}

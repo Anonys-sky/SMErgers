@@ -1,0 +1,27 @@
+{
+  "label": "SIMULATED answer key for synthetic webagency chat",
+  "chat": "blind2_webagency.txt",
+  "quote": "q_blind2_webagency.json",
+  "split": "blind2",
+  "notes": "Recap message on 22/10 repeats earlier changes and must not be counted twice.",
+  "changes": [
+    {"key": "extra_our_story_page", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 450.0,
+     "status": "ready", "evidence": ["Additional page is RM450 per page", "RM450 is fine, ok proceed"]},
+    {"key": "name_cards_four_boxes", "kind": "quantity_change", "line_id": "L06", "qty_delta": 2, "price_delta": 240.0,
+     "status": "ready", "evidence": ["we need four boxes not two", "Four boxes noted, same RM120 per box"]},
+    {"key": "teal_palette_swap", "kind": "non_billable", "line_id": "L05", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["Can swap to the warm teal like our menu", "I just swap the colour palette. No extra charge"]},
+    {"key": "dark_logo_version", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": null,
+     "status": "needs_price", "evidence": ["we need a dark version of the logo for the signboard", "Jason will prepare the dark version"]},
+    {"key": "premium_hosting_upgrade", "kind": "upgrade", "line_id": "L07", "qty_delta": 0, "price_delta": 360.0,
+     "status": "ready", "evidence": ["Premium hosting is RM360 more than the standard one", "Ok we go premium hosting. RM360 difference ok"]},
+    {"key": "extra_copywriting_hours", "kind": "quantity_change", "line_id": "L08", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["we need 4 more copywriting hours for the menu descriptions", "ignore the extra copywriting hours"]},
+    {"key": "promo_landing_page", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 1200.0,
+     "status": "unconfirmed", "evidence": ["That one is RM1,200 including the enquiry form", "need to discuss with Encik Zul first"]},
+    {"key": "project_discount_request", "kind": "discount", "line_id": null, "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["can we get some discount for the whole project", "I will ask my boss and revert to you"]}
+  ],
+  "expected_known_delta": 1050.0,
+  "expected_needs_price": 1
+}

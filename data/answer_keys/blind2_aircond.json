@@ -1,0 +1,29 @@
+{
+  "label": "SIMULATED answer key written by an agent who has not seen the rules",
+  "chat": "blind2_aircond.txt",
+  "quote": "q_blind2_aircond.json",
+  "split": "blind2",
+  "notes": "Aircond and electrical contractor, terrace house. Recap message of 22/10 repeats earlier changes and must not count twice.",
+  "changes": [
+    {"key": "extra_study_unit", "kind": "quantity_change", "line_id": "L02", "qty_delta": 1, "price_delta": 1850.0,
+     "status": "ready", "evidence": ["can add 1 more 1.0HP there", "1 more 1.0HP unit at the quoted price"]},
+    {"key": "kitchen_power_points", "kind": "quantity_change", "line_id": "L05", "qty_delta": 2, "price_delta": 300.0,
+     "status": "ready", "evidence": ["tambah dua power point", "same rate as quoted RM 150 each"]},
+    {"key": "hall_unit_upgrade", "kind": "upgrade", "line_id": "L01", "qty_delta": 0, "price_delta": 600.0,
+     "status": "ready", "evidence": ["Upgrade from 1.5HP to 2.0HP", "rm600 more", "go ahead with the 2.0HP"]},
+    {"key": "after_hours_night", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": 350.0,
+     "status": "ready", "evidence": ["after-hours work is RM 350 for one night", "ok can"]},
+    {"key": "cable_tray_no_price", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": null,
+     "status": "needs_price", "evidence": ["need cable tray along the corridor", "will add the cable tray"]},
+    {"key": "discount_ask", "kind": "discount", "line_id": null, "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["can give some discount or not", "Let me discuss with boss and revert ya"]},
+    {"key": "black_socket_plates", "kind": "non_billable", "line_id": "L05", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["swap to black colour instead of white", "no charge for the black one"]},
+    {"key": "store_wall_breaking", "kind": "quantity_change", "line_id": "L08", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["break wall for 2 more cable points", "Wall breaking cancel lah, tak jadi"]},
+    {"key": "extend_piping_20ft", "kind": "quantity_change", "line_id": "L03", "qty_delta": 20, "price_delta": 440.0,
+     "status": "unconfirmed", "evidence": ["extend piping another 20 ft", "20 ft = 440 ringgit", "i still thinking ya"]}
+  ],
+  "expected_known_delta": 3100.0,
+  "expected_needs_price": 1
+}

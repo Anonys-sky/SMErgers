@@ -1,0 +1,31 @@
+{
+  "label": "SIMULATED answer key written by an author who has not seen the rules",
+  "chat": "blind2_catering.txt",
+  "quote": "q_blind2_catering.json",
+  "split": "blind2",
+  "notes": "Catering graduation lunch. Recap message on 28/10 repeats earlier changes and must not count twice.",
+  "changes": [
+    {"key": "more_pax_buffet", "kind": "quantity_change", "line_id": "L01", "qty_delta": 20, "price_delta": 360.0,
+     "status": "ready", "evidence": ["Makan jadi 170 pax ya", "same price as quote"]},
+    {"key": "more_pax_drinks", "kind": "quantity_change", "line_id": "L04", "qty_delta": 20, "price_delta": 70.0,
+     "status": "ready", "evidence": ["air pun sama 170", "Buffet and air tambah 20 each"]},
+    {"key": "extra_tables", "kind": "quantity_change", "line_id": "L03", "qty_delta": 3, "price_delta": 75.0,
+     "status": "ready", "evidence": ["tambah three tables juga boleh", "table rm25 each ya same as quote"]},
+    {"key": "cendol_upgrade", "kind": "upgrade", "line_id": "L07", "qty_delta": 0, "price_delta": 300.0,
+     "status": "ready", "evidence": ["Dessert pudding tu boleh tukar cendol", "cendol upgrade total rm 300 more", "ok go ahead Hafiz"]},
+    {"key": "veg_packs", "kind": "extra", "line_id": null, "qty_delta": 12, "price_delta": 180.0,
+     "status": "ready", "evidence": ["12 pack vegetarian boleh", "total rm 180"]},
+    {"key": "ayam_swap", "kind": "non_billable", "line_id": "L01", "qty_delta": 0, "price_delta": 0.0,
+     "status": "log_only", "evidence": ["ayam masak merah tukar ayam goreng berempah", "Harga sama", "ok boleh, tukar je"]},
+    {"key": "extra_tents_withdrawn", "kind": "quantity_change", "line_id": "L02", "qty_delta": 0, "price_delta": 0.0,
+     "status": "withdrawn", "evidence": ["nak 2 more khemah lagi", "tak jadi la khemah tu"]},
+    {"key": "balloon_artist", "kind": "extra", "line_id": null, "qty_delta": 1, "price_delta": null,
+     "status": "needs_price", "evidence": ["balloon artist untuk budak2", "I arrange one for games corner"]},
+    {"key": "early_pay_discount", "kind": "discount", "line_id": null, "qty_delta": 0, "price_delta": null,
+     "status": "needs_decision", "evidence": ["kasi discount tak", "kasi sikit discount"]},
+    {"key": "staff_overtime", "kind": "extra", "line_id": null, "qty_delta": 2, "price_delta": 120.0,
+     "status": "unconfirmed", "evidence": ["Staff boleh OT 2 jam", "so 2 jam rm 120", "let me ask principal first"]}
+  ],
+  "expected_known_delta": 985.0,
+  "expected_needs_price": 1
+}

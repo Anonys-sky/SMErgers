@@ -1,0 +1,30 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-117",
+  "company": "Kilat Print & Signage Sdn Bhd",
+  "client": "Lestari Bakery Enterprise",
+  "event_type": "shop opening",
+  "job": "Lestari Bakery grand opening signage",
+  "event_date": "2026-11-14",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Vinyl banner 3ft x 8ft with eyelets", "unit": "pc", "qty": 6, "unit_price": 85.0,
+     "aliases": ["banner", "banners", "vinyl banner", "bunting banner"]},
+    {"id": "L02", "item": "Roll-up standee 85cm x 200cm", "unit": "pc", "qty": 4, "unit_price": 120.0,
+     "aliases": ["standee", "roll-up", "rollup", "roll up stand"]},
+    {"id": "L03", "item": "Event backdrop 4m x 2.4m tension fabric", "unit": "set", "qty": 1, "unit_price": 780.0,
+     "aliases": ["backdrop", "back drop", "photo wall", "stage backdrop"]},
+    {"id": "L04", "item": "Die-cut logo sticker 5cm", "unit": "pc", "qty": 300, "unit_price": 0.8,
+     "aliases": ["sticker", "stickers", "logo sticker", "round sticker"]},
+    {"id": "L05", "item": "A-frame poster board with print", "unit": "pc", "qty": 3, "unit_price": 150.0,
+     "aliases": ["A-frame", "a frame board", "sandwich board", "poster board"]},
+    {"id": "L06", "item": "Frosted window glass sticker", "unit": "set", "qty": 2, "unit_price": 260.0,
+     "aliases": ["window sticker", "glass sticker", "frosted sticker", "cermin sticker"]},
+    {"id": "L07", "item": "Delivery and on-site installation", "unit": "job", "qty": 1, "unit_price": 350.0,
+     "aliases": ["install", "installation", "pasang", "delivery"]}
+  ],
+  "rate_card": [
+    {"item": "Extra installer per hour", "unit": "hour", "unit_price": 60.0,
+     "aliases": ["extra worker", "extra installer", "overtime"]}
+  ]
+}

@@ -1,0 +1,34 @@
+{
+  "label": "SIMULATED: synthetic data, no real company or person",
+  "quote_id": "Q-2026-117",
+  "company": "CoolWire Aircond & Electrical Sdn Bhd",
+  "client": "Chong Household (invented)",
+  "event_type": "installation",
+  "job": "Aircond installation and wiring, new double-storey terrace house",
+  "event_date": "2026-10-12",
+  "currency": "RM",
+  "lines": [
+    {"id": "L01", "item": "Wall-mounted split aircond 1.5HP inverter, supply and install", "unit": "unit", "qty": 3, "unit_price": 2350.0,
+     "aliases": ["1.5HP", "1.5hp unit", "living room unit", "hall unit", "aircond 1.5"]},
+    {"id": "L02", "item": "Wall-mounted split aircond 1.0HP inverter, supply and install", "unit": "unit", "qty": 2, "unit_price": 1850.0,
+     "aliases": ["1.0HP", "1.0hp unit", "bedroom unit", "small unit", "aircond 1.0"]},
+    {"id": "L03", "item": "Copper piping with insulation", "unit": "ft", "qty": 80, "unit_price": 22.0,
+     "aliases": ["piping", "pipe", "copper pipe", "paip"]},
+    {"id": "L04", "item": "Drain pipe and PVC trunking", "unit": "ft", "qty": 60, "unit_price": 8.0,
+     "aliases": ["drain", "trunking", "drain pipe"]},
+    {"id": "L05", "item": "13A twin power point, supply and wiring", "unit": "pt", "qty": 6, "unit_price": 150.0,
+     "aliases": ["power point", "socket", "plug point", "point"]},
+    {"id": "L06", "item": "Dedicated aircond cable 4mm2", "unit": "ft", "qty": 150, "unit_price": 7.0,
+     "aliases": ["cable", "wiring", "wire", "kabel"]},
+    {"id": "L07", "item": "20A isolator switch", "unit": "pc", "qty": 5, "unit_price": 85.0,
+     "aliases": ["isolator", "switch", "isolator switch"]},
+    {"id": "L08", "item": "Wall coring and breaking (concrete)", "unit": "pt", "qty": 4, "unit_price": 120.0,
+     "aliases": ["wall breaking", "break wall", "coring", "wall hole", "drill wall"]}
+  ],
+  "rate_card": [
+    {"item": "Site visit fee", "unit": "visit", "unit_price": 150.0,
+     "aliases": ["visit fee", "site visit", "survey fee"]},
+    {"item": "After-hours work", "unit": "night", "unit_price": 350.0,
+     "aliases": ["after office hours", "night work", "after hours", "weekend night"]}
+  ]
+}
