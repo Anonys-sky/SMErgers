@@ -105,3 +105,18 @@ By chat, fully right: A 10 of 10, B 6 of 10, C 5 of 9.
 - Total ready on chat C is RM-1,500 against RM3,620 expected, because a cancellation counts but the big table addition is held back, so the total is wrong in the other direction from Run 5. This is one more reason a person checks every change.
 
 Next honest step: write new chats that nobody has scored (teammates, kit in `data/blind/`) and score them once.
+
+## Run 7 and Run 8: 28 Oct 2026, both readers on the second blind set (blind2), commit a4b51d9
+
+Scored once each with `python src/evaluate.py --blind2` and `python src/evaluate.py --blind2 --ai`, after the four chats and answer keys were committed (bfe7d1f). Four chats written by independent AI agents who did not see `src/`. Nothing in the rules, prompt or checks was changed after seeing the result, and none of it was tuned on these chats. The AI reader ran on CPU-only local Ollama (llama3.1:8b, same model as Run 4), not on RunPod.
+
+| Reader | Changes in keys | Found | Fully right (status and price) | False changes |
+|---|---|---|---|---|
+| Rules (Run 7) | 36 | 27 (75%) | 8 (22%) | 1 |
+| **AI reader (Run 8)** | **36** | **33 (92%)** | **27 (75%)** | **1** |
+
+AI reader by chat, fully right: air-con 7 of 9, catering 6 of 10, printing 7 of 9, web agency 7 of 8.
+
+**Reading it plainly.** This is the cleanest number we have: chats nobody tuned on. The rules reader falls to 22%, which confirms the first blind result (45%) that rules alone do not generalise. The AI reader holds up at 75%, but it still misses 3 changes, marks some changes "ready" without a clear yes (extra Our Story page, name cards) and prices a "price later" item (cable tray RM7, copywriting RM1,200 withdrawn). Ready totals are therefore wrong on some chats (catering RM435 against RM985). One run, four chats, 36 changes: a small sample, not an accuracy claim on real chats.
+
+**What this means for the product.** Neither reader is trusted alone. Every change goes to a person with its evidence, and the director signs off. `docs/benefit.md` counts what that costs and saves.
