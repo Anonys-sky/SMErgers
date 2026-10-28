@@ -667,6 +667,23 @@ def evidence_page(job_id, key):
     )
 
 
+@app.get("/api/jobs")
+def jobs_api():
+    """Every job with its approval counts and sign-off limit, so another module can list them before opening one."""
+    if current_role() == "client":
+        abort(403)
+    jobs = []
+    for record in store.JOBS.values():
+        counts = {}
+        for item in record.job.items.values():
+            counts[item.state] = counts.get(item.state, 0) + 1
+        jobs.append({"id": record.id, "title": record.title, "client": record.catalogue.quote["client"],
+                     "quote_id": record.catalogue.quote["quote_id"], "owner_approval_at": record.job.policy["owner_approval_at"],
+                     "changes": len(record.job.items), "by_state": counts, "activity_log_intact": record.job.log.intact(),
+                     "url": url_for("job_api", job_id=record.id), "simulated": True})
+    return jsonify({"jobs": jobs})
+
+
 @app.get("/api/jobs/<job_id>")
 def job_api(job_id):
     """Read-only job summary in the shape we assume Orbyte's hub would consume (docs/orbyte-integration.md)."""
@@ -676,7 +693,7 @@ def job_api(job_id):
     bill = build_bill(record.catalogue, record.job)
     return jsonify({
         "job": {"id": record.id, "title": record.title, "client": record.catalogue.quote["client"],
-                "quote_id": bill.quote_id, "simulated": True},
+                "quote_id": bill.quote_id, "owner_approval_at": record.job.policy["owner_approval_at"], "simulated": True},
         "changes": [{
             "key": k, "item": i.change.item, "kind": i.change.kind, "quote_line": i.change.line_id,
             "qty_delta": i.change.qty_delta, "price": i.price, "found_as": i.change.status,

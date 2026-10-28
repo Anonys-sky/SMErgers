@@ -162,3 +162,16 @@ def test_import_accepts_real_messages_even_without_detected_changes(client, raw)
     assert any(message.sender for message in record.messages)
     assert not record.job.items
     assert client.get(response.location).status_code == 200
+
+
+def test_api_lists_every_job_with_its_own_signoff_limit(client):
+    jobs = {j["id"]: j for j in client.get("/api/jobs").get_json()["jobs"]}
+    assert jobs["annual-dinner"]["owner_approval_at"] == 500
+    assert jobs["annual-dinner"]["changes"] == 10 and jobs["annual-dinner"]["activity_log_intact"] is True
+    assert any(j["owner_approval_at"] == 2000 for j in jobs.values())      # the café sets its own limit
+    assert client.get(jobs["annual-dinner"]["url"]).get_json()["job"]["owner_approval_at"] == 500
+
+
+def test_api_list_is_closed_to_clients(client):
+    as_role(client, "client")
+    assert client.get("/api/jobs").status_code == 403

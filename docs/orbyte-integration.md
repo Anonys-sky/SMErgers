@@ -19,7 +19,7 @@ Orbyte already provides people, roles, approvals, eSign and an audit trail. SMEr
 
 ## Read-only API (built)
 
-`GET /api/jobs/<job_id>` returns the job, every change found (with its approval state, price, reason and the ids of the chat messages it came from), the bill totals and the activity log with its integrity check.
+`GET /api/jobs` lists every job with its approval counts and its own director sign-off limit, so another module can find a job before opening it. `GET /api/jobs/<job_id>` returns the job, every change found (with its approval state, price, reason and the ids of the chat messages it came from), the bill totals and the activity log with its integrity check.
 
 In a real deployment this would sit behind Orbyte's platform authentication. It is open in the prototype so the demo can show it.
 

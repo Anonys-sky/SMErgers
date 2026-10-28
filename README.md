@@ -298,9 +298,10 @@ Every approval and dispute is a human-checked label; after a pilot with real com
 | `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | Webhook handshake token; when the secret is set, every call must carry a valid `X-Hub-Signature-256` | unset |
 | `WHATSAPP_BRIDGE_URL`, `WHATSAPP_TIMEZONE` | Optional test connector (unofficial, not part of the product) | `http://127.0.0.1:3001`, system zone |
 
-**Job API.** `GET /api/jobs/<job_id>` returns one job as JSON (read-only, a building block for Orbyte modules):
+**Job API.** `GET /api/jobs` lists the jobs (with each business's sign-off limit) and `GET /api/jobs/<job_id>` returns one job as JSON (read-only, a building block for Orbyte modules):
 
 ```bash
+curl http://localhost:5000/api/jobs
 curl http://localhost:5000/api/jobs/annual-dinner
 ```
 
