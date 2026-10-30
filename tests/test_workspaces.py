@@ -174,3 +174,22 @@ def test_workspace_projects_list_has_no_duplicate_titles(client):
     assert titles.count("Annual Dinner 2026") == 1
     assert len(titles) == len(set(titles))
 
+
+
+def test_director_overview_leads_with_money_and_shows_each_sign_off_limit(client):
+    page = client.get("/workspace/project-director").data.decode()
+    assert "Priced changes found in chat" in page and "On the bill" in page and "Waiting to reach the bill" in page
+    assert "Sign-off limits, set per business" in page and "RM2,000" in page and "RM500" in page
+
+
+def test_director_can_approve_and_reject_from_the_queue(client):
+    from main import app  # noqa: F401
+    import store
+    record = store.JOBS["annual-dinner"]
+    client.post("/job/annual-dinner/bulk")                                   # PM checks the ready changes
+    client.post("/role", data={"role": "owner"})
+    page = client.get("/workspace/project-director?view=tasks").data.decode()
+    assert 'name="action" value="approve"' in page and 'name="action" value="reject"' in page
+    key = next(k for k, i in record.job.items.items() if i.state == "reviewed")
+    assert client.post(f"/job/annual-dinner/act/{key}", data={"action": "reject", "note": "not agreed"}).status_code == 302
+    assert record.job.items[key].state == "rejected"

@@ -143,10 +143,10 @@ def build_workspace(role, records, needs, exported_jobs=()):
         ]
     elif role == "owner":
         metrics = [
-            metric("Projects in view", len(jobs), "Portfolio overview"),
-            metric("Decisions available", len(queue), "Approval, pricing or exception decision"),
-            metric("Awaiting your sign-off", counts["reviewed"], "Already checked by the PM"),
-            metric("Excluded changes", money["excluded"], "Priced changes not yet on bills", "money"),
+            metric("Priced changes found in chat", money["confirmed"] + money["excluded"], "On top of the signed quotes: on the bill plus waiting", "money"),
+            metric("On the bill", money["confirmed"], "Confirmed by the client", "money"),
+            metric("Waiting to reach the bill", money["excluded"], "Priced, not yet confirmed", "money"),
+            metric("Needs your decision", len(queue), "Approve, reject or decide, from the queue below"),
         ]
         checklist = [
             ("Clear the decision queue", "Compare each decision with its source messages.", len(queue) == 0, task_url),
@@ -180,7 +180,11 @@ def build_workspace(role, records, needs, exported_jobs=()):
             ("Resolve missing prices", "Ask the project team to price outstanding changes.", counts["missing_price"] == 0, projects_url),
             ("Export the latest drafts", "Export each current draft as a CSV for accounting.", bool(jobs) and all(row["exported"] for row in jobs), projects_url),
         ]
+    limits = {}
+    for record in records:
+        limits.setdefault(record.job.policy["owner_approval_at"], []).append(record.title)
     return {
+        "limits": sorted(limits.items()),
         "jobs": jobs, "queue": queue, "activity": activity[:12], "metrics": metrics,
         "checklist": [
             {"title": title, "description": description, "complete": complete, "url": url}

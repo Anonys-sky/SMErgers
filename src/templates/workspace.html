@@ -1,6 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ profile.title }}{% endblock %}
 {% block head %}<script src="{{ url_for('static', filename='workspace.js') }}" defer></script>{% endblock %}
+{% from "_tags.html" import action_forms with context %}
 {% block content %}
 {% set views = [('overview','Overview'),('projects','Projects'),('tasks','My queue')] %}
 {% if role == 'finance' %}{% set views = [('overview','Overview'),('projects','Draft bills')] %}{% endif %}
@@ -53,7 +54,7 @@
     {% if role == 'pm' %}
       <div class="list-head"><div><p class="section-title">Project manager · next steps</p><h2 style="margin:0 0 5px">Bring the agreement into view</h2><p class="hint">Import a WhatsApp export, then check evidence and pricing before the director reviews exceptions.</p></div><a class="btn btn-primary" href="{{ url_for('imports_page') }}">Import a chat</a></div>
     {% elif role == 'owner' %}
-      <div class="list-head"><div><p class="section-title">Project director · decisions</p><h2 style="margin:0 0 5px">Exceptions needing sign-off</h2><p class="hint">Review items escalated beyond the project approval threshold. Pricing gaps remain separate from ready decisions.</p></div><a class="btn btn-primary" href="{{ url_for('workspace_page', persona='project-director', view='tasks') }}">Open decision queue</a></div>
+      <div class="list-head"><div><p class="section-title">Project director · decisions</p><h2 style="margin:0 0 5px">Exceptions needing sign-off</h2><p class="hint">Review items escalated beyond the project approval threshold. Pricing gaps remain separate from ready decisions.</p>{% if workspace.limits %}<p class="hint"><strong>Sign-off limits, set per business:</strong> {% for limit, titles in workspace.limits %}{{ limit | rm }} or more for {{ titles | join(', ') }}{% if not loop.last %}; {% endif %}{% endfor %}.</p>{% endif %}</div><a class="btn btn-primary" href="{{ url_for('workspace_page', persona='project-director', view='tasks') }}">Open decision queue</a></div>
     {% elif role == 'client' %}
       <div class="list-head"><div><p class="section-title">Client confirmation</p><h2 style="margin:0 0 5px">Check what changed</h2><p class="hint">Compare each approved change against the linked WhatsApp evidence. Confirm or explain a dispute on the event page.</p></div></div>
     {% else %}
@@ -100,7 +101,7 @@
           <table>
             <thead><tr><th>Project</th><th>Change</th><th>Current state</th><th>Next step</th></tr></thead>
             <tbody>{% for row in (workspace.queue[:5] if workspace.view == 'overview' else workspace.queue) %}
-              <tr data-search-row data-state="{{ row.item.state }}"><td><a href="{{ row.url }}"><strong>{{ row.record.title }}</strong></a></td><td>{{ row.item.change.item }}</td><td>{{ state_labels.get(row.item.state, row.item.state) }}</td><td><a href="{{ row.url }}">Open review</a></td></tr>
+              <tr data-search-row data-state="{{ row.item.state }}"><td><a href="{{ row.url }}"><strong>{{ row.record.title }}</strong></a></td><td>{{ row.item.change.item }}</td><td>{{ state_labels.get(row.item.state, row.item.state) }}</td><td>{% if role == 'owner' %}<a href="{{ row.url }}">Show in chat</a>{{ action_forms(row.record, row.key, row.item, allowed(row.item, role), request.full_path) }}{% else %}<a href="{{ row.url }}">Open review</a>{% endif %}</td></tr>
             {% endfor %}</tbody>
           </table>
           <p class="hint" data-filter-empty hidden>No changes match your search. Clear the search or choose another state.</p>
