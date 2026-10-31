@@ -160,6 +160,9 @@ Step-by-step setup (two phones, pairing, the scripted demo conversation) is in [
 
 ### Vercel web prototype
 
+For hosting the web app **and** the WhatsApp bridge together, use the
+[DigitalOcean Droplet guide](docs/droplet.md). Docker and Compose files are included.
+
 Vercel deployment files are included. Follow [docs/vercel.md](docs/vercel.md) for
 the exact settings and environment variables. This hosts the web prototype;
 project state remains temporary and the live WhatsApp bridge needs a separate

@@ -1,0 +1,24 @@
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: "5000"
+      WHATSAPP_BRIDGE_URL: http://127.0.0.1:3001
+      WHATSAPP_TIMEZONE: Asia/Kuala_Lumpur
+      SMERGERS_WSGI: "1"
+    ports:
+      - "127.0.0.1:5000:5000"
+    volumes:
+      - whatsapp_session:/app/whatsapp/.wwebjs_auth
+    shm_size: 256mb
+    stop_grace_period: 30s
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  whatsapp_session:
