@@ -139,7 +139,8 @@ def test_bad_timezone_and_bad_group_are_refused(monkeypatch):
 # ---- the pages ----
 
 @pytest.fixture()
-def client():
+def client(monkeypatch):
+    monkeypatch.setattr(whatsapp_bridge, "start_sync", lambda: None)
     store.reset_demo()
     app.config["TESTING"] = True
     with app.test_client() as c:
@@ -217,3 +218,55 @@ def test_clients_cannot_see_the_business_groups(client, monkeypatch):
     client.post("/role", data={"role": "client"})
     assert client.get("/whatsapp").status_code == 403
     assert client.post("/whatsapp/import", data={"group": GROUP, "quote": "q_dinner.json"}).status_code == 403
+
+
+def test_selected_group_keeps_syncing_and_deduplicates_without_a_page_request(client, monkeypatch):
+    exported = parse_chat((CHATS / "dinner_client.txt").read_text(encoding="utf-8"))
+    messages = messages_from_whatsapp(as_records(exported), KL)
+    latest = messages[:3]
+    monkeypatch.setattr(whatsapp_bridge, "fetch_group", lambda gid, limit: ("Dinner", latest))
+    response = client.post("/whatsapp/import", data={"group": GROUP, "quote": "q_dinner.json"})
+    record = store.JOBS[response.location.rsplit("/", 1)[-1]]
+    assert record.bridge.group_id == GROUP
+    assert not record.job.items
+    latest = messages
+    whatsapp_bridge.sync_groups()  # background worker, no browser or webhook involved
+    assert record.messages == messages
+    assert summary(i.change for i in record.job.items.values()) == summary(
+        extract(messages, record.catalogue))
+    item = next(iter(record.job.items.values()))
+    item.state = "approved"
+    item.price = 123
+    previous_log = len(record.job.log.entries)
+    # Overlapping history and repeated polling don't duplicate messages or detection.
+    whatsapp_bridge.sync_groups()
+    assert len(record.messages) == len(messages)
+    assert len(record.job.log.entries) == previous_log
+    latest = messages_from_whatsapp([{"wa_id": "new", "timestamp": 1789552300,
+        "sender": "PM", "text": "Thanks everyone"}], KL)
+    whatsapp_bridge.sync_groups()
+    assert len(record.messages) == len(messages) + 1
+    assert item.state == "approved" and item.price == 123
+    page = client.get(response.location).data.decode()
+    assert "whatsapp-sync.js" in page and "Tracking new WhatsApp messages" in page
+
+
+def test_empty_group_can_be_connected_and_recovers_after_disconnect(client, monkeypatch):
+    monkeypatch.setattr(whatsapp_bridge, "fetch_group", lambda *args: ("Empty group", []))
+    response = client.post("/whatsapp/import", data={"group": GROUP, "quote": "q_dinner.json"})
+    record = store.JOBS[response.location.rsplit("/", 1)[-1]]
+    assert record.bridge and not record.messages
+
+    def offline(*args):
+        raise whatsapp_bridge.BridgeError("Disconnected")
+
+    monkeypatch.setattr(whatsapp_bridge, "fetch_group", offline)
+    whatsapp_bridge.sync_groups()
+    assert record.bridge.error == "Disconnected"
+    assert b"Sync interrupted" in client.get(response.location).data
+    messages = messages_from_whatsapp([{"wa_id": "first", "timestamp": 1789452300,
+        "sender": "Client", "text": "Hello"}], KL)
+    monkeypatch.setattr(whatsapp_bridge, "fetch_group", lambda *args: ("Empty group", messages))
+    whatsapp_bridge.sync_groups()
+    assert not record.bridge.error
+    assert record.messages == messages

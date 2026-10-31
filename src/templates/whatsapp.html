@@ -78,7 +78,7 @@
 {% if status.status == 'ready' %}
   {% if error %}<div class="flash" role="alert">{{ error }}</div>{% endif %}
   <h2 class="section-title">Choose the group</h2>
-  <p class="hint">Pick the existing quote that belongs to this event, then select how many of the latest synced messages to read. A job is created for the imported conversation.</p>
+  <p class="hint">Pick the existing quote that belongs to this event, then select how many recent messages to read first. The job will keep tracking new messages in this group while the app and bridge are running, including messages you send yourself.</p>
   {% if groups %}
   <form class="panel actions" method="post" action="{{ url_for('whatsapp_import') }}" id="wa-import"
         onsubmit="var b=document.getElementById('wa-submit'); b.disabled=true; b.textContent='Reading the group…';">
@@ -94,7 +94,7 @@
       <input type="number" name="limit" id="wa-limit" value="{{ default_limit }}" min="1" max="{{ max_limit }}" step="1" class="price">
     </label>
     <label class="check-row"><input type="checkbox" name="ai" value="1"> Read with the AI reader <span class="hint">Llama 3.1 on RunPod · falls back to the rules</span></label>
-    <button class="primary" id="wa-submit">Read group and find changes</button>
+    <button class="primary" id="wa-submit">Connect group and find changes</button>
   </form>
   <p class="hint">This optional connector reads only messages synced on WhatsApp. The prototype is for synthetic sample data only; do not import real client conversations or personal information.</p>
   {% elif not error %}

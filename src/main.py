@@ -5,7 +5,7 @@ import os
 import re
 import secrets
 
-from flask import (Flask, Response, abort, flash, jsonify, redirect, render_template, request, send_from_directory,
+from flask import (Flask, Response, abort, flash, g, jsonify, redirect, render_template, request, send_from_directory,
                    session, url_for)
 from markupsafe import Markup, escape
 
@@ -27,6 +27,23 @@ app.secret_key = os.environ.get("SECRET_KEY") or os.environ.get("SESSION_SECRET"
 app.config["MAX_CONTENT_LENGTH"] = 1_000_000  # chat exports are small text files
 
 store.reset_demo()
+
+
+@app.before_request
+def lock_job():
+    # Background detection and a person's review must not mutate the same job
+    # at once. Keep rendering consistent with its messages and extracted changes.
+    record = store.JOBS.get((request.view_args or {}).get("job_id"))
+    if record is not None and record.bridge is not None:
+        record.bridge.lock.acquire()
+        g.job_lock = record.bridge.lock
+
+
+@app.teardown_request
+def unlock_job(error=None):
+    lock = g.pop("job_lock", None)
+    if lock is not None:
+        lock.release()
 
 
 @app.get("/favicon.ico")
@@ -293,13 +310,12 @@ def whatsapp_import():
     except whatsapp_bridge.BridgeError as err:
         flash(str(err))
         return redirect(url_for("whatsapp_page"))
-    if not messages:
-        flash("No messages could be read from that group yet. Open it once on your phone, then try again.")
-        return redirect(url_for("whatsapp_page"))
     ai = request.form.get("ai") == "1"
     record = store.build_from_messages(store.new_job_id(store.quote_title(quote)), messages,
                                        f"WhatsApp group: {name}", quote, ai=ai)
-    flash(f"Read {len(messages):,} messages from {name}.", "ok")
+    record.bridge = whatsapp_bridge.GroupSync(group_id, limit)
+    whatsapp_bridge.start_sync()
+    flash(f"Read {len(messages):,} messages from {name}. New messages will sync automatically.", "ok")
     if ai and not record.ai:
         flash("The AI reader could not be reached, so the rules read this chat instead.")
     elif record.ai:

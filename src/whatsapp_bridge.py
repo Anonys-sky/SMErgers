@@ -7,6 +7,10 @@ Standard library only, so requirements.txt stays the same. Settings (environment
 """
 import json
 import os
+import logging
+import threading
+from dataclasses import dataclass, field, replace
+from datetime import datetime
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -70,7 +74,7 @@ def list_groups():
 
 
 def fetch_group(group_id, limit=DEFAULT_LIMIT):
-    """(group name, Message list) for the latest `limit` messages of one group."""
+    """Read initial history plus messages captured since this group was selected."""
     if not isinstance(group_id, str) or not group_id.endswith("@g.us"):
         raise BridgeError("Choose a WhatsApp group.")
     limit = max(1, min(int(limit), MAX_LIMIT))
@@ -78,6 +82,70 @@ def fetch_group(group_id, limit=DEFAULT_LIMIT):
     path = f"/groups/{urllib.parse.quote(group_id, safe='')}/messages?limit={limit}"
     data = _get(path, timeout=600)  # a long group history takes a while to load
     return data["group"]["name"], messages_from_whatsapp(data["messages"], tz)
+
+
+@dataclass
+class GroupSync:
+    group_id: str
+    limit: int
+    error: str = ""
+    checked_at: object = None
+    lock: object = field(default_factory=threading.RLock, repr=False, compare=False)
+
+
+_worker = None
+_worker_lock = threading.Lock()
+_poll_lock = threading.Lock()
+
+
+def sync_groups():
+    """Merge by stable WhatsApp ID; refresh detection without replacing approvals."""
+    import store
+    import sync
+
+    with _poll_lock:
+        for record in list(store.JOBS.values()):
+            feed = record.bridge
+            if feed is None:
+                continue
+            try:
+                _, incoming = fetch_group(feed.group_id, feed.limit)
+                # A reset may have removed the job while the bridge was reading.
+                if store.JOBS.get(record.id) is not record:
+                    continue
+                with feed.lock:
+                    merged = {m.id: m for m in record.messages}
+                    merged.update((m.id, m) for m in incoming)
+                    messages = [replace(m, seq=i) for i, m in enumerate(
+                        sorted(merged.values(), key=lambda m: m.sent_at), 1)]
+                    if messages != record.messages:
+                        changes = store.extract(messages, record.catalogue, ai=record.ai)
+                        new = record.job.refresh(changes)
+                        record.messages = messages
+                        sync.after_detection(record, new)
+                feed.error = ""
+                feed.checked_at = datetime.now()
+            except BridgeError as err:
+                feed.error = str(err)
+            except Exception:
+                feed.error = "Could not sync the group. Retrying automatically."
+                logging.exception("WhatsApp group sync failed for %s", record.id)
+
+
+def start_sync():
+    """One background reader per Flask process; continues with the page closed."""
+    global _worker
+    with _worker_lock:
+        if _worker is not None and _worker.is_alive():
+            return
+
+        def run():
+            tick = threading.Event()
+            while not tick.wait(3):
+                sync_groups()
+
+        _worker = threading.Thread(target=run, name="whatsapp-sync", daemon=True)
+        _worker.start()
 
 
 def request_pairing_code(phone):

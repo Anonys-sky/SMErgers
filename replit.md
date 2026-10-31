@@ -47,6 +47,14 @@ The rules reader runs by default and needs nothing else. The optional AI reader 
   installation for Puppeteer, and `npm run whatsapp` as a separate local service
   on port 3001. Pair an account from `/whatsapp` after starting that service.
   Keep the bridge bound to loopback; do not expose its API publicly.
+- Choosing a group on `/whatsapp` connects the imported job to that group. The
+  bridge captures incoming messages and messages sent by the linked account;
+  Flask checks for updates every three seconds, even with the page closed.
+  The review page refreshes automatically and preserves unsaved edits. The
+  message limit applies to initial history; subsequent arrivals are retained in
+  memory for the bridge process. Both services must stay running. After restarting
+  Flask, import the group again; after bridge downtime, recovery is limited to
+  messages available in WhatsApp Web's synced history.
 
 ## Dependency security
 

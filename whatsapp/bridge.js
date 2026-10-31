@@ -23,6 +23,8 @@ const QRCode = require('qrcode');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { toRecord, contactName } = require('./convert');
 const { browserOptions } = require('./browser');
+const { GroupTracker } = require('./tracker');
+const tracker = new GroupTracker();
 
 const PORT = Number(process.env.WHATSAPP_BRIDGE_PORT || 3001);
 const DEFAULT_LIMIT = 2000;
@@ -76,6 +78,10 @@ function start() {
         userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
         puppeteer: browserOptions(),
     });
+
+    // message_create includes messages sent by the linked account as well as
+    // incoming messages. The 'message' event excludes our own messages.
+    client.on('message_create', (msg) => tracker.capture(msg, state.me));
 
     client.on('qr', async (qr) => {
         try {
@@ -340,8 +346,11 @@ const server = http.createServer(async (req, res) => {
             if (!groupId.endsWith('@g.us')) return send(res, 400, { error: 'Not a group id' });
             const limit = parseLimit(url.searchParams.get('limit'));
             if (limit === null) return send(res, 400, { error: 'limit must be a whole number above 0' });
+            tracker.watch(groupId); // subscribe before the history read to avoid a gap
             const result = await serial(() => groupMessages(groupId, limit));
             if (!result) return send(res, 404, { error: 'Group not found on this WhatsApp number' });
+            result.messages = tracker.merge(groupId, result.messages);
+            result.fetched = result.messages.length;
             return send(res, 200, result);
         }
         return send(res, 404, { error: 'Not found' });

@@ -38,6 +38,7 @@ class JobRecord:
     outbox: list = field(default_factory=list)     # sync.Outgoing, messages to the group or a person
     live: object = None                            # webhook.LiveFeed when fed message by message
     ai: bool = False                               # read by the AI reader instead of the rules
+    bridge: object = None                         # whatsapp_bridge.GroupSync for a linked group
 
     @property
     def title(self):
