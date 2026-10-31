@@ -95,8 +95,17 @@ def messages_from_whatsapp(records, tz=None):
     Times become naive local time like an export: in `tz` (a tzinfo) if given, otherwise
     in this computer's time zone. Ids come from WhatsApp's own message id, so reading the
     same group twice gives the same ids."""
-    rows = sorted(records, key=lambda r: r["timestamp"])  # stable: same-second messages keep their order
-    messages, seen = [], {}
+    unique = {}
+    for record in records:
+        wa_id = str(record.get("wa_id") or "")
+        if not wa_id or wa_id == "[object Object]":
+            continue
+        match = re.fullmatch(r"(true|false)_([^_]+)_([^_]+)(?:_.*)?", wa_id)
+        if match:
+            wa_id = "_".join(match.groups())
+        unique[wa_id] = {**record, "wa_id": wa_id}
+    rows = sorted(unique.values(), key=lambda r: r["timestamp"])
+    messages = []
     for seq, r in enumerate(rows, start=1):
         if tz is None:
             sent_at = datetime.fromtimestamp(r["timestamp"])
@@ -104,8 +113,6 @@ def messages_from_whatsapp(records, tz=None):
             sent_at = datetime.fromtimestamp(r["timestamp"], tz).replace(tzinfo=None)
         text = (r.get("text") or "").translate(_INVISIBLE).strip()
         base = hashlib.sha1(str(r["wa_id"]).encode()).hexdigest()[:12]
-        seen[base] = seen.get(base, 0) + 1
-        msg_id = base if seen[base] == 1 else f"{base}-{seen[base]}"
         is_media = bool(r.get("is_media")) or bool(_MEDIA.match(text))
-        messages.append(Message(msg_id, seq, sent_at, r.get("sender") or None, text, is_media))
+        messages.append(Message(base, seq, sent_at, r.get("sender") or None, text, is_media))
     return messages

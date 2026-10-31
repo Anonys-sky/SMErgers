@@ -20,6 +20,21 @@ const MEDIA_TYPES = new Set(['image', 'video', 'audio', 'ptt', 'document', 'stic
 const MEDIA_PLACEHOLDER = '<Media omitted>';
 const DELETED_TEXT = 'This message was deleted';
 
+function messageId(id) {
+    // Live events can carry a plain MsgKey without _serialized. Never stringify
+    // that object: it becomes "[object Object]" for every live message.
+    let serialized = typeof id === 'string' ? id : id?._serialized;
+    if (!serialized && id?.id && id?.remote) {
+        const remote = id.remote._serialized || id.remote;
+        serialized = `${Boolean(id.fromMe)}_${remote}_${id.id}`;
+    }
+    if (!serialized || serialized === '[object Object]' || typeof serialized !== 'string') return null;
+    // The participant suffix can change between phone and LID addressing.
+    // Group + WhatsApp stanza ID + direction identify the same message in both paths.
+    const match = serialized.match(/^(true|false)_([^_]+)_([^_]+)(?:_.*)?$/);
+    return match ? `${match[1]}_${match[2]}_${match[3]}` : serialized;
+}
+
 /**
  * @param {object} msg       whatsapp-web.js Message
  * @param {string} sender    display name already resolved for this message
@@ -27,6 +42,8 @@ const DELETED_TEXT = 'This message was deleted';
  */
 function toRecord(msg, sender) {
     if (!msg || msg.isStatus || SKIP_TYPES.has(msg.type)) return null;
+    const waId = messageId(msg.id);
+    if (!waId || !Number.isFinite(Number(msg.timestamp))) return null;
     const body = typeof msg.body === 'string' ? msg.body.trim() : '';
     let text = body;
     let isMedia = false;
@@ -42,7 +59,7 @@ function toRecord(msg, sender) {
         return null;
     }
     return {
-        wa_id: msg.id && msg.id._serialized ? msg.id._serialized : String(msg.id),
+        wa_id: waId,
         timestamp: Number(msg.timestamp),
         sender,
         text,
@@ -62,4 +79,4 @@ function contactName(contact, fallbackId) {
     return user ? `+${user}` : 'Unknown';
 }
 
-module.exports = { toRecord, contactName, SKIP_TYPES, MEDIA_TYPES, MEDIA_PLACEHOLDER, DELETED_TEXT };
+module.exports = { toRecord, messageId, contactName, SKIP_TYPES, MEDIA_TYPES, MEDIA_PLACEHOLDER, DELETED_TEXT };

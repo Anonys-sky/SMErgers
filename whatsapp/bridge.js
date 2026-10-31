@@ -205,7 +205,7 @@ async function listGroups() {
 }
 
 async function groupMessages(groupId, limit) {
-    return await client.pupPage.evaluate(async (groupId, limit) => {
+    const result = await client.pupPage.evaluate(async (groupId, limit) => {
         try {
             const chatWid = window.require('WAWebWidFactory').createWid(groupId);
             const ChatCollection = window.require('WAWebCollections').Chat;
@@ -238,31 +238,18 @@ async function groupMessages(groupId, limit) {
 
             const records = [];
             for (const m of msgs) {
-                let sender = 'Unknown';
-                if (m.id && m.id.fromMe) {
-                    sender = 'Me';
-                } else {
-                    const authorId = m.author ? (m.author._serialized || m.author) : (m.from ? (m.from._serialized || m.from) : null);
-                    sender = m.notifyName || (authorId ? ('+' + String(authorId).split('@')[0]) : 'Unknown');
-                }
-                const body = typeof m.body === 'string' ? m.body.trim() : (m.caption || '');
-                const isMedia = Boolean(m.directPath || m.type === 'image' || m.type === 'video' || m.type === 'audio' || m.type === 'ptt' || m.type === 'document' || m.type === 'sticker');
-                let text = body;
-                if (m.type === 'revoked') {
-                    text = 'This message was deleted';
-                } else if (isMedia && !body) {
-                    text = '<Media omitted>';
-                }
-                if (text) {
-                    records.push({
-                        wa_id: (m.id && m.id._serialized) || String(m.id || Math.random()),
-                        timestamp: Number(m.t || Math.floor(Date.now() / 1000)),
-                        sender,
-                        text,
-                        is_media: isMedia,
-                        from_me: Boolean(m.id && m.id.fromMe),
-                    });
-                }
+                records.push({
+                    id: { _serialized: m.id?._serialized, id: m.id?.id,
+                        remote: m.id?.remote?._serialized || m.id?.remote,
+                        fromMe: Boolean(m.id?.fromMe) },
+                    timestamp: Number(m.t), type: m.type,
+                    body: typeof m.body === 'string' ? m.body : (m.caption || ''),
+                    hasMedia: Boolean(m.directPath), fromMe: Boolean(m.id?.fromMe),
+                    isStatus: Boolean(m.isStatus),
+                    author: m.author?._serialized || m.author,
+                    from: m.from?._serialized || m.from,
+                    _data: { notifyName: m.notifyName },
+                });
             }
             return {
                 group: { id: chat.id._serialized, name: chat.formattedTitle || chat.name || 'Group' },
@@ -276,6 +263,13 @@ async function groupMessages(groupId, limit) {
             return null;
         }
     }, groupId, limit);
+    if (!result) return null;
+    // History and live events must share the exact conversion and identity rules.
+    result.messages = result.messages.map(msg => toRecord(msg, msg.fromMe
+        ? (state.me?.name || 'Me')
+        : (msg._data?.notifyName || contactName(null, msg.author || msg.from))))
+        .filter(Boolean);
+    return result;
 }
 
 function send(res, code, body) {

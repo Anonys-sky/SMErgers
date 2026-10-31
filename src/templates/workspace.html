@@ -64,19 +64,18 @@
     {% if live and workspace.view == 'overview' %}
     <a class="live-callout" href="{{ url_for('job_page', job_id=live.id) }}">
       <span class="live-dot" aria-hidden="true"></span>
-      <span class="live-callout-text"><strong>Guided live demo · {{ live.title }}</strong>
-        <small>{{ live.catalogue.quote.client }} · starting quote {{ live_bill.quote_total | rm }} · messages arrive on their own through the webhook; follow each hand-over.</small></span>
+      <span class="live-callout-text"><strong>WhatsApp connected · {{ live.title }}</strong>
+        <small>{{ live.catalogue.quote.client }} · {{ live.chat_name }} · new messages sync automatically.</small></span>
       <span class="btn btn-primary">Open live group</span>
     </a>
     {% endif %}
     {% if role in ('pm', 'owner') and workspace.view == 'overview' and not live %}
-    <form class="live-callout live-start" method="post" action="{{ url_for('live_start') }}">
+    <a class="live-callout" href="{{ url_for('whatsapp_page') }}">
       <span class="live-dot" aria-hidden="true"></span>
-      <span class="live-callout-text"><strong>Try a live WhatsApp group</strong>
-        <small>A simulated group where messages arrive on their own. SMErgers reads each one and lists the changes, with no import.</small></span>
-      <select name="quote" aria-label="Sample business">{% for file, title in live_quotes %}<option value="{{ file }}">{{ title }}</option>{% endfor %}</select>
-      <button class="btn btn-primary">Start live group</button>
-    </form>
+      <span class="live-callout-text"><strong>Connect a WhatsApp group</strong>
+        <small>Select the real group and its project. New messages will be registered automatically.</small></span>
+      <span class="btn btn-primary">Connect WhatsApp</span>
+    </a>
     {% endif %}
 
     {% if role == 'client' and workspace.jobs %}

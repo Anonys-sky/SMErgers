@@ -17,6 +17,7 @@ import urllib.request
 from zoneinfo import ZoneInfo, ZoneInfoNotFoundError
 
 from chat_import import messages_from_whatsapp
+from workflow import SYSTEM
 
 DEFAULT_URL = "http://127.0.0.1:3001"
 DEFAULT_LIMIT = 2000
@@ -98,10 +99,33 @@ _worker_lock = threading.Lock()
 _poll_lock = threading.Lock()
 
 
+def apply_messages(record, incoming):
+    """Register each message once and re-read the real group without resetting decisions."""
+    import store
+    import sync
+
+    with record.bridge.lock:
+        known = {m.id for m in record.messages}
+        merged = {m.id: m for m in record.messages}
+        merged.update((m.id, m) for m in incoming)
+        messages = [replace(m, seq=i) for i, m in enumerate(
+            sorted(merged.values(), key=lambda m: m.sent_at), 1)]
+        if messages == record.messages:
+            return []
+        changes = store.extract(messages, record.catalogue, ai=record.ai)
+        for message in messages:
+            if message.id not in known:
+                record.job.log.add(datetime.now(), SYSTEM, "trigger", "-",
+                                   f"message from {message.sender} registered through the WhatsApp bridge")
+        new = record.job.refresh(changes)
+        record.messages = messages
+        sync.after_detection(record, new)
+        return new
+
+
 def sync_groups():
     """Merge by stable WhatsApp ID; refresh detection without replacing approvals."""
     import store
-    import sync
 
     with _poll_lock:
         for record in list(store.JOBS.values()):
@@ -113,16 +137,7 @@ def sync_groups():
                 # A reset may have removed the job while the bridge was reading.
                 if store.JOBS.get(record.id) is not record:
                     continue
-                with feed.lock:
-                    merged = {m.id: m for m in record.messages}
-                    merged.update((m.id, m) for m in incoming)
-                    messages = [replace(m, seq=i) for i, m in enumerate(
-                        sorted(merged.values(), key=lambda m: m.sent_at), 1)]
-                    if messages != record.messages:
-                        changes = store.extract(messages, record.catalogue, ai=record.ai)
-                        new = record.job.refresh(changes)
-                        record.messages = messages
-                        sync.after_detection(record, new)
+                apply_messages(record, incoming)
                 feed.error = ""
                 feed.checked_at = datetime.now()
             except BridgeError as err:

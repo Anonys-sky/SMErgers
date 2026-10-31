@@ -78,7 +78,7 @@
 {% if status.status == 'ready' %}
   {% if error %}<div class="flash" role="alert">{{ error }}</div>{% endif %}
   <h2 class="section-title">Choose the group</h2>
-  <p class="hint">Pick the existing quote that belongs to this event, then select how many recent messages to read first. The job will keep tracking new messages in this group while the app and bridge are running, including messages you send yourself.</p>
+  <p class="hint">Select the project for this group and how much history to read first. New messages, including your own, will then sync into that project automatically.</p>
   {% if groups %}
   <form class="panel actions" method="post" action="{{ url_for('whatsapp_import') }}" id="wa-import"
         onsubmit="var b=document.getElementById('wa-submit'); b.disabled=true; b.textContent='Reading the group…';">
@@ -87,8 +87,8 @@
         {% for g in groups %}<option value="{{ g.id }}">{{ g.name }}{% if g.participants %} ({{ g.participants }} people){% endif %}{% if g.archived %} · archived{% endif %}</option>{% endfor %}
       </select>
     </label>
-    <label>Quote
-      <select name="quote" id="wa-quote" required><option value="" disabled selected>Choose the matching quote</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
+    <label>Project
+      <select name="project" id="wa-project" required><option value="" disabled selected>Choose the project</option>{% for project in projects %}<option value="{{ project.id }}">{{ project.title }} · {{ project.catalogue.quote.quote_id }}{% if project.bridge %} · connected{% endif %}</option>{% endfor %}</select>
     </label>
     <label>Latest messages to read
       <input type="number" name="limit" id="wa-limit" value="{{ default_limit }}" min="1" max="{{ max_limit }}" step="1" class="price">

@@ -3,7 +3,7 @@ a webhook POST with entry -> changes -> value -> messages and contacts.
 
 Assumption, because we had no API access: for group messages we read the group from a
 `group_id` field on each message. Check the field name against Meta's Groups API documentation
-before going live. The demo's "live chat" sends synthetic messages through this same code.
+before going live.
 """
 import hashlib
 import hmac
@@ -23,9 +23,6 @@ KL = ZoneInfo("Asia/Kuala_Lumpur")
 class LiveFeed:
     group_id: str
     received: list = field(default_factory=list)   # message records, as messages_from_whatsapp takes them
-    script: list = field(default_factory=list)     # demo only: synthetic messages still to "arrive"
-    senders: list = field(default_factory=list)    # demo only: people in the synthetic group, for typed messages
-    typed: int = 0                                  # demo only: how many messages were typed in
 
 
 def signature_ok(body, header):
@@ -80,25 +77,3 @@ def ingest(record, records, now=None):
     new = record.job.refresh(extract(record.messages, record.catalogue, ai=record.ai), now)
     sync.after_detection(record, new, now)
     return new
-
-
-def payload_for_text(group_id, sender, text, wa_id, when):
-    """A synthetic webhook payload for one text message, in Meta's format."""
-    phone = "6010" + str(int(hashlib.sha1(sender.encode()).hexdigest(), 16) % 10**7).zfill(7)
-    sent = when if when.tzinfo else when.replace(tzinfo=KL)
-    return {
-        "object": "whatsapp_business_account",
-        "entry": [{"changes": [{"field": "messages", "value": {
-            "messaging_product": "whatsapp",
-            "contacts": [{"wa_id": phone, "profile": {"name": sender}}],
-            "messages": [{
-                "from": phone, "id": wa_id, "timestamp": str(int(sent.timestamp())),
-                "group_id": group_id, "type": "text", "text": {"body": text},
-            }],
-        }}]}],
-    }
-
-
-def payload_for(group_id, message, seq):
-    """A synthetic webhook payload for one demo message, in Meta's format."""
-    return payload_for_text(group_id, message.sender, message.text, f"wamid.demo.{group_id}.{seq}", message.sent_at)

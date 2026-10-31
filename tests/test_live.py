@@ -6,15 +6,21 @@ import pytest
 
 import store
 import webhook
+import whatsapp_bridge
 from bill import build_bill
+from chat_import import messages_from_whatsapp, parse_chat
+from catalogue import DATA
 from main import app
 
 
 @pytest.fixture()
-def client():
+def client(monkeypatch):
     store.reset_demo()
+    monkeypatch.setattr(whatsapp_bridge, "start_sync", lambda: None)
     app.config["TESTING"] = True
     with app.test_client() as c:
+        c.bridge_messages = []
+        monkeypatch.setattr(whatsapp_bridge, "fetch_group", lambda *args: ("Test group", list(c.bridge_messages)))
         yield c
 
 
@@ -40,105 +46,120 @@ def test_old_pages_redirect_to_history(client):
     assert client.get("/job/annual-dinner/updates").location.endswith("/job/annual-dinner/history")
 
 
-# ---------------------------------------------------------------- the live group: an automatic trigger
+# Actual bridge flow against a controlled message source; no demo routes.
 def start_live(client, quote="q_dinner.json"):
-    response = client.post("/live/start", data={"quote": quote})
+    chat = next(chat for _, chat, q in store.DEMO_JOBS if q == quote)
+    exported = [m for m in parse_chat((DATA / "chats" / chat).read_text()) if m.sender]
+    client.pending_messages = messages_from_whatsapp([
+        {"wa_id": f"message-{m.seq}", "timestamp": m.sent_at.replace(tzinfo=webhook.KL).timestamp(),
+         "sender": m.sender, "text": m.text, "is_media": m.is_media} for m in exported], webhook.KL)
+    client.bridge_messages = client.pending_messages[:3]
+    client.pending_messages = client.pending_messages[3:]
+    project = next(j for j, _, q in store.DEMO_JOBS if q == quote)
+    response = client.post("/whatsapp/import", data={"group": "test@g.us", "project": project})
     assert response.status_code == 302
     return response.location.rsplit("/", 1)[-1]
+
+
+def deliver(client, all=False):
+    count = len(client.pending_messages) if all else 1
+    client.bridge_messages.extend(client.pending_messages[:count])
+    del client.pending_messages[:count]
+    whatsapp_bridge.sync_groups()
 
 
 def pm_view(client):
     client.post("/role", data={"role": "pm"})
 
 
-def test_live_group_starts_with_the_first_messages_and_no_changes(client):
+def test_bridge_group_starts_with_history_without_simulated_controls(client):
     job_id = start_live(client)
     assert len(store.JOBS[job_id].messages) == 3 and store.JOBS[job_id].job.items == {}
     page = client.get(f"/job/{job_id}").data.decode()
-    assert 'id="live-bar"' in page and "Type a message into the group" in page and "Messages are arriving" in page
+    assert "whatsapp-sync.js" in page and "Tracking new WhatsApp messages" in page
+    assert 'id="live-bar"' not in page and "simulated" not in record_page_source(page)
+
+
+def record_page_source(page):
+    return page.split('WhatsApp source ·', 1)[1].split('</p>', 1)[0]
 
 
 def test_a_message_arriving_is_read_at_once_and_logged_as_the_trigger(client):
     job_id = start_live(client)
     record = store.JOBS[job_id]
     for _ in range(4):
-        client.post(f"/job/{job_id}/live/next")
+        deliver(client)
     assert len(record.messages) == 7
     assert any(i.change.item == "Dinner package" for i in record.job.items.values())
     assert record.outbox[-1].to == "Aisyah"                      # the PM is told about the new change
     triggers = [e for e in record.job.log.entries if e.action == "trigger"]
-    assert len(triggers) == 7                                      # 3 at the start + 4 delivered, each logged as it arrived
-    assert "WhatsApp webhook" in triggers[0].detail and record.job.log.intact()
+    assert len(triggers) == 4  # initial history is imported once; each new arrival is registered once
+    assert "WhatsApp bridge" in triggers[0].detail and record.job.log.intact()
 
 
-def test_the_live_page_can_ask_for_json_and_updates_without_a_reload(client):
+def test_simulation_routes_are_removed(client):
     job_id = start_live(client)
-    answer = client.post(f"/job/{job_id}/live/next", headers={"X-Requested-With": "fetch"}).get_json()
-    assert answer["remaining"] == len(store.JOBS[job_id].live.script) and answer["messages"] == 4
+    for path in ("/live/start", f"/job/{job_id}/live/next", f"/job/{job_id}/live/send"):
+        assert client.post(path).status_code == 404
+    assert b"Start live group" not in client.get("/").data
+    assert b"Start live group" not in client.get("/imports").data
 
 
 def test_play_the_rest_ends_with_the_same_changes_as_an_export(client):
     job_id = start_live(client)
-    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
+    deliver(client, all=True)
     live_items = sorted((i.change.item, i.change.status, i.price) for i in store.JOBS[job_id].job.items.values())
-    export_items = sorted((i.change.item, i.change.status, i.price) for i in store.JOBS["annual-dinner"].job.items.values())
-    assert live_items == export_items and not store.JOBS[job_id].live.script
+    from rules_extractor import extract
+    export_items = sorted((c.item, c.status, c.price_delta) for c in extract(store.JOBS[job_id].messages, store.JOBS[job_id].catalogue))
+    assert live_items == export_items and not client.pending_messages
 
 
 def test_the_webhook_route_feeds_the_live_group(client):
-    job_id = start_live(client)
-    record = store.JOBS[job_id]
-    msg = store.JOBS["annual-dinner"].messages[4]               # "195 people attending"
-    payload = webhook.payload_for(record.live.group_id, msg, 999)
+    record = store.build_from_messages("webhook-test", [], "Webhook group", "q_dinner.json")
+    record.live = webhook.LiveFeed("webhook@g.us")
+    store.GROUPS[record.live.group_id] = record.id
+    payload = {"entry": [{"changes": [{"value": {"messages": [{
+        "id": "m1", "group_id": record.live.group_id, "from": "60123", "timestamp": "1789452300",
+        "type": "text", "text": {"body": "195 people attending"}}]}}]}]}
     assert client.post("/webhooks/whatsapp", json=payload).data == b"ok"
     assert any("195 people" in m.text for m in record.messages)
 
 
-def test_a_typed_message_is_caught_without_guessing_that_it_was_agreed(client):
+def test_bridge_request_is_caught_without_guessing_that_it_was_agreed(client):
     job_id = start_live(client)
     record = store.JOBS[job_id]
-    sender = record.live.senders[2]
-    answer = client.post(f"/job/{job_id}/live/send", headers={"X-Requested-With": "fetch"},
-                         data={"sender": sender, "text": "Can we add 10 more pax?"}).get_json()
-    assert answer["new"] == ["Dinner package"]
+    sender = "Client"
+    client.bridge_messages.extend(messages_from_whatsapp([{"wa_id": "new-request", "timestamp": 1789552300,
+        "sender": sender, "text": "Can we add 10 more pax?"}], webhook.KL))
+    whatsapp_bridge.sync_groups()
     change = next(iter(record.job.items.values())).change
     assert change.status == "unconfirmed" and record.messages[-1].text == "Can we add 10 more pax?"
     assert any(e.action == "trigger" and sender in e.detail for e in record.job.log.entries)
-
-
-def test_a_typed_message_is_checked_before_it_is_accepted(client):
-    job_id = start_live(client)
-    record = store.JOBS[job_id]
-    for form in ({"sender": "Nobody", "text": "hello"}, {"sender": record.live.senders[0], "text": "   "},
-                 {"sender": record.live.senders[0], "text": "x" * 501}):
-        assert client.post(f"/job/{job_id}/live/send", headers={"X-Requested-With": "fetch"}, data=form).status_code == 400
-    assert len(record.messages) == 3
 
 
 def test_a_client_cannot_use_the_live_controls(client):
     job_id = start_live(client)
     client.post("/role", data={"role": "client"})
     assert "live-bar" not in client.get(f"/job/{job_id}", follow_redirects=True).data.decode()
-    sender = store.JOBS[job_id].live.senders[0]
     before = len(store.JOBS[job_id].messages)
-    client.post(f"/job/{job_id}/live/send", data={"sender": sender, "text": "ok"})
+    client.post(f"/job/{job_id}/live/send", data={"sender": "Client", "text": "ok"})
     client.post(f"/job/{job_id}/live/next")
     assert len(store.JOBS[job_id].messages) == before
 
 
-@pytest.mark.parametrize("quote", sorted(store.LIVE_CHATS))
+@pytest.mark.parametrize("quote", sorted(q for _, _, q in store.DEMO_JOBS))
 def test_every_sample_business_can_run_as_a_live_group(client, quote):
-    job_id = start_live(client, quote)
-    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
     export_id = next(j for j, _, q in store.DEMO_JOBS if q == quote)
-    live_items = sorted((i.change.item, i.change.status, i.price) for i in store.JOBS[job_id].job.items.values())
     export_items = sorted((i.change.item, i.change.status, i.price) for i in store.JOBS[export_id].job.items.values())
+    job_id = start_live(client, quote)
+    deliver(client, all=True)
+    live_items = sorted((i.change.item, i.change.status, i.price) for i in store.JOBS[job_id].job.items.values())
     assert live_items == export_items
 
 
 def test_the_live_journey_ends_on_quote_version_two_in_the_group_and_history(client):
     job_id = start_live(client)
-    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
+    deliver(client, all=True)
     for role in ("pm", "owner", "client"):
         client.post("/role", data={"role": role})
         client.post(f"/job/{job_id}/bulk")
@@ -151,7 +172,7 @@ def test_the_live_journey_ends_on_quote_version_two_in_the_group_and_history(cli
 def test_a_director_rejection_blocks_the_bill_and_is_recorded(client):
     job_id = start_live(client)
     record = store.JOBS[job_id]
-    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
+    deliver(client, all=True)
     banner = next(k for k, i in record.job.items.items() if i.change.item == "Roll-up banner")
     pm_view(client)
     client.post(f"/job/{job_id}/act/{banner}", data={"action": "review"})
@@ -182,7 +203,7 @@ def test_a_rejection_without_a_reason_is_refused_and_leaves_no_trace(client):
 def test_a_director_rejection_tells_the_pm_with_the_reason(client):
     job_id = start_live(client)
     record = store.JOBS[job_id]
-    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
+    deliver(client, all=True)
     banner = next(k for k, i in record.job.items.items() if i.change.item == "Roll-up banner")
     pm_view(client)
     client.post(f"/job/{job_id}/act/{banner}", data={"action": "review"})
@@ -272,9 +293,9 @@ def test_a_client_cannot_add_a_change(client):
 def test_a_manual_change_survives_new_messages_arriving_in_a_live_group(client):
     job_id = start_live(client)
     record = store.JOBS[job_id]
-    client.post(f"/job/{job_id}/live/next")
+    deliver(client)
     client.post("/role", data={"role": "pm"})
     client.post(f"/job/{job_id}/changes/add", data={"item": "Welcome drinks", "kind": "extra", "price": "400",
                                                       "evidence": [record.messages[-1].id]})
-    client.post(f"/job/{job_id}/live/next", data={"all": "1"})
+    deliver(client, all=True)
     assert record.job.items["m1"].change.source == "manual" and record.job.items["m1"].price == 400

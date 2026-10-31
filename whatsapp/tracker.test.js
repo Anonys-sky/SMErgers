@@ -31,3 +31,30 @@ test('retains arrivals during history reads and beyond the history limit without
     for (let i = 0; i < 100; i++) tracker.capture(message('new-' + i));
     assert.equal(tracker.merge(GROUP, [history]).length, 102);
 });
+
+test('plain MsgKey live events and serialized history register the same own message once', () => {
+    const tracker = new GroupTracker();
+    tracker.watch(GROUP);
+    const event = message('Really ah', true);
+    event.id = {fromMe: true, remote: GROUP, id: 'ABC123'};
+    tracker.capture(event, {name: 'Steven'});
+    const history = {wa_id: `true_${GROUP}_ABC123_12345@lid`, timestamp: 100,
+        sender: 'Me', text: 'Really ah', from_me: true};
+    const records = tracker.merge(GROUP, [history, history]);
+    assert.equal(records.length, 1);
+    assert.equal(records[0].wa_id, `true_${GROUP}_ABC123`);
+    assert.equal(records[0].sender, 'Steven');
+    tracker.capture({...event, id: {...event.id, id: 'DEF456'}});
+    assert.equal(tracker.merge(GROUP, [history]).length, 2); // two real identical messages stay separate
+});
+
+test('rejects corrupt IDs and keeps messages from separate groups isolated', () => {
+    const tracker = new GroupTracker();
+    tracker.watch(GROUP);
+    tracker.watch('456@g.us');
+    tracker.capture({...message('bad'), id: {}});
+    tracker.capture({...message('one'), id: {fromMe: false, remote: GROUP, id: 'ABC'}});
+    tracker.capture({...message('two', false, '456@g.us'), id: {fromMe: false, remote: '456@g.us', id: 'ABC'}});
+    assert.equal(tracker.merge(GROUP, [{wa_id: '[object Object]', timestamp: 100}]).length, 1);
+    assert.equal(tracker.merge('456@g.us', []).length, 1);
+});

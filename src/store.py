@@ -3,7 +3,7 @@ A real deployment would keep this in Orbyte's project records instead."""
 import json
 import re
 from dataclasses import dataclass, field
-from datetime import datetime, timedelta
+from datetime import datetime
 
 import sync
 from catalogue import DATA, Catalogue
@@ -18,9 +18,6 @@ DEMO_JOBS = [  # (job id, chat file, quote file)
     ("wedding-dinner", "wedding_client.txt", "q_wedding.json"),
     ("cafe-fit-out", "cafe_client.txt", "q_cafe.json"),
 ]
-
-LIVE_CHATS = {quote: chat for _, chat, quote in DEMO_JOBS}   # the sample conversation for each sample quote
-MAX_MESSAGE = 500
 
 # Demo workspaces. The client opens a link from WhatsApp; finance reads bills and exports the CSV.
 ROLE_LABELS = {"pm": "Project Manager", "owner": "Project Director", "client": "Client", "finance": "Finance"}
@@ -86,57 +83,6 @@ def build_with_catalogue(job_id, messages, chat_name, catalogue, ai=False):
 
 
 GROUPS: dict[str, str] = {}  # WhatsApp group id -> job id
-
-
-def build_live(job_id, chat_file, quote_file, seed=3):
-    """A job fed message by message through the webhook, as the official API would. The demo
-    script is a synthetic chat: the first `seed` messages have arrived, the rest wait in order."""
-    import webhook
-
-    script = [m for m in parse_chat((DATA / "chats" / chat_file).read_text(encoding="utf-8")) if m.sender]
-    record = build_from_messages(job_id, [], "WhatsApp group, live (simulated)", quote_file)
-    group_id = f"demo-{job_id}@g.us"
-    record.live = webhook.LiveFeed(group_id, script=[webhook.payload_for(group_id, m, i) for i, m in enumerate(script)],
-                                   senders=list(dict.fromkeys(m.sender for m in script)))
-    GROUPS[group_id] = job_id
-    for _ in range(seed):
-        play_next(record)
-    return record
-
-
-def start_live(quote_file, seed=3):
-    """Open a simulated WhatsApp group for any sample quote: messages then arrive one by one."""
-    chat = LIVE_CHATS.get(quote_file)
-    if chat is None:
-        raise ValueError("There is no sample conversation for that quote.")
-    return build_live(new_job_id(f"{quote_title(quote_file)} live"), chat, quote_file, seed)
-
-
-def send_message(record, sender, text, now=None):
-    """Demo: a person types a message into the live group. It goes through the same webhook path as
-    a real message and is read at once. Returns the keys of any new changes it caused."""
-    import webhook
-
-    feed = record.live
-    if feed is None:
-        raise ValueError("This job is not a live group.")
-    text = (text or "").strip()
-    if sender not in feed.senders:
-        raise ValueError("Choose who is sending the message.")
-    if not text or len(text) > MAX_MESSAGE:
-        raise ValueError(f"Write a message of 1 to {MAX_MESSAGE} characters.")
-    feed.typed += 1
-    # A typed message follows the last one that has arrived, so the chat reads in order.
-    when = now or (max(m.sent_at for m in record.messages) + timedelta(minutes=1) if record.messages else datetime.now())
-    before = set(record.job.items)
-    receive(webhook.payload_for_text(feed.group_id, sender, text, f"wamid.typed.{feed.group_id}.{feed.typed}", when))
-    return [k for k in record.job.items if k not in before]
-
-
-def play_next(record):
-    """Demo: deliver the next scripted message through the same path as a real webhook."""
-    if record.live and record.live.script:
-        receive(record.live.script.pop(0))
 
 
 def receive(payload):

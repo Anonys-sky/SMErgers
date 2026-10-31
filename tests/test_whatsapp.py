@@ -54,6 +54,17 @@ def test_ids_are_stable_and_unique():
     assert [m.id for m in messages_from_whatsapp(records, KL)] == [first.id, second.id]
 
 
+def test_live_and_history_ids_and_retried_records_do_not_duplicate_messages():
+    record = {"wa_id": f"true_{GROUP}_ABC123_123@lid", "timestamp": 1789452300,
+              "sender": "Steven", "text": "Really ah"}
+    records = [record, {**record, "wa_id": f"true_{GROUP}_ABC123", "sender": "Me"},
+               {**record, "wa_id": "[object Object]"}]
+    messages = messages_from_whatsapp(records, KL)
+    assert len(messages) == 1 and messages[0].seq == 1
+    assert messages[0].id == messages_from_whatsapp([record], KL)[0].id
+    assert len(messages_from_whatsapp([record, {**record, "wa_id": f"true_{GROUP}_DEF456"}], KL)) == 2
+
+
 def test_out_of_order_records_are_sorted_and_numbered():
     records = [{"wa_id": "late", "timestamp": 1789455900, "sender": "A", "text": "second"},
                {"wa_id": "early", "timestamp": 1789452300, "sender": "B", "text": "first"}]
@@ -270,3 +281,48 @@ def test_empty_group_can_be_connected_and_recovers_after_disconnect(client, monk
     whatsapp_bridge.sync_groups()
     assert not record.bridge.error
     assert record.messages == messages
+
+
+def test_connecting_existing_project_is_idempotent_and_keeps_new_messages(client, monkeypatch):
+    messages = messages_from_whatsapp([{"wa_id": "first", "timestamp": 1789452300,
+        "sender": "Client", "text": "Hello"}], KL)
+    monkeypatch.setattr(whatsapp_bridge, "fetch_group", lambda *args: ("Project group", list(messages)))
+    before = set(store.JOBS)
+    response = client.post("/whatsapp/import", data={"group": GROUP, "project": "annual-dinner"})
+    assert response.location.endswith("/job/annual-dinner")
+    record = store.JOBS["annual-dinner"]
+    assert set(store.JOBS) == before
+    assert record.messages == messages and record.bridge.group_id == GROUP
+    assert client.get("/api/jobs/annual-dinner").get_json()["job"]["simulated"] is False
+    assert not record.job.items  # no sample-chat messages or changes were mixed into the real group
+    messages += messages_from_whatsapp([{"wa_id": "second", "timestamp": 1789452400,
+        "sender": "PM", "text": "Welcome"}], KL)
+    whatsapp_bridge.sync_groups()
+    assert len(record.messages) == 2
+    triggers = [e for e in record.job.log.entries if e.action == "trigger"]
+    assert len(triggers) == 1
+    client.post("/whatsapp/import", data={"group": GROUP, "project": record.id})
+    whatsapp_bridge.sync_groups()
+    assert store.JOBS[record.id] is record and len(record.messages) == 2
+    assert len([e for e in record.job.log.entries if e.action == "trigger"]) == 1
+
+
+def test_group_cannot_be_bound_to_two_projects_or_overwrite_reviewed_changes(client, monkeypatch):
+    monkeypatch.setattr(whatsapp_bridge, "fetch_group", lambda *args: ("Project group", []))
+    client.post("/whatsapp/import", data={"group": GROUP, "project": "annual-dinner"})
+    other = store.JOBS["product-launch"]
+    client.post("/whatsapp/import", data={"group": GROUP, "project": other.id})
+    assert store.JOBS[other.id] is other and other.bridge is None
+    next(iter(other.job.items.values())).state = "reviewed"
+    client.post("/whatsapp/import", data={"group": "other@g.us", "project": other.id})
+    assert store.JOBS[other.id] is other and other.bridge is None
+
+
+def test_project_selector_and_workspace_only_offer_the_real_bridge(client, monkeypatch):
+    fake_status(monkeypatch, "ready")
+    monkeypatch.setattr(whatsapp_bridge, "list_groups", lambda: [{"id": GROUP, "name": "Group"}])
+    page = client.get("/whatsapp").data.decode()
+    assert 'name="project"' in page and 'value="annual-dinner"' in page
+    for path in ("/", "/imports"):
+        page = client.get(path).data.decode()
+        assert "simulated group" not in page and "/live/start" not in page

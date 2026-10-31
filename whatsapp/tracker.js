@@ -1,6 +1,6 @@
 'use strict';
 
-const { toRecord, contactName } = require('./convert');
+const { toRecord, messageId, contactName } = require('./convert');
 
 // Keep every message seen after a group is selected, even when it falls outside
 // the history window before Flask next polls. State lasts for this bridge process.
@@ -27,7 +27,8 @@ class GroupTracker {
         this.watch(groupId);
         const records = this.groups.get(groupId);
         for (const record of history) {
-            if (!records.has(record.wa_id)) records.set(record.wa_id, record);
+            const id = messageId(record.wa_id);
+            if (id && !records.has(id)) records.set(id, { ...record, wa_id: id });
         }
         return [...records.values()].sort((a, b) => a.timestamp - b.timestamp);
     }

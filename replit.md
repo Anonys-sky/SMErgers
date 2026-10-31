@@ -47,14 +47,24 @@ The rules reader runs by default and needs nothing else. The optional AI reader 
   installation for Puppeteer, and `npm run whatsapp` as a separate local service
   on port 3001. Pair an account from `/whatsapp` after starting that service.
   Keep the bridge bound to loopback; do not expose its API publicly.
-- Choosing a group on `/whatsapp` connects the imported job to that group. The
-  bridge captures incoming messages and messages sent by the linked account;
+- On `/whatsapp`, select a real group and an existing project to connect them.
+  Reconnecting the same pair reuses the project without duplicating messages.
+  Initial connection replaces an unreviewed imported conversation; projects with
+  reviewed changes cannot be switched to a different source. Simulated live
+  groups and their playback/send routes have been removed. The bridge captures
+  incoming messages and messages sent by the linked account;
   Flask checks for updates every three seconds, even with the page closed.
   The review page refreshes automatically and preserves unsaved edits. The
   message limit applies to initial history; subsequent arrivals are retained in
   memory for the bridge process. Both services must stay running. After restarting
   Flask, import the group again; after bridge downtime, recovery is limited to
   messages available in WhatsApp Web's synced history.
+- History reads and live events use the same message conversion and canonical
+  WhatsApp ID. Duplicate deliveries are ignored; genuinely separate messages with
+  identical text are retained. New arrivals are recorded once in the activity log.
+- The launcher supports macOS Bash 3 and uses the project's virtual environment
+  when `python` is not on PATH. On Macs where AirPlay occupies port 5000, run
+  `PORT=5001 npm start`.
 
 ## Dependency security
 
