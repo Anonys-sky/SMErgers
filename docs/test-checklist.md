@@ -67,6 +67,8 @@ A **duplicate entry** for the same request is a known quirk of the rules reader:
 - [ ] **Import chat** with `data/chats/dinner_client.txt` and the Annual Dinner quote works as the fallback.
 - [ ] Tick **Read with the AI reader** on the import with RunPod off: after at most 60 seconds the page says the AI could not be reached and the rules read it.
 - [ ] Restart the app: demo data resets (this is expected).
+- [ ] **Instant, then AI refines.** Reset, connect a group **with the AI reader ticked** while RunPod is off. Send a message: the change appears within about 5 seconds (rules). The activity log shows **one** line saying the AI could not be reached and the rules reading stays, not one per message. There are no duplicate items.
+- [ ] If RunPod (or a local model) is on: after the rules answer, the same items are refined by the AI within about a minute (log lines "refined by the AI reader" only where something changed), with no duplicate items. An item you already checked or approved is never changed.
 
 ## Result sheet (send this back)
 

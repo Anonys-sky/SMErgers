@@ -9,11 +9,12 @@ its own change. Every action is written to a hash-chained log, so later edits sh
 import hashlib
 import json
 import math
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from decimal import Decimal
 
 from pricing import MAX_CHANGE_AMOUNT, usable_change_price
+from schema import request_match_score
 
 DEFAULT_POLICY = {
     "owner_approval_at": 500.0,   # changes worth this much or more (either direction) need the owner
@@ -139,6 +140,57 @@ class Job:
                 if changed:
                     self.log.add(now, SYSTEM, "update", c.key, f"updated from chat: {STATE_LABELS[item.state].lower()}")
         return new
+
+    def reconcile(self, changes, prefer_incoming, now=None):
+        """Fold a reading by ANOTHER reader into the items already here, without duplicates.
+        A change matches the existing item whose cited messages it shares (request_match_score),
+        one-to-one. A matched item nobody has acted on is updated in place and keeps its key; an item a
+        person already acted on is never touched. Unmatched changes are added as new items. With
+        prefer_incoming False, an item already read by the AI keeps the AI's reading (the quick rules pass
+        must not undo it). Returns the keys that are new."""
+        now = now or datetime.now()
+        pairs = sorted(((request_match_score(c, it.change), i, k)
+                        for i, c in enumerate(changes) for k, it in self.items.items()), reverse=True)
+        matched, used = {}, set()
+        for score, i, k in pairs:
+            if score > 0 and i not in matched and k not in used:
+                matched[i] = k
+                used.add(k)
+        new = []
+        for i, c in enumerate(changes):
+            if i in matched:
+                self._update_from(self.items[matched[i]], c, prefer_incoming, now)
+                continue
+            key = c.key if c.key not in self.items else self._free_key(c.key)
+            c = replace(c, key=key)
+            item = Item(c, price=usable_change_price(c.price_delta))
+            if c.status in ("withdrawn", "log_only"):
+                item.state = "record_only"
+            self.items[key] = item
+            new.append(key)
+            self.log.add(now, SYSTEM, "detect", key, f"found in chat: {c.item}")
+        return new
+
+    def _update_from(self, item, c, prefer_incoming, now):
+        if item.state not in ("detected", "record_only") or item.notes:
+            return                                          # a person acted on it: leave it alone
+        if not prefer_incoming and item.change.source == "ai" and c.source != "ai":
+            return                                          # the quick rules pass keeps the AI's answer
+        old = item.change
+        c = replace(c, key=old.key)
+        if old.line_id and old.line_id == c.line_id:
+            c = replace(c, item=old.item)                   # keep the quote's own name for the line, not the model's wording
+        changed = (old.status, old.price_delta, old.item) != (c.status, c.price_delta, c.item)
+        item.change, item.price = c, usable_change_price(c.price_delta)
+        item.state = "record_only" if c.status in ("withdrawn", "log_only") else "detected"
+        if changed:
+            who = "the AI reader" if c.source == "ai" else "the chat"
+            self.log.add(now, SYSTEM, "update", c.key, f"refined by {who}: {STATE_LABELS[item.state].lower()}")
+
+    def _free_key(self, key):
+        prefix = "".join(ch for ch in key if ch.isalpha() or ch == "_") or "x"
+        taken = [int("".join(ch for ch in k[len(prefix):] if ch.isdigit()) or 0) for k in self.items if k.startswith(prefix)]
+        return f"{prefix}{1 + max(taken, default=0)}"
 
     def add_change(self, change, actor, now=None):
         """A person adds a change the reader missed, with the chat messages that show it was agreed.

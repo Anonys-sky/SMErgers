@@ -50,7 +50,7 @@ Open http://localhost:5000. On a Mac where AirPlay holds port 5000, run `PORT=50
 
 Optional settings (environment variables, never in the repo):
 - `SMERGERS_KEEP_APP_UP=1` keeps the app serving if only the bridge stops (with `npm start`).
-- `RUNPOD_ENDPOINT_ID` and `RUNPOD_API_KEY` switch on the AI reader on RunPod. Leave them unset for the demo: the rules reader is instant and repeatable.
+- `RUNPOD_ENDPOINT_ID` and `RUNPOD_API_KEY` switch on the AI reader on RunPod. Leave them unset for the demo: the rules reader is instant and repeatable. If you do tick **Read with the AI reader** on a group, the rules still answer at once and the AI refines in the background (it needs RunPod warmed up first; otherwise the rules answer stays and the activity log says the AI could not be reached).
 
 Click **Skip tutorial** once (it opens on every first visit).
 

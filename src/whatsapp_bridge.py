@@ -92,6 +92,9 @@ class GroupSync:
     error: str = ""
     checked_at: object = None
     lock: object = field(default_factory=threading.RLock, repr=False, compare=False)
+    ai_running: bool = False        # an AI refinement is in progress for this group
+    ai_dirty: bool = False          # newer messages arrived while it ran: read once more afterwards
+    ai_failed: bool = False         # the last AI attempt failed (logged once, not on every message)
 
 
 _worker = None
@@ -112,15 +115,80 @@ def apply_messages(record, incoming):
             sorted(merged.values(), key=lambda m: m.sent_at), 1)]
         if messages == record.messages:
             return []
-        changes = store.extract(messages, record.catalogue, ai=record.ai)
+        # Read with the rules first, always: it is instant and needs no network. If this project asked for
+        # the AI reader, the AI reads the same chat in the background and refines the answer (refine_async).
+        changes = store.extract(messages, record.catalogue, ai=False)
         for message in messages:
             if message.id not in known:
                 record.job.log.add(datetime.now(), SYSTEM, "trigger", "-",
                                    f"message from {message.sender} registered through the WhatsApp bridge")
-        new = record.job.refresh(changes)
+        if record.ai:
+            new = record.job.reconcile(changes, prefer_incoming=False)
+        else:
+            new = record.job.refresh(changes)
         record.messages = messages
         sync.after_detection(record, new)
+    if record.ai:
+        refine_async(record)
+    return new
+
+
+def refine_ai(record):
+    """Read the chat with the AI reader and fold its answer into the items, never touching anything a person
+    already acted on. The slow model call runs without the lock held. Returns the new keys, [] if the AI could
+    not answer (the rules reading stays), or None if newer messages arrived meanwhile (the next pass reads them)."""
+    import reader
+    import sync
+
+    feed = record.bridge
+    with feed.lock:
+        messages = list(record.messages)
+    changes = reader.read(messages, record.catalogue, ai=True)
+    note = reader.LAST_NOTE
+    with feed.lock:
+        if tuple(m.id for m in record.messages) != tuple(m.id for m in messages):
+            return None
+        if note:
+            if not feed.ai_failed:
+                record.job.log.add(datetime.now(), SYSTEM, "ai", "-", f"{note}. The rules reading stays.")
+            feed.ai_failed = True
+            return []
+        feed.ai_failed = False
+        new = record.job.reconcile(changes, prefer_incoming=True)
+        sync.after_detection(record, new)
         return new
+
+
+def refine_async(record):
+    """Start the AI refinement in the background. At most one runs per group; messages that arrive while it
+    runs make it read once more afterwards, so a burst of messages costs one extra read, not one each."""
+    feed = record.bridge
+    with feed.lock:
+        if feed.ai_running:
+            feed.ai_dirty = True
+            return
+
+        feed.ai_running = True
+
+    def run():
+        try:
+            while True:
+                try:
+                    refine_ai(record)
+                except Exception:
+                    logging.exception("AI refinement failed for %s", record.id)
+                with feed.lock:
+                    if feed.ai_dirty:
+                        feed.ai_dirty = False
+                        continue
+                    feed.ai_running = False
+                    return
+        except BaseException:
+            with feed.lock:
+                feed.ai_running = False
+            raise
+
+    threading.Thread(target=run, name="ai-refine", daemon=True).start()
 
 
 def sync_groups():
