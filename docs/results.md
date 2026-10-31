@@ -120,3 +120,31 @@ AI reader by chat, fully right: air-con 7 of 9, catering 6 of 10, printing 7 of 
 **Reading it plainly.** This is the cleanest number we have: chats nobody tuned on. The rules reader falls to 22%, which confirms the first blind result (45%) that rules alone do not generalise. The AI reader holds up at 75%, but it still misses 3 changes, marks some changes "ready" without a clear yes (extra Our Story page, name cards) and prices a "price later" item (cable tray RM7, copywriting RM1,200 withdrawn). Ready totals are therefore wrong on some chats (catering RM435 against RM985). One run, four chats, 36 changes: a small sample, not an accuracy claim on real chats.
 
 **What this means for the product.** Neither reader is trusted alone. Every change goes to a person with its evidence, and the director signs off. `docs/benefit.md` counts what that costs and saves.
+
+## Runs 9 and 10: 31 Oct 2026, AI reader before and after a set of fixes, on BOTH blind sets, commit ae4337b
+
+**Not independent. Read this first.** The fixes below were written after studying the AI reader's mistakes on these same chats (Run 8 on set 2, Runs 5 and 6 on set 1). So the "after" scores are a development score and prove nothing about unseen chats. The independent figures remain Run 5 (59%) and Run 8 (75%).
+
+**How it was run.** Both runs used the same model on the same laptop: Llama 3.1 8B (Q4_K_M) through local Ollama, partly on an RTX 2050 GPU. This is not the RunPod setup of Runs 5 and 6, so do not compare these rows with those runs. "Before" is the code at commit `844fc36` (run from a separate copy of that commit); "after" is the code in `src/llm_extractor.py` today. One run each, scored with `python src/evaluate.py --blind --ai` and `--blind2 --ai`.
+
+**What changed in the reader (all checks are plain code; the model still only reads):**
+1. If the model leaves a price empty but exactly one amount is written for that item in the next message or two, take it and add that message as evidence ("total rm 300 more", "RM 150 each" times the quantity).
+2. A second, short pass asks the model only "what is missing from this list?". Anything it adds goes through the same checks, and duplicates are dropped.
+3. "Price to confirm" is checked per item, not per message: a recap that lists many items no longer holds back all of them.
+4. An "upgrade" with a quantity is priced like a quantity change.
+5. A request nobody confirmed is marked withdrawn when a later message about the same item says it is cancelled or stays as it was ("kekal 6"). Confirmed reductions are left alone.
+
+| Set | Changes | Before: fully right | After: fully right | Found before to after | False changes before to after |
+|---|---|---|---|---|---|
+| Set 1 (3 chats) | 29 | 20 (69%) | **21 (72%)** | 26 to 27 | 0 to 0 |
+| Set 2 (4 chats) | 36 | 27 (75%) | **33 (92%)** | 33 to 34 | 3 to 2 |
+| Both | 65 | 47 (72%) | **54 (83%)** | 59 to 61 | 3 to 2 |
+
+By chat after the fixes, fully right: set 1 A 9 of 10, B 6 of 10, C 6 of 9; set 2 air-con 9 of 9, catering 9 of 10, printing 7 of 9, web agency 8 of 8.
+
+**What got better.** Prices written next to the cited messages are now found (cendol, name cards, power points), items listed as "price to confirm" in a recap are no longer mixed up with their neighbours, one withdrawn request is caught, and the second pass found one more change.
+
+**Still wrong, plainly.** Changes the model never noticed (flyers, neon sign, a registration counter, a cake swap), the overtime price on a "check first" request, the venue extension filed as no-cost, the drone operator and the second lion dance (price promised later but treated as known or unconfirmed), the centrepieces marked ready without a clear yes, and tables_44 left without a price. Set 1 barely moved (+1), so the gain on set 2 is partly fit to those chats.
+
+**Next honest step.** Score the new reader once on chats written by someone who has not seen it (a third blind set), and quote that number. Until then, say "75% on unseen chats; 92% after fixes on the same chats, not independent".
+

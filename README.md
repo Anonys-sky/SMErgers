@@ -335,6 +335,16 @@ A change is fully right when both its status and its price match the hand-writte
 | Rules | 27 of 36 | 8 (22%) | 1 |
 | AI reader | 33 of 36 | **27 (75%)** | 1 |
 
+**After a round of fixes (Runs 9 and 10, 31 Oct): a development score, not independent.** We studied the AI reader's mistakes on these same chats and added plain-code checks (finding a price stated next to the cited messages, a second "what is missing?" pass, "price to confirm" read per item, a cancelled request caught). Same model, same laptop, old code against new code:
+
+| Set | Before | After (same chats, **not independent**) |
+| --- | --- | --- |
+| Set 1, 29 changes | 20 (69%) | 21 (72%) |
+| Set 2, 36 changes | 27 (75%) | 33 (92%) |
+| Both, 65 changes | 47 (72%) | 54 (83%) |
+
+The independent numbers stay 59% and 75% until the new reader is scored on a third set of chats nobody has seen. Details and what is still wrong: [docs/results.md](docs/results.md), Runs 9 and 10.
+
 Both sets are synthetic chats: a first independent check, not accuracy on real chats. The log lists where the AI reader is still wrong, which is why a person checks every change.
 
 ## Appendix D: Business model, privacy and limits
