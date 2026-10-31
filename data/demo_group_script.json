@@ -1,0 +1,94 @@
+{
+  "label": "SIMULATED demo conversation for the live WhatsApp group. Two senders are required: the reader only counts a yes that comes from a different sender than the person who asked.",
+  "quote": "q_dinner.json",
+  "senders": {
+    "staff": "Aisyah (Staff phone)",
+    "client": "Mr Tan (Client phone)"
+  },
+  "before_the_pitch": [
+    {
+      "from": "staff",
+      "text": "Hi Mr Tan. Attaching the signed quote Q-2026-041 for the Annual Dinner on 10 Oct, 180 pax.",
+      "expect": "nothing yet"
+    },
+    {
+      "from": "client",
+      "text": "Hi, our HR confirmed 195 people attending. Quote was 180 right? Can adjust to 195?",
+      "expect": "Dinner package, 15 more guests, RM1,920, unconfirmed"
+    },
+    {
+      "from": "staff",
+      "text": "Noted, I update to 195 pax. Will reflect in the final bill ya",
+      "expect": "Dinner package becomes ready"
+    },
+    {
+      "from": "client",
+      "text": "The LED wall abit small la. Can we upgrade to 4m x 2.5m?",
+      "expect": "LED wall upgrade, no price yet, unconfirmed"
+    },
+    {
+      "from": "staff",
+      "text": "Let me check with the vendor and revert",
+      "expect": "no change"
+    },
+    {
+      "from": "staff",
+      "text": "LED upgrade will be RM 1,100 more Mr Tan",
+      "expect": "LED wall priced at RM1,100, unconfirmed"
+    },
+    {
+      "from": "client",
+      "text": "ok go ahead",
+      "expect": "LED wall becomes ready"
+    },
+    {
+      "from": "client",
+      "text": "I want 2 more roll-up banner at the entrance",
+      "expect": "Roll-up banner, 2 more, RM180, unconfirmed"
+    },
+    {
+      "from": "staff",
+      "text": "ok can, 2 more banners noted",
+      "expect": "Roll-up banner becomes ready"
+    },
+    {
+      "from": "client",
+      "text": "Can we get a 10% discount ah?",
+      "expect": "Discount 10%, goes to the director to decide"
+    }
+  ],
+  "during_the_pitch": [
+    {
+      "from": "client",
+      "text": "Emergency! need 2 extra wireless mic for speeches, quick!!",
+      "expect": "Wireless mic, 2, unconfirmed, no price"
+    },
+    {
+      "from": "staff",
+      "text": "ok noted, will arrange",
+      "expect": "Wireless mic needs a price: the PM adds it"
+    }
+  ],
+  "final": {
+    "Dinner package": {
+      "status": "ready",
+      "price": 1920.0
+    },
+    "LED wall 3m x 2m, changed to 4m x 2.5m": {
+      "status": "ready",
+      "price": 1100.0
+    },
+    "Roll-up banner": {
+      "status": "ready",
+      "price": 180.0
+    },
+    "Discount 10%": {
+      "status": "needs_decision",
+      "price": null
+    },
+    "Wireless mic": {
+      "status": "needs_price",
+      "price": null
+    }
+  }
+}

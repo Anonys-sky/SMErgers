@@ -23,14 +23,22 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-# Do not leave Flask serving an offline bridge if either process exits.
+# By default, do not leave Flask serving an offline bridge: if either process exits, stop both.
+# Set SMERGERS_KEEP_APP_UP=1 to keep the app serving when only the bridge stops (the WhatsApp page then
+# says "Bridge not running" and the rest of the product, including Import chat, keeps working).
 # macOS ships Bash 3, which has no wait -n. Bash reaps completed background
 # children; poll their existence, then collect the first observed exit status.
-while kill -0 "$bridge_pid" 2>/dev/null && kill -0 "$app_pid" 2>/dev/null; do
+keep_app="${SMERGERS_KEEP_APP_UP:-0}"
+warned=""
+while kill -0 "$app_pid" 2>/dev/null; do
+  if ! kill -0 "$bridge_pid" 2>/dev/null; then
+    [[ "$keep_app" == "1" ]] || break
+    [[ -n "$warned" ]] || { echo "The WhatsApp bridge stopped; the app keeps running without it." >&2; warned=1; }
+  fi
   sleep 0.2
 done
 status=0
-if ! kill -0 "$bridge_pid" 2>/dev/null; then
+if [[ "$keep_app" != "1" ]] && ! kill -0 "$bridge_pid" 2>/dev/null; then
   wait "$bridge_pid" || status=$?
 else
   wait "$app_pid" || status=$?

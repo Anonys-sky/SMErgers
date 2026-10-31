@@ -88,3 +88,16 @@ def test_termination_stops_both_services(launcher):
     for service in ("node", "python"):
         pid = int((directory / f"{service}.pid").read_text())
         assert not is_alive(pid)
+
+
+def test_the_app_keeps_serving_when_only_the_bridge_stops_if_asked_to(launcher):
+    start, directory = launcher
+    proc = start(FAIL_SERVICE="node", FAIL_STATUS="7", SMERGERS_KEEP_APP_UP="1")
+    wait_for(lambda: all((directory / f"{s}.pid").exists() for s in ("node", "python")))
+    time.sleep(0.5)                                         # the fake bridge exits as soon as both are up
+    assert proc.poll() is None                              # the launcher is still supervising the app
+    assert is_alive(int((directory / "python.pid").read_text()))
+    proc.terminate()
+    output, _ = proc.communicate(timeout=5)
+    assert proc.returncode == 143, output
+    assert not is_alive(int((directory / "python.pid").read_text()))

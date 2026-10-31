@@ -153,6 +153,10 @@ The model only reads. Plain code checks every price, the server enforces who may
 
 The deployed demo is at https://sm-ergers-1.replit.app. After changing settings, **republish**: restarting the workspace does not update the published deployment.
 
+### Option 3: Run the live WhatsApp demo on another laptop
+
+Step-by-step setup (two phones, pairing, the scripted demo conversation) is in [docs/demo-setup.md](docs/demo-setup.md). A tick-box test sheet for the second laptop is in [docs/test-checklist.md](docs/test-checklist.md). The scripted conversation lives in `data/demo_group_script.json`, and `tests/test_demo_script.py` proves it gives the same five changes every time.
+
 ### Option 2: Run Locally
 
 ```bash
@@ -308,6 +312,7 @@ Every approval and dispute is a human-checked label; after a pilot with real com
 | `SECRET_KEY` | Signs the cookie that remembers which role you are viewing as | random at start-up |
 | `SMERGERS_READER` | `llm` makes the AI reader the default for every job | `rules` |
 | `RUNPOD_ENDPOINT_ID`, `RUNPOD_API_KEY` | Use the AI reader on a RunPod Serverless endpoint | unset: local Ollama |
+| `SMERGERS_KEEP_APP_UP` | Set to `1` with `npm start` to keep the app serving if only the WhatsApp bridge stops | off (both services stop together) |
 | `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL`, `SMERGERS_LLM_KEY`, `SMERGERS_LLM_TIMEOUT` (seconds per call, default 60; use 900 for scoring on a slow laptop) | Point the AI reader at any OpenAI-compatible endpoint | RunPod or Ollama; timeout `300` s |
 | `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | Webhook handshake token; when the secret is set, every call must carry a valid `X-Hub-Signature-256` | unset |
 | `WHATSAPP_BRIDGE_URL`, `WHATSAPP_TIMEZONE` | Optional test connector (unofficial, not part of the product) | `http://127.0.0.1:3001`, system zone |

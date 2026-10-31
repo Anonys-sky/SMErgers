@@ -75,3 +75,6 @@ The rules reader runs by default and needs nothing else. The optional AI reader 
   tests before changing or removing the override.
 - Pygments is pinned explicitly even though only pytest uses it, so clean
   Python installs cannot select the old vulnerable highlighter.
+
+- Set the environment variable `SMERGERS_KEEP_APP_UP=1` (Replit Secrets) on the published app if you want Flask to keep serving when only the WhatsApp bridge stops, for example if Chromium cannot start on the VM. Without it, both services stop together, which is the tested default. The WhatsApp page then shows "Bridge not running" and Import chat keeps working.
+- Demo conversation and test guides: `docs/demo-setup.md`, `docs/test-checklist.md`, `data/demo_group_script.json`.
