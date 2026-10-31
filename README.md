@@ -80,9 +80,9 @@ The model only reads. Plain code checks every price, the server enforces who may
 | Frontend      | Server-rendered Jinja templates, one CSS file, a few lines of JavaScript                     |
 | Backend       | Python 3.12, Flask                                                                           |
 | Database      | In-memory store for the prototype; synthetic JSON data                                       |
-| AI / Compute  | Llama 3.1 8B Instruct on RunPod Serverless (vLLM, GPU); local Ollama for development         |
-| WhatsApp      | Meta Cloud API webhook format; optional Node.js test connector (unofficial, not part of the product) |
-| Tests         | pytest (330+ tests); Node test runner for the bridge                                         |
+| AI / Compute  | Open pre-trained Llama 3.1 8B Instruct (not trained by us): RunPod Serverless (vLLM, GPU), or local Ollama on a company's own machine |
+| WhatsApp      | Meta Cloud API webhook format (official); Node.js bridge on whatsapp-web.js for the live demo on a test number (unofficial, not part of the product) |
+| Tests         | pytest (350+ tests); Node test runner for the bridge (18 tests)                              |
 | Hosting / Dev | Replit (workspace, preview, Deployments)                                                     |
 
 ---
@@ -91,41 +91,55 @@ The model only reads. Plain code checks every price, the server enforces who may
 
 ```
 .
-├── docs/                    # results.md (every accuracy run), orbyte-integration.md, add-a-project.md, img/
-├── runpod/
-│   └── README.md            # Setup guide for the AI reader's RunPod endpoint (no custom handler needed)
-├── scripts/                 # Replit build and start scripts
+├── data/                      # Synthetic quotes, chats, answer keys (tuning, held-out, blind and blind2), past jobs, directory
+├── docs/                      # results.md (every accuracy run), benefit.md, survey.md, orbyte-integration.md, add-a-project.md, img/
+├── runpod/README.md           # Setup for the AI reader's RunPod endpoint (no custom handler needed)
+├── scripts/                   # Replit build and start scripts (start the app and the bridge together)
 ├── src/
-│   ├── main.py              # Application entry point (Flask)
-│   ├── reader.py, rules_extractor.py, llm_extractor.py   # Rules reader and AI reader
-│   ├── workflow.py, sync.py, bill.py, suggest.py, webhook.py   # Approvals, quote versions, bill, suggestions
+│   ├── main.py                # Flask routes: workspaces, job pages, approvals, client page, bill, API, webhook, bridge, import
+│   ├── reader.py              # Chooses the reader: AI first (if asked), rules as the fallback
+│   ├── rules_extractor.py     # Rules reader (default, instant, no network)
+│   ├── llm_extractor.py       # AI reader: prompt, plain-code checks of the answer, price recovery, second "what is missing?" pass
+│   ├── workflow.py            # Approval state machine, roles, per-business approval limit, hash-chained activity log
+│   ├── sync.py                # Quote versions and the outbox of messages back to the group
+│   ├── bill.py                # Draft bill from confirmed changes only
+│   ├── benefit.py, evaluate.py# Measured benefit report and accuracy scoring against answer keys
+│   ├── store.py, workspaces.py, project_intake.py, catalogue.py   # Jobs in memory, role dashboards, Add project, quote and rate card
+│   ├── chat_import.py, webhook.py, whatsapp_bridge.py             # Chat export, Meta webhook format, bridge client
+│   ├── suggest.py             # "Quote it upfront" counts from past jobs
 │   └── templates/, static/
-├── data/                    # Synthetic quotes, chats, answer keys, past jobs, company directory
-├── submission/              # Required submission documents
-│   ├── SDC2026_VBall_Preliminary Proposal.pdf       # Preliminary submission
-│   ├── SDC2026_VBall_TechDeclaration.pdf   # Technology declaration
-│   ├── SDC2026_VBall_Replit_POU.pdf        # Replit proof of use
-│   ├── SDC2026_VBall_Runpod_POU.pdf        # RunPod proof of use
-│   └── SDC2026_VBall_PitchDeck.pdf         # Pitch deck
-├── tests/                   # pytest suite
-├── whatsapp/                # Optional local test connector (Node.js)
-├── .env.example             # Example environment variables
-├── .gitignore
-├── .replit                  # Replit run configuration
-├── LICENSE
-├── requirements.txt         # Python dependencies
-└── README.md
+├── submission/                # Required submission documents
+├── tests/                     # pytest suite
+├── whatsapp/                  # WhatsApp bridge (Node.js, whatsapp-web.js): pairs a test phone, reads a real group
+├── .env.example, .replit, requirements.txt, package.json, replit.md
+└── LICENSE, README.md
 ```
 
 ### Architecture
 
 ```
-WhatsApp group ──webhook──► reader (rules or AI on RunPod) ──► approvals (PM ► director ► client) ──► quote v2 posted to the group
-   (.txt export or test connector)        ▲                                                              │
-                         quote, rate card, directory                          draft bill, CSV, API, activity log
-
-User ──► Replit (Flask app) ──► RunPod Endpoint (Llama 3.1 8B, GPU) ──► changes returned to the app, checked by plain code
+ WhatsApp group (test number, via the bridge)      Meta Cloud API webhook (official format)      .txt export
+                         \                                   |                                    /
+                          +-----------------> messages, each arrival logged as a trigger <---------+
+                                                         |
+                READER   rules (default)   or   AI reader: open Llama 3.1 8B (RunPod, or the company's own machine)
+                         inputs: signed quote, rate card, company directory, past jobs
+                         plain code checks every price and status; the model only reads
+                                                         |
+                APPROVALS (state machine, roles enforced on the server)
+                         PM checks, prices, rejects with a reason, adds what the reader missed
+                         Director signs off from the business's own limit, all discounts and staff-set prices
+                         Client confirms or disputes from a link, no login
+                                                         |
+                OUTPUTS  quote v2 + message back to the group, draft bill and CSV,
+                         read-only JSON API (/api/jobs), hash-chained activity log, benefit report
 ```
+
+**Reader failover.** If the AI reader is asked for and cannot be reached (RunPod asleep, no key, network down), the app says so and the rules reader reads the chat instead. The demo never depends on the model.
+
+**Where things are decided.** The model proposes. Plain code in `llm_extractor.build_changes` accepts a price only if it is written in the chat or the quote, and sets every status. The server (`workflow.py`) decides who may approve; the browser only hides buttons.
+
+**Design limits we know about.** Data is in memory and resets on restart. Sign-in is simulated (roles are enforced, identities are not). The WhatsApp bridge is unofficial and for test numbers only; production needs Meta's official API. `main.py` holds all routes in one file, which is fine at this size and would be split by feature before a pilot.
 
 ---
 
@@ -165,7 +179,7 @@ The app opens on the Project manager workspace with four synthetic projects. Sta
 ### Run Tests
 
 ```bash
-python -m pytest                # 330+ tests: parsing, rules, permissions, billing, pages
+python -m pytest                # 350+ tests: parsing, rules, permissions, billing, pages
 npm test                        # bridge conversion tests (needs Node.js)
 ```
 
@@ -312,7 +326,7 @@ curl http://localhost:5000/api/jobs/annual-dinner
 ## Appendix C: Testing and results
 
 ```bash
-python -m pytest                              # 330+ tests
+python -m pytest                              # 350+ tests
 python src/evaluate.py                        # score the rules against the answer keys
 python src/evaluate.py --blind --ai           # also score the AI reader (needs a model endpoint)
 ```
