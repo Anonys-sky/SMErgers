@@ -27,7 +27,7 @@
       {% endfor %}
     </select>
   </label>
-  <button class="primary">View changes</button>
+  <button class="primary" data-tutorial-target="client-view">View changes</button>
 </form>
 {% endif %}
 
@@ -52,7 +52,7 @@
 <div class="grid">
   <div class="grid-main">
     {% if role == 'pm' %}
-      <div class="list-head"><div><p class="section-title">Project manager · next steps</p><h2 style="margin:0 0 5px">Bring the agreement into view</h2><p class="hint">Import a WhatsApp export, then check evidence and pricing before the director reviews exceptions.</p></div><a class="btn btn-primary" href="{{ url_for('imports_page') }}">Import a chat</a></div>
+      <div class="list-head"><div><p class="section-title">Project manager · next steps</p><h2 style="margin:0 0 5px">Bring the agreement into view</h2><p class="hint">Import a WhatsApp export, then check evidence and pricing before the director reviews exceptions.</p></div><a class="btn btn-primary" href="{{ url_for('imports_page') }}" data-tutorial-target="import">Import a chat</a></div>
     {% elif role == 'owner' %}
       <div class="list-head"><div><p class="section-title">Project director · decisions</p><h2 style="margin:0 0 5px">Exceptions needing sign-off</h2><p class="hint">Review items escalated beyond the project approval threshold. Pricing gaps remain separate from ready decisions.</p>{% if workspace.limits %}<p class="hint"><strong>Sign-off limits, set per business:</strong> {% for limit, titles in workspace.limits %}{{ limit | rm }} or more for {{ titles | join(', ') }}{% if not loop.last %}; {% endif %}{% endfor %}.</p>{% endif %}</div><a class="btn btn-primary" href="{{ url_for('workspace_page', persona='project-director', view='tasks') }}">Open decision queue</a></div>
     {% elif role == 'client' %}
@@ -129,7 +129,7 @@
               <td><strong>{{ row.title }}</strong></td><td>{{ row.client }}</td>
               {% if role == 'finance' %}<td class="r num">{{ row.bill.draft_total | rm }}</td><td>{{ row.confirmed }}</td>
               {% else %}<td>{{ row.status }}</td><td>{{ row.pending }}</td>{% endif %}
-              <td><a href="{{ row.primary_url }}">{{ 'Open draft bill' if role == 'finance' else 'Open project' }}</a>{% if role == 'finance' %}<br><a href="{{ url_for('bill_csv', job_id=row.record.id) }}">Export CSV</a>{% if row.exported %}<br><small class="t-ok">Latest draft exported</small>{% endif %}{% endif %}</td>
+              <td><a href="{{ row.primary_url }}" data-tutorial-target="project-open">{{ 'Open draft bill' if role == 'finance' else 'Open project' }}</a>{% if role == 'finance' %}<br><a href="{{ url_for('bill_csv', job_id=row.record.id) }}">Export CSV</a>{% if row.exported %}<br><small class="t-ok">Latest draft exported</small>{% endif %}{% endif %}</td>
             </tr>
           {% endfor %}</tbody>
         </table><p class="hint" data-filter-empty hidden>No projects match your search. Clear the search or choose another status.</p></div>

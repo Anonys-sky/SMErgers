@@ -28,13 +28,13 @@
       </ol>
       <form class="import-form" method="post" action="{{ url_for('import_chat') }}" enctype="multipart/form-data">
         <label>WhatsApp text export (.txt)
-          <input type="file" name="chat" accept=".txt,text/plain" required>
+          <input type="file" name="chat" accept=".txt,text/plain" required data-tutorial-target="chat-file">
         </label>
         <label>Matching existing quote
-          <select name="quote" required><option value="" disabled selected>Choose the quote for this chat</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
+          <select name="quote" required data-tutorial-target="chat-quote"><option value="" disabled selected>Choose the quote for this chat</option>{% for file, title in quotes %}<option value="{{ file }}">{{ title }} ({{ file }})</option>{% endfor %}</select>
         </label>
         <label class="check-row"><input type="checkbox" name="ai" value="1"> Read with the AI reader <span class="hint">Llama 3.1 on RunPod · falls back to the rules</span></label>
-        <div><button class="primary">Find changes</button></div>
+        <div><button class="primary" data-tutorial-target="find-changes">Find changes</button></div>
       </form>
       <p class="hint" style="margin-top:12px">Only text exports are accepted. Choose an existing quote here, or create a new project with its own quote lines. Use synthetic chats only in this prototype; do not upload private client conversations.</p>
       {% if role in ('pm', 'owner') %}<a class="btn" href="{{ url_for('new_project') }}">Add project with a new quote</a>{% endif %}

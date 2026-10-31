@@ -38,7 +38,7 @@
               {{ 'required' if a != 'set_price' }}>
       {% endif %}
     {% endif %}
-    <button class="{{ 'primary' if a in ('review', 'approve', 'confirm', 'decide') else ('danger' if a in ('reject', 'dispute') else '') }}">{{ labels[a] }}</button>
+    <button data-tutorial-target="change-action" class="{{ 'primary' if a in ('review', 'approve', 'confirm', 'decide') else ('danger' if a in ('reject', 'dispute') else '') }}">{{ labels[a] }}</button>
   </form>
 {% endfor %}
 </div>

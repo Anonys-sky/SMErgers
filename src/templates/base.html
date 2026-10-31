@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{% block title %}SMErgers{% endblock %} · SMErgers</title>
   <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='favicon.svg') }}">
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2">
   {% block head %}{% endblock %}
 </head>
 <body class="{% block body_class %}{% endblock %}">
@@ -24,12 +24,12 @@
       {% if role == 'pm' %}
          <a href="{{ url_for('workspace_page', persona=profile.slug, view='projects') }}" class="{{ 'on' if active_view == 'projects' }}"><span class="nav-symbol" aria-hidden="true">▤</span>Projects</a>
          <a href="{{ url_for('workspace_page', persona=profile.slug, view='tasks') }}" class="{{ 'on' if active_view == 'tasks' }}"><span class="nav-symbol" aria-hidden="true">◷</span>Review queue</a>
-        <a href="{{ url_for('imports_page') }}" class="{{ 'on' if request.endpoint == 'imports_page' }}"><span class="nav-symbol">⇧</span>Import chat</a>
+        <a href="{{ url_for('imports_page') }}" class="{{ 'on' if request.endpoint == 'imports_page' }}" data-tutorial-target="import"><span class="nav-symbol">⇧</span>Import chat</a>
         <a href="{{ url_for('whatsapp_page') }}" class="{{ 'on' if request.endpoint == 'whatsapp_page' }}"><span class="nav-symbol">◌</span>WhatsApp bridge</a>
       {% elif role == 'owner' %}
          <a href="{{ url_for('workspace_page', persona='project-director', view='tasks') }}" class="{{ 'on' if active_view == 'tasks' }}"><span class="nav-symbol">◷</span>Decision queue</a>
          <a href="{{ url_for('workspace_page', persona='project-director', view='projects') }}" class="{{ 'on' if active_view == 'projects' }}"><span class="nav-symbol">▤</span>Projects</a>
-         <a href="{{ url_for('imports_page') }}" class="{{ 'on' if request.endpoint == 'imports_page' }}"><span class="nav-symbol">⇧</span>Import chat</a>
+         <a href="{{ url_for('imports_page') }}" class="{{ 'on' if request.endpoint == 'imports_page' }}" data-tutorial-target="import"><span class="nav-symbol">⇧</span>Import chat</a>
          <a href="{{ url_for('whatsapp_page') }}" class="{{ 'on' if request.endpoint == 'whatsapp_page' }}"><span class="nav-symbol">◌</span>WhatsApp bridge</a>
       {% elif role == 'client' %}
          <a href="{{ url_for('workspace_page', persona='client', view='tasks') }}" class="{{ 'on' if active_view == 'tasks' }}"><span class="nav-symbol">✓</span>Confirm changes</a>
@@ -37,7 +37,7 @@
          <a href="{{ url_for('workspace_page', persona='finance', view='projects') }}" class="{{ 'on' if active_view == 'projects' }}"><span class="nav-symbol">▤</span>Draft bills</a>
          <a href="{{ url_for('workspace_page', persona='finance', view='activity') }}" class="{{ 'on' if active_view == 'activity' }}"><span class="nav-symbol">◷</span>Reconciliation</a>
       {% endif %}
-      <a href="{{ url_for('guide_page') }}" class="{{ 'on' if request.endpoint == 'guide_page' }}"><span class="nav-symbol">▧</span>Workflow guide</a>
+      <a href="{{ url_for('guide_page') }}" class="{{ 'on' if request.endpoint == 'guide_page' }}" data-tutorial-target="guide"><span class="nav-symbol">▧</span>Workflow guide</a>
     </nav>
     <div class="sidebar-bottom">
       <form class="role-form" method="post" action="{{ url_for('set_role') }}">
@@ -66,12 +66,13 @@
   <footer>SMErgers · Bills are drafts for accounting software and do not send invoices or take payment. Chat evidence supports traceability; it is not legal advice.</footer>
 </div>
 <dialog class="tutorial-dialog" id="tutorial-dialog" data-tutorial-role="{{ role }}" aria-labelledby="tutorial-title" aria-describedby="tutorial-description">
+  <div class="tutorial-spotlight" aria-hidden="true"></div>
   <div class="tutorial-sheet">
     <div class="tutorial-topline"><span class="tutorial-brand"><span class="brand-mark" aria-hidden="true">S</span> SMErgers guide</span><button class="tutorial-close" type="button" data-tutorial-close aria-label="Close tutorial">×</button></div>
     <div class="tutorial-progress" role="progressbar" aria-label="Tutorial progress" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1"><span data-tutorial-progress-bar></span></div>
     <div class="tutorial-content">
       <p class="eyebrow" data-tutorial-kicker>Welcome to your workspace</p>
-      <div class="tutorial-icon" data-tutorial-icon aria-hidden="true">⌂</div>
+      <p class="tutorial-target-label" data-tutorial-target-label></p>
       <h2 id="tutorial-title" tabindex="-1" data-tutorial-heading>Keep every event change in view</h2>
       <p id="tutorial-description" class="tutorial-description" data-tutorial-description></p>
       <p class="tutorial-note" data-tutorial-note></p>
@@ -82,6 +83,6 @@
     </div>
   </div>
 </dialog>
-<script src="{{ url_for('static', filename='tutorial.js') }}" defer></script>
+<script src="{{ url_for('static', filename='tutorial.js') }}?v=2" defer></script>
 </body>
 </html>

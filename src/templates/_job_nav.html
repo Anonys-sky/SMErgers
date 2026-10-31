@@ -3,7 +3,7 @@
   {% if role in ('pm','owner') %}
   <a href="{{ url_for('job_page', job_id=r.id) }}" class="{{ 'on' if tab == 'changes' }}">Changes</a>
   {% endif %}
-  <a href="{{ url_for('bill_page', job_id=r.id) }}" class="{{ 'on' if tab == 'bill' }}">Draft bill</a>
+  <a href="{{ url_for('bill_page', job_id=r.id) }}" class="{{ 'on' if tab == 'bill' }}" data-tutorial-target="draft-bill">Draft bill</a>
   {% if role in ('pm','owner') %}
   <a href="{{ url_for('client_page', job_id=r.id) }}" class="{{ 'on' if tab == 'client' }}">Client confirmation</a>
   {% endif %}
