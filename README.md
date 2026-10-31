@@ -50,7 +50,7 @@ The model only reads. Plain code checks every price, the server enforces who may
 - **Approvals enforced on the server** — the director signs off at RM500 or more, on discounts and on staff-set prices; a client link cannot approve its own change.
 - **Client confirmation page** — opened from a WhatsApp link: confirm, or dispute with a reason; a disputed change stays off the bill.
 - **Quote versions, draft bill and CSV** — each confirmation makes a new version; the bill is a draft for accounting software, never an invoice.
-- **Live group trigger** — start a live group and the chat's messages arrive on their own through the WhatsApp webhook; each new change appears and the log records the trigger. Anyone can also type a message into the group.
+- **Real WhatsApp group trigger** — pair a test phone on the **WhatsApp bridge** page and connect a real group to a project: new messages, including ones typed by anyone in the group, are read within seconds, and the log records each arrival. This uses the unofficial whatsapp-web.js library on a test number; production would use Meta's official webhook, which the app already accepts.
 - **Add what the reader missed** — a PM adds a change by hand, picking the chat messages that show it was agreed; it goes through the same approval flow and the director always signs it off.
 - **Rejection with a reason** — a rejected change stays off the bill, the reason is logged and the other side is told.
 - **Per-business approval limit** — each business sets the amount from which the director must sign off (RM500 by default, RM2,000 for the café sample); set it in **Add project**.
@@ -171,7 +171,7 @@ npm test                        # bridge conversion tests (needs Node.js)
 
 ### Three-minute demo walkthrough
 
-0. To see the automatic trigger, press **Start live group**: messages arrive on their own and each change appears as it is agreed. You can type a message into the group yourself.
+0. To see the automatic trigger, open **WhatsApp bridge**, pair a test phone, and connect a group to a project: messages sent in the group appear within seconds (needs both the app and the bridge running; otherwise use **Import chat**). You can type a message in the group yourself.
 1. In the Project manager overview, open **Annual Dinner 2026**. The chat is on the left, the changes found in it on the right.
 2. You are Aisyah, the PM. Click **Show in chat** on the LED wall upgrade: the request, the price and the "ok go ahead" light up.
 3. The wireless mics have no price anywhere, so they show **Needs a price**. Set RM320 (the director must now approve it), then **Check all**.
