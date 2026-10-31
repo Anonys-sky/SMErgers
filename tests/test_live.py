@@ -49,7 +49,7 @@ def test_old_pages_redirect_to_history(client):
 # Actual bridge flow against a controlled message source; no demo routes.
 def start_live(client, quote="q_dinner.json"):
     chat = next(chat for _, chat, q in store.DEMO_JOBS if q == quote)
-    exported = [m for m in parse_chat((DATA / "chats" / chat).read_text()) if m.sender]
+    exported = [m for m in parse_chat((DATA / "chats" / chat).read_text(encoding="utf-8")) if m.sender]
     client.pending_messages = messages_from_whatsapp([
         {"wa_id": f"message-{m.seq}", "timestamp": m.sent_at.replace(tzinfo=webhook.KL).timestamp(),
          "sender": m.sender, "text": m.text, "is_media": m.is_media} for m in exported], webhook.KL)

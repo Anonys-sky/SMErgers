@@ -14,7 +14,8 @@ test('an explicit browser executable takes precedence over PATH', () => {
     }), '/custom/chrome');
 });
 
-test('the bridge finds an executable system Chromium and skips non-executable files', (t) => {
+// Windows has no executable bit, so this check only makes sense on macOS and Linux.
+test('the bridge finds an executable system Chromium and skips non-executable files', { skip: process.platform === 'win32' }, (t) => {
     const directory = fs.mkdtempSync(path.join(os.tmpdir(), 'bridge-browser-'));
     t.after(() => fs.rmSync(directory, { recursive: true, force: true }));
     const chromium = path.join(directory, 'chromium');
