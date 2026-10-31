@@ -2,17 +2,20 @@
 The AI is faked, so no model or network is needed."""
 import json
 from dataclasses import replace
+from datetime import datetime, timedelta
 
 import pytest
 
 import reader
 import store
 import whatsapp_bridge
+from bill import build_bill
 from catalogue import DATA, Catalogue
 from chat_import import parse_chat
-from schema import Change
+from rules_extractor import extract
+from schema import Change, Message
 from test_demo_script import export_text
-from workflow import Job
+from workflow import Actor, Job, NotAllowed
 
 
 def change(key, item, evidence, status="unconfirmed", price=None, qty=0, line=None, source="rules"):
@@ -75,6 +78,38 @@ def test_the_quick_rules_pass_does_not_undo_the_ai_reading():
     j = job(change("ai1", "195 guests", ["a"], "ready", 1920.0, 15, "L01", "ai"))
     new = j.reconcile([change("t1", "Dinner package", ["a"], "unconfirmed", None, 15, "L01")], prefer_incoming=False)
     assert new == [] and j.items["ai1"].change.source == "ai" and j.items["ai1"].price == 1920.0
+
+
+@pytest.mark.parametrize("merge", ["refresh", "reconcile"])
+@pytest.mark.parametrize("approved", [False, True])
+def test_later_chat_withdrawal_cancels_pending_approval(merge, approved):
+    catalogue = Catalogue.load("q_dinner.json")
+    start = datetime(2026, 10, 12, 10)
+    messages = [Message(str(i), i, start + timedelta(minutes=i), sender, text)
+                for i, sender, text in [
+                    (1, "Client", "Can we add 10 more pax?"),
+                    (2, "PM", "RM1,280 more"),
+                    (3, "Client", "Ok go ahead"),
+                ]]
+    j = Job(extract(messages, catalogue), catalogue=catalogue)
+    pm, owner, client = Actor("PM", "pm"), Actor("Owner", "owner"), Actor("Client", "client")
+    j.act("t1", "review", pm)
+    if approved:
+        j.act("t1", "approve", owner)
+    messages.append(Message("4", 4, start + timedelta(minutes=4), "Client", "No need, cancel the extra pax"))
+    withdrawn = extract(messages, catalogue)
+    assert withdrawn[0].status == "withdrawn"
+    if merge == "refresh":
+        j.refresh(withdrawn)
+    else:
+        j.reconcile(withdrawn, prefer_incoming=False)
+
+    item = j.items["t1"]
+    assert item.state == "record_only" and item.change.status == "withdrawn"
+    assert build_bill(catalogue, j).changes_total == 0
+    assert j.log.intact() and j.log.entries[-1].action == "withdraw"
+    with pytest.raises(NotAllowed):
+        j.act("t1", "confirm", client)
 
 
 # ---- the live path

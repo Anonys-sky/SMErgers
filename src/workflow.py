@@ -121,7 +121,8 @@ class Job:
     def refresh(self, changes, now=None):
         """Take in a fresh extraction after new chat messages arrive. New changes are added;
         a change nobody has acted on yet is updated (say, its price was just stated); anything
-        a person already acted on is left alone. Returns the keys that are new."""
+        a person already acted on is left alone unless the chat withdraws a pending change.
+        Returns the keys that are new."""
         now = now or datetime.now()
         new = []
         for c in changes:
@@ -133,6 +134,8 @@ class Job:
                 self.items[c.key] = item
                 new.append(c.key)
                 self.log.add(now, SYSTEM, "detect", c.key, f"found in chat: {c.item}")
+            elif self._withdraw_pending(item, c, now):
+                continue
             elif item.state in ("detected", "record_only") and not item.notes:
                 changed = item.change.status != c.status or item.change.price_delta != c.price_delta
                 item.change, item.price = c, usable_change_price(c.price_delta)
@@ -145,7 +148,8 @@ class Job:
         """Fold a reading by ANOTHER reader into the items already here, without duplicates.
         A change matches the existing item whose cited messages it shares (request_match_score),
         one-to-one. A matched item nobody has acted on is updated in place and keeps its key; an item a
-        person already acted on is never touched. Unmatched changes are added as new items. With
+        person already acted on is left alone unless the rules find a later withdrawal. Unmatched
+        changes are added as new items. With
         prefer_incoming False, an item already read by the AI keeps the AI's reading (the quick rules pass
         must not undo it). Returns the keys that are new."""
         now = now or datetime.now()
@@ -172,6 +176,8 @@ class Job:
         return new
 
     def _update_from(self, item, c, prefer_incoming, now):
+        if self._withdraw_pending(item, c, now):
+            return
         if item.state not in ("detected", "record_only") or item.notes:
             return                                          # a person acted on it: leave it alone
         if not prefer_incoming and item.change.source == "ai" and c.source != "ai":
@@ -186,6 +192,19 @@ class Job:
         if changed:
             who = "the AI reader" if c.source == "ai" else "the chat"
             self.log.add(now, SYSTEM, "update", c.key, f"refined by {who}: {STATE_LABELS[item.state].lower()}")
+
+    def _withdraw_pending(self, item, change, now):
+        """A chat cancellation supersedes pending approvals, but not a completed confirmation."""
+        if (change.source != "rules" or change.status != "withdrawn"
+                or item.state not in ("reviewed", "approved", "disputed")):
+            return False
+        key = item.change.key
+        item.change = replace(change, key=key)
+        item.price = 0.0
+        item.state = "record_only"
+        item.needs_owner_reason = ""
+        self.log.add(now, SYSTEM, "withdraw", key, "withdrawn in later chat; pending approval cancelled")
+        return True
 
     def _free_key(self, key):
         prefix = "".join(ch for ch in key if ch.isalpha() or ch == "_") or "x"
