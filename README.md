@@ -81,7 +81,7 @@ The model only reads. Plain code checks every price, the server enforces who may
 | Database      | In-memory store for the prototype; synthetic JSON data                                       |
 | AI / Compute  | Open pre-trained Llama 3.1 8B Instruct (not trained by us): RunPod Serverless (vLLM, GPU), or local Ollama on a company's own machine |
 | WhatsApp      | Meta Cloud API webhook format (official); Node.js bridge on whatsapp-web.js for the live demo on a test number (unofficial, not part of the product) |
-| Tests         | pytest (350+ tests); Node test runner for the bridge (18 tests)                              |
+| Tests         | pytest (378 tests); Node test runner for the bridge (19 tests)                              |
 | Hosting / Dev | Replit (workspace, preview, Deployments)                                                     |
 
 ---
@@ -144,7 +144,7 @@ The model only reads. Plain code checks every price, the server enforces who may
 
 ## How to Run
 
-### Option 1: Run on Replit (Recommended)
+### Option 1: Run on Replit (the live demo)
 
 1. Import this repository via **Create Repl → Import from GitHub**.
 2. Optional, only for the AI reader: open the **Secrets** tab and add the variables listed in `.env.example`: `RUNPOD_API_KEY` and `RUNPOD_ENDPOINT_ID`. Without them the rules reader is used.
@@ -182,7 +182,7 @@ The app opens on the Project manager workspace with four synthetic projects. Sta
 ### Run Tests
 
 ```bash
-python -m pytest                # 350+ tests: parsing, rules, permissions, billing, pages
+python -m pytest                # 378 tests: parsing, rules, permissions, billing, pages
 npm test                        # bridge conversion tests (needs Node.js)
 ```
 
@@ -200,7 +200,7 @@ To try the AI reader, open **Import chat**, choose `data/chats/blind_agent_a.txt
 
 ---
 
-## How We Use Replit *(Required)*
+## How We Use Replit
 
 Replit is where the team designs, tests and deploys SMErgers.
 
@@ -330,7 +330,7 @@ curl http://localhost:5000/api/jobs/annual-dinner
 ## Appendix C: Testing and results
 
 ```bash
-python -m pytest                              # 350+ tests
+python -m pytest                              # 378 tests
 python src/evaluate.py                        # score the rules against the answer keys
 python src/evaluate.py --blind --ai           # also score the AI reader (needs a model endpoint)
 ```
