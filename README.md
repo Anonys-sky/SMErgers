@@ -158,6 +158,13 @@ The deployed demo is at https://sm-ergers-1.replit.app. After changing settings,
 
 Step-by-step setup (two phones, pairing, the scripted demo conversation) is in [docs/demo-setup.md](docs/demo-setup.md). A tick-box test sheet for the second laptop is in [docs/test-checklist.md](docs/test-checklist.md). The scripted conversation lives in `data/demo_group_script.json`, and `tests/test_demo_script.py` proves it gives the same five changes every time.
 
+### Vercel web prototype
+
+Vercel deployment files are included. Follow [docs/vercel.md](docs/vercel.md) for
+the exact settings and environment variables. This hosts the web prototype;
+project state remains temporary and the live WhatsApp bridge needs a separate
+host and further integration.
+
 ### Option 2: Run Locally
 
 ```bash

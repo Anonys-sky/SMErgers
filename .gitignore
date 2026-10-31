@@ -18,6 +18,10 @@ whatsapp/.wwebjs_cache/
 # Node
 node_modules/
 
+# Vercel local metadata and generated CDN assets
+.vercel/
+public/static/
+
 # Local database and caches
 *.db
 *.sqlite3
