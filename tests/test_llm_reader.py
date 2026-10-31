@@ -188,3 +188,116 @@ def test_a_colour_or_time_swap_with_no_price_is_logged_not_priced(setup):
         raw(change(item="Backdrop colour", line_id=None, kind="non_billable", qty_delta=0, messages=[messages[3].seq])),
         messages, catalogue)
     assert out[0].status == "log_only" and out[0].price_delta == 0.0
+
+
+@pytest.fixture
+def catering():
+    messages = parse_chat((DATA / "chats" / "blind2_catering.txt").read_text(encoding="utf-8"))
+    return messages, Catalogue.load("q_blind2_catering.json")
+
+
+def test_a_price_in_the_next_message_is_found_when_the_model_did_not_cite_it(catering):
+    messages, catalogue = catering
+    asked, agreed = seq_with(messages, "Cendol boleh"), seq_with(messages, "ok go ahead Hafiz")
+    out = llm_extractor.build_changes(
+        raw(change(item="Cendol upgrade", line_id="L07", kind="upgrade", qty_delta=0, outcome="agreed",
+                   messages=[asked, agreed])), messages, catalogue)
+    assert out[0].status == "ready" and out[0].price_delta == 300
+    stated = next(m.id for m in messages if "total rm 300" in m.text)
+    assert stated in out[0].evidence_ids                    # the message that states it is now shown as proof
+
+
+def test_two_amounts_for_one_item_are_not_guessed(catering):
+    messages, catalogue = catering
+    seq = seq_with(messages, "OT crew")
+    out = llm_extractor.build_changes(
+        raw(change(item="Staff overtime", line_id=None, kind="extra", qty_delta=0, outcome="asked", messages=[seq - 1])),
+        messages, catalogue)
+    assert out[0].price_delta in (None, 120)               # either nothing, or the one amount that is written
+
+
+def test_a_later_recap_saying_price_to_confirm_stops_the_unit_price_filling_in(setup):
+    messages, catalogue = setup
+    seq = messages[3].seq
+    recap = type(messages[3])(id="x", seq=seq + 50, sent_at=messages[3].sent_at, sender="Aisyah (Fiesta PM)",
+                              text="Recap: more roll-up banner (price to confirm)")
+    out = llm_extractor.build_changes(raw(change(item="Roll-up banner", messages=[seq])), messages + [recap], catalogue)
+    assert out[0].status == "needs_price" and out[0].price_delta is None
+
+
+def test_the_second_pass_adds_what_the_first_missed_and_never_a_duplicate(monkeypatch, setup):
+    messages, catalogue = setup
+    first = raw(change(messages=[messages[3].seq]))
+    again = raw(change(messages=[messages[3].seq]),                     # same change again: dropped
+                change(item="Wireless mic", line_id=None, kind="extra", qty_delta=2, outcome="asked",
+                       messages=[messages[5].seq]))
+    answers = iter([first, again])
+    monkeypatch.setattr(llm_extractor, "_call", lambda prompt: next(answers))
+    out = llm_extractor.extract(messages, catalogue)
+    assert [c.item for c in out] == ["Roll-up banner", "Wireless mic"] and [c.key for c in out] == ["ai1", "ai2"]
+
+
+def test_a_failed_second_pass_keeps_the_first_reading(monkeypatch, setup):
+    messages, catalogue = setup
+    answers = iter([raw(change(messages=[messages[3].seq]))])
+
+    def call(prompt):
+        try:
+            return next(answers)
+        except StopIteration:
+            raise llm_extractor.ReaderError("offline")
+    monkeypatch.setattr(llm_extractor, "_call", call)
+    assert len(llm_extractor.extract(messages, catalogue)) == 1
+
+
+@pytest.fixture
+def aircond():
+    messages = parse_chat((DATA / "chats" / "blind2_aircond.txt").read_text(encoding="utf-8"))
+    return messages, Catalogue.load("q_blind2_aircond.json")
+
+
+def test_a_recap_that_says_price_to_confirm_for_one_item_does_not_hold_back_the_others(aircond):
+    messages, catalogue = aircond
+    unit = seq_with(messages, "ok noted, dua point")
+    asked = seq_with(messages, "tambah dua power point")
+    out = llm_extractor.build_changes(
+        raw(change(item="2 power points in the kitchen", line_id=None, kind="extra", qty_delta=2, outcome="agreed",
+                   messages=[asked, unit])), messages, catalogue)
+    assert out[0].status == "ready" and out[0].price_delta == 300          # "RM 150 each" x 2
+
+
+def test_the_item_the_recap_marks_price_to_confirm_still_waits_for_a_price(aircond):
+    messages, catalogue = aircond
+    seq = seq_with(messages, "will add the cable tray")
+    out = llm_extractor.build_changes(
+        raw(change(item="Cable tray along the corridor", line_id="L06", kind="extra", qty_delta=1, outcome="agreed",
+                   messages=[seq - 1, seq])), messages, catalogue)
+    assert out[0].status == "needs_price" and out[0].price_delta is None
+
+
+def test_an_upgrade_with_a_quantity_is_priced_like_a_quantity_change(monkeypatch):
+    messages = parse_chat((DATA / "chats" / "blind2_webagency.txt").read_text(encoding="utf-8"))
+    catalogue = Catalogue.load("q_blind2_webagency.json")
+    asked, noted = seq_with(messages, "four boxes not two"), seq_with(messages, "Four boxes noted")
+    out = llm_extractor.build_changes(
+        raw(change(item="name cards", line_id="L06", kind="upgrade", qty_delta=2, outcome="agreed",
+                   messages=[asked, noted])), messages, catalogue)
+    assert out[0].status == "ready" and out[0].price_delta == 240
+
+
+def test_a_later_message_that_says_the_tents_stay_as_they_were_makes_it_withdrawn(catering):
+    messages, catalogue = catering
+    asked = seq_with(messages, "khemah 10x10")
+    out = llm_extractor.build_changes(
+        raw(change(item="Extra tents", line_id="L02", kind="quantity_change", qty_delta=2, outcome="asked",
+                   price_delta=240, messages=[asked - 1, asked])), messages, catalogue)
+    assert out[0].status == "withdrawn"
+
+
+def test_a_confirmed_reduction_that_says_cancel_is_not_turned_into_a_withdrawal(setup):
+    messages, catalogue = setup
+    seq = seq_with(messages, "Please cancel the 2 registration desk staff")
+    out = llm_extractor.build_changes(
+        raw(change(item="registration desk staff", line_id="L10", kind="replacement", qty_delta=-2, outcome="agreed",
+                   messages=[seq])), messages, catalogue)
+    assert out[0].status == "ready" and out[0].price_delta == -300
