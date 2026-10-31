@@ -2,8 +2,6 @@
 
 > Changes agreed in a job's WhatsApp group become approved, traceable changes, a new quote version for everyone, and a correct draft final bill. Built for small event companies first, and for any business that works job by job.
 
-All data in this repository is synthetic. No real chat, person, client or company is used.
-
 ---
 
 ## Team Information
