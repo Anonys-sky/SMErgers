@@ -8,6 +8,10 @@ import time
 
 import pytest
 
+pytestmark = pytest.mark.skipif(
+    not hasattr(os, "killpg"), reason="the launcher script needs a POSIX shell (Linux or macOS)"
+)
+
 SCRIPT = Path(__file__).resolve().parents[1] / "scripts" / "start-application.sh"
 
 
