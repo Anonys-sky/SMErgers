@@ -5,10 +5,7 @@ cd "$(dirname "${BASH_SOURCE[0]}")/.."
 # The bridge stays private on loopback; Flask is the only public HTTP service.
 node whatsapp/bridge.js &
 bridge_pid=$!
-if [[ "${SMERGERS_WSGI:-0}" == "1" ]]; then
-  # One worker owns the prototype's in-memory store and bridge polling thread.
-  gunicorn --workers 1 --threads 8 --timeout 300 --bind "0.0.0.0:${PORT:-5000}" app:app &
-elif command -v python >/dev/null 2>&1; then
+if command -v python >/dev/null 2>&1; then
   python src/main.py &
 elif [[ -x .venv/bin/python ]]; then
   .venv/bin/python src/main.py &
