@@ -308,7 +308,7 @@ Every approval and dispute is a human-checked label; after a pilot with real com
 | `SECRET_KEY` | Signs the cookie that remembers which role you are viewing as | random at start-up |
 | `SMERGERS_READER` | `llm` makes the AI reader the default for every job | `rules` |
 | `RUNPOD_ENDPOINT_ID`, `RUNPOD_API_KEY` | Use the AI reader on a RunPod Serverless endpoint | unset: local Ollama |
-| `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL`, `SMERGERS_LLM_KEY`, `SMERGERS_LLM_TIMEOUT` | Point the AI reader at any OpenAI-compatible endpoint | RunPod or Ollama; timeout `300` s |
+| `SMERGERS_LLM_URL`, `SMERGERS_LLM_MODEL`, `SMERGERS_LLM_KEY`, `SMERGERS_LLM_TIMEOUT` (seconds per call, default 60; use 900 for scoring on a slow laptop) | Point the AI reader at any OpenAI-compatible endpoint | RunPod or Ollama; timeout `300` s |
 | `WHATSAPP_VERIFY_TOKEN`, `WHATSAPP_APP_SECRET` | Webhook handshake token; when the secret is set, every call must carry a valid `X-Hub-Signature-256` | unset |
 | `WHATSAPP_BRIDGE_URL`, `WHATSAPP_TIMEZONE` | Optional test connector (unofficial, not part of the product) | `http://127.0.0.1:3001`, system zone |
 

@@ -37,7 +37,10 @@ else:
 URL = os.environ.get("SMERGERS_LLM_URL", _URL)
 MODEL = os.environ.get("SMERGERS_LLM_MODEL", _MODEL)
 KEY = os.environ.get("SMERGERS_LLM_KEY", _KEY)
-TIMEOUT = float(os.environ.get("SMERGERS_LLM_TIMEOUT", "300"))
+# Seconds to wait for each model call. Short on purpose: a sleeping RunPod GPU takes minutes to wake, and a person
+# at the screen should get the rules reader's answer after a minute, not after five. Scoring runs on a slow laptop
+# need more: SMERGERS_LLM_TIMEOUT=900.
+TIMEOUT = float(os.environ.get("SMERGERS_LLM_TIMEOUT", "60"))
 
 KINDS = {"quantity_change", "upgrade", "replacement", "extra", "discount", "non_billable"}
 OUTCOMES = {"agreed", "asked", "withdrawn", "discount", "no_cost"}
