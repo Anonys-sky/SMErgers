@@ -1,16 +1,15 @@
 # Submission documents
 
-File names from the official GitHub template (`SDC_Hackathon_Submission_Template`). Put each file in this folder:
+Final round files (file names from the official finals template):
 
-- [x] `SDC2026_VBall_Preliminary Proposal.pdf`: the completed Preliminary Project Proposal (official submission template), signed.
-- [x] `SDC2026_VBall_TechDeclaration.pdf`: the completed Technical & Tools Declaration, signed, with the RunPod proof (Appendix A, handbook 10.7) and the Replit proof (Appendix B, handbook 10.6) attached.
-- [x] `SDC2026_VBall_Replit_POU.pdf`: Replit proof of use (live deployment URL, project link with history, or credit screenshot, from a team member's own account).
-- [x] `SDC2026_VBall_Runpod_POU.pdf`: RunPod dashboard screenshot from the team's own account showing the Endpoint ID, GPU type and runtime (`runpod/README.md`).
-- [x] `SDC2026_VBall_PitchDeck.pdf`: the pitch deck (21 slides). Online version: https://canva.link/yh0xo39bpzxaomf
-- [x] YouTube demo video (6:47): https://youtu.be/UKgKFRvKVhM
+- `SDC2026_VBall_Final.pdf`: the Final Project & Prototype Report.
+- `SDC2026_VBall_TechDeclaration.pdf`: the Technical & Tools Declaration.
+- `SDC2026_VBall_Replit_POU.pdf` and `SDC2026_VBall_Runpod_POU.pdf`: proof of use from the preliminary round (the RunPod dashboard screenshot for the finals goes with the declaration).
+- Pitch deck: https://canva.link/ou8aw1csszj4c2r (flattened PDF is submitted on sdchack.my)
+- Demo video: https://youtu.be/laZI8g3hMoQ
 
-Before submitting: make the repository public, add the committee's GitHub accounts as collaborators.
+The preliminary round documents were removed from this folder; they stay in the git history.
 
 ## RunPod
 
-The AI reader's model runs on a RunPod Serverless endpoint (handbook 9.4: GPU work must use RunPod). Set it up with `runpod/README.md`, run one import with the AI reader ticked on the live Replit app, then take the dashboard screenshot for the proof PDF and the Tools Declaration (handbook 10.7).
+The AI reader's model runs on a RunPod Serverless endpoint. Set it up with `runpod/README.md`.

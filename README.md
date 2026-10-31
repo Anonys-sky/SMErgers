@@ -24,8 +24,8 @@ All data in this repository is synthetic. No real chat, person, client or compan
 | GitHub Repository | https://github.com/Anonys-sky/SMErgers                                                                                     |
 | Live Demo         | https://sm-ergers-1.replit.app                                                                                             |
 | RunPod Endpoint   | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM; calls need an API key, kept in Replit Secrets)                  |
-| Slide Deck        | https://canva.link/yh0xo39bpzxaomf (PDF: [submission/SDC2026_VBall_PitchDeck.pdf](submission/SDC2026_VBall_PitchDeck.pdf)) |
-| Demo Video        | https://youtu.be/UKgKFRvKVhM                                                                                               |
+| Slide Deck        | https://canva.link/ou8aw1csszj4c2r (flattened PDF submitted on sdchack.my) |
+| Demo Video        | https://youtu.be/laZI8g3hMoQ                                                                                               |
 
 ---
 
@@ -265,7 +265,7 @@ curl -X POST https://api.runpod.ai/v2/$RUNPOD_ENDPOINT_ID/openai/v1/chat/complet
 - [x] Demo video link added
 - [x] Replit used, with proof of use in `submission/`
 - [x] RunPod used, with proof of use in `submission/`
-- [x] Preliminary submission completed (`SDC2026_VBall_Preliminary Proposal.pdf`)
+- [x] Final report and tech declaration in `submission/`
 - [x] Technology declaration completed (`SDC2026_VBall_TechDeclaration.pdf`)
 - [x] Submission files renamed with the team name
 - [x] "How to Run" steps verified
