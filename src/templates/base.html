@@ -54,7 +54,7 @@
   <div class="workspace">
     <header class="topbar">
       <div class="crumb">Event operations <span aria-hidden="true">/</span> {{ profile.title if profile else roles.get(role, 'Workspace') }}</div>
-      <div class="topbar-right"><span class="badge" title="Sample people, jobs, chats and quotes are invented">Demo · synthetic data</span></div>
+      <div class="topbar-right"><span class="badge" title="Sample people, jobs, chats and quotes are invented">Demo · synthetic data</span><button class="tutorial-trigger" type="button" data-tutorial-open aria-haspopup="dialog"><span aria-hidden="true">ⓘ</span> Tutorial</button></div>
     </header>
     <main id="main-content" tabindex="-1">
       {% for category, message in get_flashed_messages(with_categories=true) %}
@@ -65,5 +65,23 @@
   </div>
   <footer>SMErgers · Bills are drafts for accounting software and do not send invoices or take payment. Chat evidence supports traceability; it is not legal advice.</footer>
 </div>
+<dialog class="tutorial-dialog" id="tutorial-dialog" data-tutorial-role="{{ role }}" aria-labelledby="tutorial-title" aria-describedby="tutorial-description">
+  <div class="tutorial-sheet">
+    <div class="tutorial-topline"><span class="tutorial-brand"><span class="brand-mark" aria-hidden="true">S</span> SMErgers guide</span><button class="tutorial-close" type="button" data-tutorial-close aria-label="Close tutorial">×</button></div>
+    <div class="tutorial-progress" role="progressbar" aria-label="Tutorial progress" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1"><span data-tutorial-progress-bar></span></div>
+    <div class="tutorial-content">
+      <p class="eyebrow" data-tutorial-kicker>Welcome to your workspace</p>
+      <div class="tutorial-icon" data-tutorial-icon aria-hidden="true">⌂</div>
+      <h2 id="tutorial-title" tabindex="-1" data-tutorial-heading>Keep every event change in view</h2>
+      <p id="tutorial-description" class="tutorial-description" data-tutorial-description></p>
+      <p class="tutorial-note" data-tutorial-note></p>
+    </div>
+    <div class="tutorial-footer">
+      <p class="tutorial-count" data-tutorial-count aria-live="polite"></p>
+      <div class="tutorial-actions"><button type="button" class="tutorial-skip" data-tutorial-close>Skip tutorial</button><div class="tutorial-nav"><button type="button" data-tutorial-back>Back</button><button type="button" class="primary" data-tutorial-next>Next</button><button type="button" class="primary" data-tutorial-done hidden>Get started</button></div></div>
+    </div>
+  </div>
+</dialog>
+<script src="{{ url_for('static', filename='tutorial.js') }}" defer></script>
 </body>
 </html>
