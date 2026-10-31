@@ -21,9 +21,9 @@
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------- |
 | GitHub Repository | https://github.com/Anonys-sky/SMErgers                                                                                     |
 | Live Demo         | https://sm-ergers-1.replit.app                                                                                             |
-| RunPod Endpoint   | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM; calls need an API key, kept in Replit Secrets)                  |
+| RunPod Endpoint   | https://api.runpod.ai/v2/2y90x5ojwpgxnh (Serverless vLLM; calls need an API key, kept in Replit Secrets)                   |
 | Slide Deck        | https://canva.link/yh0xo39bpzxaomf (PDF: [submission/SDC2026_VBall_PitchDeck.pdf](submission/SDC2026_VBall_PitchDeck.pdf)) |
-| Demo Video        | https://youtu.be/UKgKFRvKVhM                                                                                               |
+| Demo Video        | https://www.youtube.com/watch?v=laZI8g3hMoQ                                                                                |
 
 ---
 
