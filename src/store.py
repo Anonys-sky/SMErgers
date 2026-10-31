@@ -85,13 +85,31 @@ def build_with_catalogue(job_id, messages, chat_name, catalogue, ai=False):
 GROUPS: dict[str, str] = {}  # WhatsApp group id -> job id
 
 
+def connect_webhook(job_id, group_id):
+    """Link one official webhook group to an existing project."""
+    import webhook
+
+    record = JOBS.get(job_id)
+    if record is None or not isinstance(group_id, str) or not re.fullmatch(r"[^\s@]+@g\.us", group_id):
+        raise ValueError("Choose a project and enter a valid WhatsApp group ID ending in @g.us.")
+    if record.bridge is not None:
+        raise ValueError("This project already uses the WhatsApp bridge.")
+    if record.live is not None and record.live.group_id != group_id:
+        raise ValueError("This project is already linked to another webhook group.")
+    if group_id in GROUPS and GROUPS[group_id] != job_id:
+        raise ValueError("This webhook group is already linked to another project.")
+    record.live = record.live or webhook.LiveFeed(group_id)
+    GROUPS[group_id] = job_id
+    return record
+
+
 def receive(payload):
     """Route an incoming webhook payload to the job its WhatsApp group belongs to."""
     import webhook
 
     for rec in webhook.records_from_payload(payload):
         record = JOBS.get(GROUPS.get(rec["group_id"], ""))
-        if record is not None and record.live is not None:
+        if record is not None and record.live is not None and record.live.group_id == rec["group_id"]:
             webhook.ingest(record, [rec])
 
 

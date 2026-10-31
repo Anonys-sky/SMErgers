@@ -34,9 +34,11 @@ def lock_job():
     # Background detection and a person's review must not mutate the same job
     # at once. Keep rendering consistent with its messages and extracted changes.
     record = store.JOBS.get((request.view_args or {}).get("job_id"))
-    if record is not None and record.bridge is not None:
-        record.bridge.lock.acquire()
-        g.job_lock = record.bridge.lock
+    if record is not None:
+        lock = record.bridge.lock if record.bridge is not None else record.live.lock if record.live is not None else None
+        if lock is not None:
+            lock.acquire()
+            g.job_lock = lock
 
 
 @app.teardown_request
@@ -338,6 +340,18 @@ def whatsapp_import():
         flash("The AI reader could not be reached, so the rules read this chat instead.")
     elif record.ai:
         flash("Read by the AI reader. Every price and status was checked by the rules before showing it here.")
+    return redirect(url_for("job_page", job_id=record.id))
+
+
+@app.post("/whatsapp/webhook/connect")
+def whatsapp_webhook_connect():
+    managers_only()
+    try:
+        record = store.connect_webhook(request.form.get("project", ""), request.form.get("group", "").strip())
+    except ValueError as err:
+        flash(str(err))
+        return redirect(url_for("whatsapp_page"))
+    flash(f"Webhook group linked to {record.title}. Incoming messages will appear in this project.", "ok")
     return redirect(url_for("job_page", job_id=record.id))
 
 

@@ -38,6 +38,9 @@ the business number creates one group per job, the client and vendors join by in
 messages arrive by webhook. `POST /webhooks/whatsapp` accepts Meta's payload format, checks the
 `X-Hub-Signature-256` signature when `WHATSAPP_APP_SECRET` is set, and `GET` answers Meta's
 verification handshake with `WHATSAPP_VERIFY_TOKEN`.
+Before sending messages, a project manager links the group ID to an existing project under
+**Read from WhatsApp → Connect an official webhook group**. Incoming messages then merge into
+that project's chat; retries with the same WhatsApp message ID are ignored.
 
 Assumption to verify: we read the group from a `group_id` field on each message.
 Known limits of the official Groups API: at most 8 participants per group; an Official Business

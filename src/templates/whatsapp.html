@@ -102,6 +102,20 @@
   {% endif %}
 {% endif %}
 
+<section class="panel" id="webhook-connect">
+  <h2>Connect an official webhook group</h2>
+  <p class="hint">Link a WhatsApp group ID to a project before sending messages to <code>/webhooks/whatsapp</code>. Existing project messages and decisions remain available.</p>
+  <form class="actions" method="post" action="{{ url_for('whatsapp_webhook_connect') }}">
+    <label>Project
+      <select name="project" required><option value="" disabled selected>Choose the project</option>{% for project in projects %}<option value="{{ project.id }}">{{ project.title }} · {{ project.catalogue.quote.quote_id }}{% if project.live %} · webhook linked{% elif project.bridge %} · bridge connected{% endif %}</option>{% endfor %}</select>
+    </label>
+    <label>Group ID
+      <input name="group" placeholder="123456789@g.us" required>
+    </label>
+    <button class="primary">Link webhook group</button>
+  </form>
+</section>
+
 <p><a href="{{ url_for('imports_page') }}">Back to Import chat</a></p>
 
 {% if status.status != 'ready' %}

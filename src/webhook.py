@@ -8,7 +8,8 @@ before going live.
 import hashlib
 import hmac
 import os
-from dataclasses import dataclass, field
+import threading
+from dataclasses import dataclass, field, replace
 from datetime import datetime
 from zoneinfo import ZoneInfo
 
@@ -23,6 +24,7 @@ KL = ZoneInfo("Asia/Kuala_Lumpur")
 class LiveFeed:
     group_id: str
     received: list = field(default_factory=list)   # message records, as messages_from_whatsapp takes them
+    lock: object = field(default_factory=threading.RLock, repr=False, compare=False)
 
 
 def signature_ok(body, header):
@@ -65,15 +67,25 @@ def ingest(record, records, now=None):
     import sync  # imported here: sync needs the store's records, the store imports this module
 
     feed = record.live
-    seen = {r["wa_id"] for r in feed.received}
-    fresh = [r for r in records if r["wa_id"] not in seen]
-    if not fresh:
-        return []
-    feed.received.extend(fresh)
-    for r in fresh:  # the trigger is part of the record: what arrived, from whom, and by which route
-        record.job.log.add(now or datetime.now(), SYSTEM, "trigger", "-",
-                           f"message from {r['sender']} arrived through the WhatsApp webhook")
-    record.messages = messages_from_whatsapp(feed.received, KL)
-    new = record.job.refresh(extract(record.messages, record.catalogue, ai=record.ai), now)
-    sync.after_detection(record, new, now)
-    return new
+    with feed.lock:
+        seen = {r["wa_id"] for r in feed.received}
+        fresh = []
+        for row in records:
+            if row["wa_id"] not in seen:
+                fresh.append(row)
+                seen.add(row["wa_id"])
+        if not fresh:
+            return []
+        merged = {m.id: m for m in record.messages}
+        merged.update((m.id, m) for m in messages_from_whatsapp(fresh, KL))
+        messages = [replace(m, seq=i) for i, m in enumerate(
+            sorted(merged.values(), key=lambda m: m.sent_at), 1)]
+        changes = extract(messages, record.catalogue, ai=record.ai)
+        feed.received.extend(fresh)
+        for r in fresh:  # the trigger is part of the record: what arrived, from whom, and by which route
+            record.job.log.add(now or datetime.now(), SYSTEM, "trigger", "-",
+                               f"message from {r['sender']} arrived through the WhatsApp webhook")
+        record.messages = messages
+        new = record.job.refresh(changes, now)
+        sync.after_detection(record, new, now)
+        return new

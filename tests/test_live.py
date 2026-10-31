@@ -116,13 +116,45 @@ def test_play_the_rest_ends_with_the_same_changes_as_an_export(client):
 
 def test_the_webhook_route_feeds_the_live_group(client):
     record = store.build_from_messages("webhook-test", [], "Webhook group", "q_dinner.json")
-    record.live = webhook.LiveFeed("webhook@g.us")
-    store.GROUPS[record.live.group_id] = record.id
+    linked = client.post("/whatsapp/webhook/connect", data={"project": record.id, "group": "webhook@g.us"})
+    assert linked.status_code == 302
+    assert record.live.group_id == "webhook@g.us" and store.GROUPS["webhook@g.us"] == record.id
     payload = {"entry": [{"changes": [{"value": {"messages": [{
         "id": "m1", "group_id": record.live.group_id, "from": "60123", "timestamp": "1789452300",
         "type": "text", "text": {"body": "195 people attending"}}]}}]}]}
     assert client.post("/webhooks/whatsapp", json=payload).data == b"ok"
     assert any("195 people" in m.text for m in record.messages)
+
+
+def test_webhook_keeps_existing_chat_and_decisions_and_deduplicates_retries(client):
+    record = store.JOBS["annual-dinner"]
+    banners = next(k for k, item in record.job.items.items() if item.change.item == "Roll-up banner")
+    record.job.act(banners, "review", record.actor("pm"))
+    original_ids = {m.id for m in record.messages}
+    original_count = len(record.messages)
+    assert client.post("/whatsapp/webhook/connect", data={
+        "project": record.id, "group": "annual@g.us"}).status_code == 302
+    payload = {"entry": [{"changes": [{"value": {"messages": [{
+        "id": "new-pax", "group_id": "annual@g.us", "from": "60123", "timestamp": "1792000000",
+        "type": "text", "text": {"body": "Can we add 3 more pax?"}}]}}]}]}
+    for _ in range(2):
+        assert client.post("/webhooks/whatsapp", json=payload).status_code == 200
+    assert len(record.messages) == original_count + 1
+    assert original_ids <= {m.id for m in record.messages}
+    assert record.job.items[banners].state == "approved"
+    assert sum(e.action == "trigger" and "webhook" in e.detail for e in record.job.log.entries) == 1
+    assert any(item.change.qty_delta == 3 for item in record.job.items.values())
+
+
+def test_webhook_group_cannot_be_reassigned_or_linked_by_finance(client):
+    assert client.post("/whatsapp/webhook/connect", data={
+        "project": "annual-dinner", "group": "one@g.us"}).status_code == 302
+    client.post("/whatsapp/webhook/connect", data={"project": "product-launch", "group": "one@g.us"})
+    assert store.GROUPS == {"one@g.us": "annual-dinner"}
+    client.post("/role", data={"role": "finance"})
+    assert client.post("/whatsapp/webhook/connect", data={
+        "project": "product-launch", "group": "two@g.us"}).status_code == 403
+    assert "two@g.us" not in store.GROUPS
 
 
 def test_bridge_request_is_caught_without_guessing_that_it_was_agreed(client):
