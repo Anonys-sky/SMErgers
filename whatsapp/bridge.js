@@ -23,6 +23,7 @@ const QRCode = require('qrcode');
 const { Client, LocalAuth } = require('whatsapp-web.js');
 const { toRecord, contactName } = require('./convert');
 const { browserOptions } = require('./browser');
+const { browserSessionLost } = require('./recovery');
 const { GroupTracker } = require('./tracker');
 const tracker = new GroupTracker();
 
@@ -78,6 +79,7 @@ function start() {
         userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
         puppeteer: browserOptions(),
     });
+    const currentClient = client;
 
     // message_create includes messages sent by the linked account as well as
     // incoming messages. The 'message' event excludes our own messages.
@@ -118,6 +120,11 @@ function start() {
             loading: null,
             pairing_code: null,
             me: { name: info.pushname || null, number: info.wid ? info.wid.user : null },
+        });
+        currentClient.pupPage?.once('close', () => {
+            if (stopping || client !== currentClient || state.status === 'logged_out') return;
+            setStatus('error', { error: 'WhatsApp Web browser page closed.' });
+            scheduleRestart('browser page closed');
         });
     });
 
@@ -321,6 +328,7 @@ const server = http.createServer(async (req, res) => {
             return send(res, 200, { code, phone: cleanPhone });
         } catch (err) {
             console.error('[whatsapp] Pairing code error:', err.message);
+            recoverBrowserSession(err);
             return send(res, 500, { error: err.message || 'Could not request pairing code' });
         }
     }
@@ -350,9 +358,16 @@ const server = http.createServer(async (req, res) => {
         return send(res, 404, { error: 'Not found' });
     } catch (err) {
         console.error('[whatsapp] request failed:', err);
+        recoverBrowserSession(err);
         return send(res, 500, { error: err.message || 'WhatsApp request failed' });
     }
 });
+
+function recoverBrowserSession(err) {
+    if (!browserSessionLost(err) || restartTimer || stopping) return;
+    setStatus('error', { error: `WhatsApp Web browser session was lost: ${err.message}` });
+    scheduleRestart('browser session lost');
+}
 
 server.on('error', (err) => {
     console.error(`[whatsapp] cannot listen on 127.0.0.1:${PORT}: ${err.message}`);
