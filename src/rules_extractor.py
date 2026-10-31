@@ -252,6 +252,11 @@ def extract(messages, catalogue: Catalogue):
             named = _thread_about(threads, mentions, msg.sent_at, catalogue)
         elif opened and opened[0] == "generic":
             named = open_thread_for(opened[2], msg.sent_at)
+        # A completed deal does not absorb a fresh request for the same item.
+        # Keep withdrawals on the old thread so they can cancel its approval.
+        if named and opened and ASK.search(text) and not WITHDRAW.search(text) \
+                and _agreement(named) in ("agreed", "withdrawn"):
+            named = None
         if named:
             named.messages.append(msg)
             continue

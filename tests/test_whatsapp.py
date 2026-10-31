@@ -39,6 +39,36 @@ def test_live_messages_find_the_same_changes_as_the_export(chat, quote):
     assert summary(extract(live, catalogue)) == summary(extract(exported, catalogue))
 
 
+def test_second_agreed_request_for_same_item_survives_live_refresh():
+    text = ("12/10/2026, 10:00 - Client: Can we add 10 more pax?\n"
+            "12/10/2026, 10:01 - PM: RM1,280 more\n"
+            "12/10/2026, 10:02 - Client: Ok go ahead\n"
+            "12/10/2026, 11:00 - Client: Can we add 5 more pax?\n"
+            "12/10/2026, 11:01 - PM: RM640 more\n"
+            "12/10/2026, 11:02 - Client: Ok go ahead")
+    all_messages = messages_from_whatsapp(as_records(parse_chat(text)), KL)
+    catalogue = Catalogue.load("q_dinner.json")
+    record = store.build_with_catalogue("repeat-pax-live", all_messages[:3], "live", catalogue)
+    record.bridge = whatsapp_bridge.GroupSync(GROUP, 200)
+    first = record.job.items["t1"]
+    assert first.change.qty_delta == 10 and first.price == 1280
+    pm, owner, client = (record.actor(role) for role in ("pm", "owner", "client"))
+    record.job.act("t1", "review", pm)
+    record.job.act("t1", "approve", owner)
+    record.job.act("t1", "confirm", client)
+
+    assert whatsapp_bridge.apply_messages(record, all_messages[3:]) == ["t2"]
+    assert [(key, item.change.qty_delta, item.price, item.state)
+            for key, item in record.job.items.items()] == [
+                ("t1", 10, 1280, "confirmed"), ("t2", 5, 640, "detected")]
+    from bill import build_bill
+    assert build_bill(catalogue, record.job).changes_total == 1280
+    record.job.act("t2", "review", pm)
+    record.job.act("t2", "approve", owner)
+    record.job.act("t2", "confirm", client)
+    assert build_bill(catalogue, record.job).changes_total == 1920
+
+
 def test_times_senders_and_text_match_the_export():
     exported = [m for m in parse_chat((CHATS / "dinner_client.txt").read_text(encoding="utf-8")) if m.sender]
     live = messages_from_whatsapp(as_records(exported), KL)
